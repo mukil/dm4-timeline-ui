@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>EduZEN Resources - Sharing educational content with tags in time</title>
+        <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0"/>
+
+        <link rel="stylesheet" href="/de.tu-berlin.eduzen.deepamehta-resources/style/style.css"/>
+        <link rel="stylesheet" href="/de.tu-berlin.eduzen.deepamehta-resources/script/vendor/ckeditor/contents.css"/>
+        <link rel="stylesheet" href="/de.deepamehta.webclient/script/vendor/jquery/css/custom-theme/jquery-ui-1.8.21.custom.css"/>
+
+        <script type="text/javascript" src="/de.tu-berlin.eduzen.mathjax-renderer/script/vendor/mathjax/MathJax.js?config=default&delayStartupUntil;=configured"></script>
+        <script type="text/javascript" src="/de.deepamehta.webclient/script/vendor/jquery/jquery-1.7.2.min.js"></script>
+        <script type="text/javascript" src="/de.deepamehta.webclient/script/vendor/jquery/jquery-ui-1.8.21.custom.min.js"></script>
+        <script type="text/javascript" src="/de.deepamehta.webclient/script/util/rest_client.js"></script>
+        <script type="text/javascript" src="/de.deepamehta.webclient/script/util/gui_toolkit.js"></script>
+        <script type="text/javascript" src="/de.tu-berlin.eduzen.deepamehta-resources/script/vendor/eduzen_dictionary.js"></script>
+        <script type="text/javascript" src="/de.tu-berlin.eduzen.deepamehta-resources/script/vendor/ckeditor/ckeditor.js"></script>
+        <script type="text/javascript" src="/de.tu-berlin.eduzen.deepamehta-resources/script/trt.js"></script>
+        <!-- script type="text/javascript" src="/de.deepamehta.accesscontrol/script/vendor/sha256.js"></script-->
+        <!--<script type="text/javascript" src="https://getfirebug.com/firebug-lite.js"></script>-->
+        <!-- script type="text/javascript" src="http://modernizr.com/downloads/modernizr-latest.js"></script-->
+
+        <!-- Note: We are proudly build on free and open source tools, namely jQuery, Piwik and DeepaMehta 4. -->
+
+        <!-- Piwik -->
+        <script type="text/javascript">
+            var pkBaseURL = (("https:" == document.location.protocol) ? "https://research.eduzen.tu-berlin.de/analytics/" : "http://research.eduzen.tu-berlin.de/analytics/");
+            document.write(unescape("%3Cscript src='" + pkBaseURL + "piwik.js' type='text/javascript'%3E%3C/script%3E"));
+            </script><script type="text/javascript">
+            try {
+            var piwikTracker = Piwik.getTracker(pkBaseURL + "piwik.php", 1);
+            piwikTracker.trackPageView();
+            piwikTracker.enableLinkTracking();
+            } catch( err ) {}
+        </script>
+        <!-- End Piwik Tracking Code -->
+
+        <script type="text/javascript"> $(document).ready(function() { setupView() }) </script>
+
+    </head>
+
+    <body>
+        <div class="header">
+            <h3 class="hello">
+                <!-- Share your educational resource*-->
+            </h3>
+            <div class="content-area">
+                <p><!-- i class="label">Educational resource</i-->&nbsp;</p>
+                <div id="resource-input" contenteditable="true"></div>
+                <p>
+                    <input type="text" placeholder="Tag" class="tag"></input>
+                    <input type="button" value="Submit" class="submit" onclick="javascript:submitResource()"></input>
+                </p>
+            </div>
+        </div>
+
+        <div class="timeline">
+
+            <div class="info">
+                <h3>Timeline of shared resources</h3>
+            </div>
+
+            <div class="results">
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <ul>
+                    <li></li>
+                    <li></li>
+                    <li></li>
+                </ul>
+            </div>
+
+        </div>
+
+        <div class="footer">
+            <h3>Hint &amp; Imprint</h3>
+            Note: Please always share a reference to the author or the origin of your resource so this platform we provide to you has at least some sort of "academic standard compliance".
+            <br/><br/>
+            This <a href="http://eduzen.tu-berlin.de/content-platform">platform</a> is a prototypical experiment seeded by the <a href="http://eduzen.tu-berlin.de" title="Find our projects website">educationZEN project</a>, please send <a href="mailto:team@eduzen.tu-berlin.de" title="Mailto: team@eduzen.tu.berlin.de">them</a> your ideas on how to improve it.
+        </div>
+
+        <noscript>
+            <img src="http://research.eduzen.tu-berlin.de/analytics/piwik.php?idsite=1" style="border:0" alt="" />
+        </noscript>
+
+    </body>
+
+</html>

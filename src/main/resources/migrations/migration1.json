@@ -1,17 +1,59 @@
 {
     "topic_types": [
         {
-            "value": "Tag",
-            "uri": "dm4.tags.tag",
-            "data_type_uri": "dm4.core.text", 
+            "value": "Name",
+            "uri": "dm4.resources.name",
+            "data_type_uri": "dm4.core.text",
             "index_mode_uris": ["dm4.core.fulltext", "dm4.core.key"],
             "view_config_topics": [
                 {
                     "type_uri": "dm4.webclient.view_config",
                     "composite": {
                         "dm4.webclient.add_to_create_menu": false,
-                        "dm4.webclient.is_searchable_unit": true,
+                        "dm4.webclient.is_searchable_unit": false,
                         "dm4.webclient.rows": 1
+                    }
+                }
+            ]
+        },
+        {
+            "value": "Content",
+            "uri": "dm4.resources.content",
+            "data_type_uri": "dm4.core.html",
+            "index_mode_uris": ["dm4.core.fulltext"],
+            "view_config_topics": [
+                {
+                    "type_uri": "dm4.webclient.view_config",
+                    "composite": {
+                        "dm4.webclient.add_to_create_menu": false,
+                        "dm4.webclient.is_searchable_unit": false,
+                        "dm4.webclient.input_field_rows": 4
+                    }
+                }
+            ]
+        },
+        {
+            "value": "Resource",
+            "uri": "dm4.resources.resource",
+            "data_type_uri": "dm4.core.composite",
+            "assoc_defs": [
+                {
+                    "child_type_uri":           "dm4.resources.name",
+                    "child_cardinality_uri":    "dm4.core.one",
+                    "assoc_type_uri":           "dm4.core.composition_def"
+                },
+                {
+                    "child_type_uri":           "dm4.resources.content",
+                    "child_cardinality_uri":    "dm4.core.one",
+                    "assoc_type_uri":           "dm4.core.composition_def"
+                } ### Timestamp is missing yet
+            ], "view_config_topics": [
+                {
+                    "type_uri": "dm4.webclient.view_config",
+                    "composite": {
+                        "dm4.webclient.icon": "/de.tu-berlin.eduzen.deepamehta-resources/images/black_32.png",
+                        "dm4.webclient.add_to_create_menu": true,
+                        "dm4.webclient.is_searchable_unit": true
                     }
                 }
             ]

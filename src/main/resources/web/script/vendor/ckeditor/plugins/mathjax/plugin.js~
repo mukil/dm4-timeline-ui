@@ -1,0 +1,35 @@
+CKEDITOR.plugins.add('mathjax', {
+    init: function( editor ) {
+
+        editor.addCommand('mathjaxDialog', new CKEDITOR.dialogCommand('mathjaxDialog'))
+        editor.ui.addButton('MathJax Dialog', {
+            label: 'Open LaTeX/MathML Input Dialog',
+            command: 'mathjaxDialog', toolbar: 'insert',
+            icon: CKEDITOR.plugins.getPath('mathjax') + 'icons/equation.png'
+        })
+
+        editor.ui.addButton('Source View', {
+            label: 'Switch to source view',
+            toolbar: 'insert',
+        })
+
+        CKEDITOR.dialog.add('mathjaxDialog', this.path + 'dialogs/mathjax.js')
+
+       /**  if ( editor.contextMenu ) {
+            editor.addMenuGroup( 'mathjaxGroup' );
+            editor.addMenuItem( 'mathjaxItem', {
+                label: 'Edit MathJax',
+                icon: this.path + 'icons/equation.png',
+                command: 'mathjaxDialog',
+                group: 'mathjaxGroup'
+            });
+
+            editor.contextMenu.addListener( function( element ) {
+                if ( element.getAscendant( 'mathOutput', true ) ) {
+                    return { mathjaxItem: CKEDITOR.TRISTATE_OFF };
+                }
+            });
+        }**/
+
+    }
+});
