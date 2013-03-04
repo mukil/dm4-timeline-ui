@@ -1,11 +1,13 @@
 (function(CKEDITOR, MathJax, $, console, dmc) {
 
+    window.dmc = dmc;
+
     this.submitResource = function() {
-        // var pageContent = $('#resource-input').val()
-        var valueToSubmit = this.getTeXAndHTMLSource(document.getElementById("resource-input"))
+        // var pageContent = $('#resource_input').val()
+        var valueToSubmit = this.getTeXAndHTMLSource(document.getElementById("resource_input"))
         console.log(valueToSubmit)
         createResourceTopic(valueToSubmit)
-        $('#resource-input').html("")
+        $('#resource_input').html("")
         // TODO: render some "Saved" Notification
     }
 
@@ -15,12 +17,14 @@
 
     this.setupCKEditor = function () {
         // setup cK-editor
-        CKEDITOR.inline(document.getElementById('resource-input'))
-        CKEDITOR.config.filebrowserImageBrowseUrl = '/de.deepamehta.images/browse.html'
-        CKEDITOR.config.filebrowserImageUploadUrl = '/images/upload'
+        CKEDITOR.replace('resource_input')
+        console.log("setting up CKEditor.. ")
+        console.log(CKEDITOR.config)
+        // console.log("inspecting local inline cKEDITOR..")
+        // console.log(editor.config)
         // upload-fallback: $(".button.upload").click(this.open_upload_dialog(uploadPath, this.handleUploadResponse))
         // mathjax preview handling
-        $input = $('#resource-input')
+        $input = $('#resource_input')
         $input.keyup(function(e) {
             // console.log("key up on input... area.. rendering math in preview.. ")
             renderApproachMathPreview($input.val())
@@ -39,7 +43,6 @@
     }
 
     this.setupView = function() {
-        console.log(dmc.get_all_topic_types(function(result){console.log(result)}))
         console.log("tagging resources in time, initialized..")
         this.registerHistoryStates()
         this.setupMathJaxRenderer()
@@ -138,8 +141,10 @@
             "SVG": {"blacker": 8, "scale": 110},
             "v1.0-compatible": false,
             "skipStartupTypeset": false,
-            "elements": ["resource-input"]
+            "elements": ["body"]
         });
+        // console.log("testing to get at an iframe.. into mathJax rendering")
+        // console.log($(".cke_wysiwyg_frame").context.childNodes[1].childNodes[2])
         MathJax.Hub.Configured() // bootstrap mathjax.js lib now
     }
 
@@ -160,10 +165,11 @@
                 // ### prevent dialog from opening up
             }
         }
+        var data = CKEDITOR.instances.resource_input.getData();
         // var data = $("" + body.innerHTML + "") // copy raw-data of ck-editor
         // console.log(data)
         // MathJax.Hub.Typeset() // typeset ck-editor again
-        return body.innerHTML
+        return data
 
             // duplicate helperfunction in mathjax/dialogs/mathjax.js
             function getInputSourceById(id, body) {

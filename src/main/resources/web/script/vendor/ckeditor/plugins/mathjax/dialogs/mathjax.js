@@ -22,8 +22,9 @@ CKEDITOR.dialog.add( 'mathjaxDialog', function( editor ) {
                         type: 'html',
                         html: '<label>Vorschau</label><div id="math-live-preview"></div>',
                         setup: function (element) {
-                            var textarea = editor.document.getElementsByTag("textarea")
-                            editor.document.getById("math-live-preview").setText("") // clear preview
+                            var textarea = editor.document.getById("mathInput")
+                            var livePreview = editor.document.getById("math-live-preview")
+                            if (livePreview != undefined) livePreview.setText("") // clear preview
                             // register live-preview handler
                             if (textarea) {
                                 var t = textarea.$[0]
