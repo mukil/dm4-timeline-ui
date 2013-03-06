@@ -33,6 +33,20 @@
             ]
         },
         {
+            "value": "Published",
+            "uri": "dm4.resources.is_published",
+            "data_type_uri": "dm4.core.boolean",
+            "view_config_topics": [
+                {
+                    "type_uri": "dm4.webclient.view_config",
+                    "composite": {
+                        "dm4.webclient.add_to_create_menu": false,
+                        "dm4.webclient.is_searchable_unit": false
+                    }
+                }
+            ]
+        },
+        {
             "value": "Resource",
             "uri": "dm4.resources.resource",
             "data_type_uri": "dm4.core.composite",
@@ -44,6 +58,11 @@
                 },
                 {
                     "child_type_uri":           "dm4.resources.content",
+                    "child_cardinality_uri":    "dm4.core.one",
+                    "assoc_type_uri":           "dm4.core.composition_def"
+                },
+                {
+                    "child_type_uri":           "dm4.resources.is_published",
                     "child_cardinality_uri":    "dm4.core.one",
                     "assoc_type_uri":           "dm4.core.composition_def"
                 } ### Timestamp is missing yet

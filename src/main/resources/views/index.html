@@ -17,6 +17,7 @@
         <script type="text/javascript" src="/de.deepamehta.webclient/script/util/gui_toolkit.js"></script>
         <script type="text/javascript" src="/de.tu-berlin.eduzen.deepamehta-resources/script/vendor/eduzen_dictionary.js"></script>
         <script type="text/javascript" src="/de.tu-berlin.eduzen.deepamehta-resources/script/vendor/ckeditor/ckeditor.js"></script>
+        <script type="text/javascript" src="/de.tu-berlin.eduzen.deepamehta-resources/script/model/AppModel.js"></script>
         <script type="text/javascript" src="/de.tu-berlin.eduzen.deepamehta-resources/script/trt.js"></script>
         <!-- script type="text/javascript" src="/de.deepamehta.accesscontrol/script/vendor/sha256.js"></script-->
         <!--<script type="text/javascript" src="https://getfirebug.com/firebug-lite.js"></script>-->
@@ -48,10 +49,10 @@
             </h3>
             <div class="content-area">
                 <p><!-- i class="label">Educational resource</i-->&nbsp;</p>
-                <textarea id="resource_input"></textarea> <!-- contenteditable="true" -->
+                <div id="resource_input" contenteditable="true"></div> <!--  -->
                 <p>
-                    <input type="text" placeholder="Tag" class="tag"></input>
-                    <input type="button" value="Submit" class="submit" onclick="javascript:submitResource()"></input>
+                    <input type="text" placeholder="Tag" size="50" class="tag"></input>
+                    <input type="button" value="Submit" class="submit btn" onclick="javascript:submitResource()"></input>
                 </p>
             </div>
         </div>
@@ -83,7 +84,7 @@
 
         <div class="footer">
             <h3>Hint &amp; Imprint</h3>
-            Note: Please always share a reference to the author or the origin of your resource so this platform we provide to you has at least some sort of "academic standard compliance".
+            Please always share a reference to the author or the origin of your resource so this platform we provide to you has at least some sort of "academic standard compliance".
             <br/><br/>
             This <a href="http://eduzen.tu-berlin.de/content-platform">platform</a> is a prototypical experiment seeded by the <a href="http://eduzen.tu-berlin.de" title="Find our projects website">educationZEN project</a>, please send <a href="mailto:team@eduzen.tu-berlin.de" title="Mailto: team@eduzen.tu.berlin.de">them</a> your ideas on how to improve it.
         </div>
