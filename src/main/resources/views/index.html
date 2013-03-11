@@ -15,6 +15,7 @@
         <script type="text/javascript" src="/de.deepamehta.webclient/script/vendor/jquery/jquery-ui-1.8.21.custom.min.js"></script>
         <script type="text/javascript" src="/de.deepamehta.webclient/script/util/rest_client.js"></script>
         <script type="text/javascript" src="/de.deepamehta.webclient/script/util/gui_toolkit.js"></script>
+        <script type="text/javascript" src="/de.tu-berlin.eduzen.deepamehta-resources/script/vendor/skrollr/skrollr.min.js"></script>
         <script type="text/javascript" src="/de.tu-berlin.eduzen.deepamehta-resources/script/vendor/eduzen_dictionary.js"></script>
         <script type="text/javascript" src="/de.tu-berlin.eduzen.deepamehta-resources/script/vendor/ckeditor/ckeditor.js"></script>
         <script type="text/javascript" src="/de.tu-berlin.eduzen.deepamehta-resources/script/model/AppModel.js"></script>
@@ -38,7 +39,12 @@
         </script>
         <!-- End Piwik Tracking Code -->
 
-        <script type="text/javascript"> $(document).ready(function() { setupView() }) </script>
+        <script type="text/javascript">
+            $(document).ready(function() {
+            /** Initialize the our interactive page **/
+                setupView()
+            })
+        </script>
 
     </head>
 
@@ -48,43 +54,40 @@
                 <!-- Share your educational resource*-->
             </h3>
             <div class="content-area">
-                <p><!-- i class="label">Educational resource</i-->&nbsp;</p>
+                <p><!-- i class="label">Educational resource</i-->
+                    <b class="header-title">Neuen Inhalt eintragen</b>
+                </p>
                 <div id="resource_input" contenteditable="true"></div> <!--  -->
                 <p>
-                    <input type="text" placeholder="Tag" size="50" class="tag"></input>
-                    <input type="button" value="Submit" class="submit btn" onclick="javascript:submitResource()"></input>
+                    <input type="text" placeholder="Tag deinen Inhalt" size="50" class="tag"></input>
+                    <input type="button" value="OK" class="submit btn" onclick="javascript:submitResource()"></input>
                 </p>
             </div>
         </div>
 
-        <div class="timeline">
+        <div class="timeline" data-0="position:static;" data-top-top="position:fixed;top:0;">
 
-            <div class="info">
-                <h3>Timeline of shared resources</h3>
-            </div>
-
-            <div class="results">
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <ul>
-                    <li></li>
-                    <li></li>
-                    <li></li>
-                </ul>
+            <div class="info" id="nav">
+                <br/>
+                <b class="header-title">Zeitleiste aller offenen Lehr- und Lerninhalte</b>
+                <div class="tag-filter-info"></div>
+                    <!--a class="btn sort" id="most-popular">Zurücksetzen</a-->
+                    <a class="btn sort" id="reset-sort">Zur&uuml;cksetzen</a>
+                    <a class="btn sort" id="most-popular">Am besten bewertet</a>
+                <b class="label">Sortierung</b>
+                <a class="btn sort" id="submit">Neuen Inhalt hinzuf&uuml;gen</a>
+                <!--placeholder div to prevent jumpy content when nav gets pinned
+                <div style="padding:1em;" data-0="display:none;" data-top-top="display:block;"
+                     data-anchor-target="#nav">&nbsp;</div>-->
             </div>
 
         </div>
 
+        <div class="results"></div>
+
         <div class="footer">
             <h3>Hint &amp; Imprint</h3>
-            Please always share a reference to the author or the origin of your resource so this platform we provide to you has at least some sort of "academic standard compliance".
+            Please always share a reference to (or tag) about the author in your submission. This way our platform serves some sort of "academic standard compliance".
             <br/><br/>
             This <a href="http://eduzen.tu-berlin.de/content-platform">platform</a> is a prototypical experiment seeded by the <a href="http://eduzen.tu-berlin.de" title="Find our projects website">educationZEN project</a>, please send <a href="mailto:team@eduzen.tu-berlin.de" title="Mailto: team@eduzen.tu.berlin.de">them</a> your ideas on how to improve it.
         </div>

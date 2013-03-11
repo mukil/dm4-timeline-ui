@@ -1,35 +1,35 @@
 (function(CKEDITOR, MathJax, $, console, dmc) {
 
-    window.dmc = dmc;
+    window.dmc = dmc
     var model = AppModel()
+    var skroll = undefined
 
-    this.submitResource = function() {
-        // var pageContent = $('#resource_input').val()
-        var valueToSubmit = this.getTeXAndHTMLSource(document.getElementById("resource_input"))
-        var qualifiedTags = this.getTagsSubmitted()
-        var tagsToReference = this.getTagTopicsToReference(qualifiedTags)
-        var tagsToCreate = this.getTagTopicsToCreate(qualifiedTags, tagsToReference)
-        console.log(valueToSubmit)
-        console.log(tagsToReference)
-        console.log("tagstoCreate:")
-        console.log(tagsToCreate)
-        var resource = createResourceTopic(valueToSubmit)
-        // tag this resource with all new tags
-        for (i=0; i < tagsToCreate.length; i++) {
-            var newTag = createTagTopic(tagsToCreate[i])
-            if (newTag != undefined) {
-                var assoc = createResourceTagAssociation(resource, newTag)
-                console.log("created new Assoc successfully .. " + assoc.id)
-            }
-        }
-        for (k=0; k < tagsToReference.length; k++) {
-            if (tagsToReference[k] != undefined) {
-                var newAssoc = createResourceTagAssociation(resource, tagsToReference[k])
-                console.log("created new Assoc successfully .. " + newAssoc.id)
-            }
-        }
-        $('#resource_input').html("")
-        // TODO: render some "Saved" Notification
+    /** Initializing our interactive page. */
+
+    this.setupView = function() {
+        this.setupApplicationModel()
+        skroll = skrollr.init({
+			forceHeight: false
+		})
+        this.registerHistoryStates()
+        this.setupCKEditor()
+        this.setupTagging()
+        this.setupMathJaxRenderer()
+        this.showResultsetView()
+        this.showTagView()
+        // setup page-controls
+        this.setupPageControls()
+    }
+
+
+
+    /** Application Model Related Methods */
+
+    this.setupApplicationModel = function() {
+        // console.log(this.model) fixme: this _is_ "Window"..
+        // load all available tags and resources
+        this.loadAllTags()
+        this.loadAllResources()
     }
 
     this.loadAllTags = function(limit) { // lazy, unsorted, possibly limited
@@ -45,7 +45,7 @@
 
     this.loadAllResources = function(limit) { // lazy, unsorted, possibly limited
         //
-        var all_resources = dmc.get_topics("dm4.resources.resource", false, false, limit).items
+        var all_resources = dmc.get_topics("dm4.resources.resource", true, true, limit).items
         if (all_resources.length > 0) {
             model.setAvailableResources(all_resources)
             console.log("loaded " + model.getAvailableResources().length + " resources ")
@@ -54,48 +54,16 @@
         }
     }
 
-    this.setupCKEditor = function () {
-        // setup cK-editor
-        CKEDITOR.inline( document.getElementById( 'resource_input' ) );
-        // upload-fallback: $(".button.upload").click(this.open_upload_dialog(uploadPath, this.handleUploadResponse))
-        // mathjax preview handling
-        $input = $('#resource_input')
-        $input.keyup(function(e) {
-            renderApproachMathPreview($input.val())
-            return function(){}
-        })
-
-        this.renderMathInContentArea()
-
-        function renderApproachMathPreview (value) {
-            $("#math-preview").text(value)
-            MathJax.Hub.Queue(["Typeset", MathJax.Hub])
-            this.renderMathInContentArea()
-            // $("#math-preview").html("<img src=\"http://latex.codecogs.com/gif.latex?"
-                // + value +"\" alt=\""+ value +"\">")
+    this.loadAllResourcesByTagId = function(tagId) { // lazy, unsorted, possibly limited
+        //
+        var all_tagged_resources = dmc.request("GET", "/eduzen/fetch/tag/" + tagId).items
+        if (all_tagged_resources.length > 0) {
+            // overriding previously set resultlist
+            model.setAvailableResources(all_tagged_resources)
+            console.log("loaded " + model.getAvailableResources().length + " resources ")
+        } else {
+            model.setAvailableResources([])
         }
-
-    }
-
-    this.setupView = function() {
-        this.setupApplicationModel()
-        this.registerHistoryStates()
-        this.setupMathJaxRenderer()
-        this.setupCKEditor()
-        this.setupTagging()
-    }
-
-    this.setupApplicationModel = function() {
-        // console.log(this.model) fixme: this _is_ "Window"..
-        // load all available tags and resources
-        this.loadAllTags()
-        this.loadAllResources()
-    }
-
-    this.renderMathInContentArea = function () {
-        // typeset all elements containing TeX to SVG or HTML in default area #content
-        MathJax.Hub.Typeset()
-        // MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
     }
 
     this.setupTagging = function() {
@@ -131,6 +99,208 @@
 
     }
 
+
+
+    /** GUI Related Methods */
+
+    this.setupPageControls = function() {
+        // setting up sort-controls and input button
+        $("a#submit").click(function(e) { window.scrollTo(0) })
+
+        $("a#most-popular").click(function(e) {
+            // just sort all currently existing resources (client-side)
+            model.setAvailableResources(getHighestResources())
+            showResultsetView()
+            $("a#most-popular").addClass("selected")
+        })
+
+        /** todo: implement "a#most-popular" as a toggle button.. */
+        $("a#reset-sort").click(function(e) {
+            model.setTagFilter(undefined)
+            model.setAvailableResources(getAlphabeticalResources())
+            showResultsetView()
+            $("a#most-popular").removeClass("selected")
+        })
+    }
+
+    this.getHighestResources = function() {
+        var results = model.getAvailableResources()
+        return results.sort(score_sort_asc)
+    }
+
+    this.getAlphabeticalResources = function() {
+        var results = model.getAvailableResources()
+        return results.sort(alphabetical_sort_asc)
+    }
+
+    this.renderMathInContentArea = function () {
+        // typeset all elements containing TeX to SVG or HTML in default area #content
+        MathJax.Hub.Typeset()
+        // MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+    }
+
+    this.showResultsetView = function() {
+        // future needed variations showResultsetView will be:
+        // a) load the latest 30 resources b) load the 30 most popular resources
+        // c) load all resources with _one_ given tag d) load all resources with _two_ given tags
+        // e) load all resources with _three_ given tags
+
+        $('div.results').html('<b class="label">Calculating results</b>')
+        if (model.getAvailableResources().length > 0) {
+            setupResultList()
+        } else {
+            $('div.results').html('<b class="label">Aint got no results</b>')
+        }
+    }
+
+    this.setupResultList = function() {
+        var results = model.getAvailableResources()
+        var $resultlist = $('<ul class="list">')
+        $.each(results, function (e, item) {
+            $topic = setupResultListItem(item)
+            $resultlist.append($topic)
+        })
+        $resultlist.append('<p class="empty">nbsp;</p>')
+        $('div.results').html($resultlist)
+    }
+
+    this.setupResultListItem = function(item) {
+        var score = (item.composite['dm4.ratings.score'] != undefined) ? item.composite['dm4.ratings.score'].value : 0
+        // construct list item
+        var $topic = $('<li id="' +item.id+ '">').text(item.value)
+        var $body = $('<div class="item-content">' +item.composite['dm4.resources.content'].value +
+            '<i>Score:' +score+ '</i></div>');
+        var $toolbar = $('<div class="toolbar"></div>')
+        var $upvote = $('<a id="' +item.id+ '" class="btn vote">+</a>')
+            $upvote.click(function(e) {
+                var updatedTopic = dmc.request("GET", "/eduzen/up/resource/" + e.target.id)
+                model.updateAvailableResource(updatedTopic)
+                // todo: cache sort-settings on client-side
+                if ($("a#most-popular").hasClass("selected")) {
+                    // update our result-set view immedieatly after upvoting
+                    model.setAvailableResources(getHighestResources())
+                }
+                showResultsetView()
+            })
+        var $downvote = $('<a id="' +item.id+ '" class="btn vote">-</a>')
+            $downvote.click(function(e) {
+                var updatedTopic = dmc.request("GET", "/eduzen/down/resource/" + e.target.id)
+                model.updateAvailableResource(updatedTopic)
+                // todo: cache sort-settings on client-side
+                if ($("a#most-popular").hasClass("selected")) {
+                    // update our result-set view immedieatly after upvoting
+                    model.setAvailableResources(getHighestResources())
+                }
+                showResultsetView()
+            })
+        // append body and toolbar to list-item
+        $toolbar.append($upvote).append($downvote)
+        $topic.append($body).append($toolbar)
+        return $topic
+    }
+
+    this.showTagView = function() {
+        //
+        var tags = model.getAvailableTags()
+        if (tags.length > 0) {
+            //
+            var tagview = $('<div class="tag-list"><b class="label" style="float: left; padding-top: 0px;">'
+                + 'Filter nach Stichw&ouml;rtern</b></div>')
+            for (i=0; i < tags.length; i++) {
+                var element = tags[i]
+                tagview.append('<a id="' +element.id+ '" class="btn tag">' +element.value+ '</a>')
+            }
+            tagview.click(function(e) {
+                // resetting, todo: currently just one tag is supported as a filter for resources
+                resetTagfilter()
+                var tagId = e.target.id
+                // load tag specific timeline
+                var clickedTag = model.getTagById(tagId)
+                model.setTagFilter(clickedTag)
+                // update model
+                loadAllResourcesByTagId(tagId)
+                // render tag specific filter-info header
+                showTagfilterInfo()
+                // render tag specific timeline
+                showResultsetView()
+            })
+            // tagview.append('<p class="empty">nbsp;</p>')
+            $('div.timeline .info').append(tagview)
+        } else {
+            $('div.timeline .info div.tag-list').html('<b class="label">Aint got no new tags for you</b>')
+        }
+    }
+
+    this.resetTagfilter = function () {
+        // update gui
+        $(".tag-filter-info").empty()
+        // update model
+        model.setTagFilter(undefined)
+        // load tag unspecific timeline
+        loadAllResources()
+        showResultsetView()
+    }
+
+    this.showTagfilterInfo = function() {
+        var tag = model.getTagFilter()
+        var $filterInfo = $('<b class="meta">unter dem Stichwort</b> <a class="btn tag selected">' +tag.value+ '</a>')
+        var $filterReset = $('<a id="all" class="btn tag-filter">Filter zur&uuml;cksetzen</a>')
+            $filterReset.click(function(e) {
+                resetTagfilter()
+            })
+        $('.tag-filter-info').append($filterInfo).append($filterReset)
+    }
+
+    this.setupCKEditor = function () {
+        // setup cK-editor
+        CKEDITOR.inline( document.getElementById( 'resource_input' ) );
+        // upload-fallback: $(".button.upload").click(this.open_upload_dialog(uploadPath, this.handleUploadResponse))
+        // mathjax preview handling
+        $input = $('#resource_input')
+        $input.keyup(function(e) {
+            renderApproachMathPreview($input.val())
+            return function(){}
+        })
+
+        this.renderMathInContentArea()
+
+        function renderApproachMathPreview (value) {
+            $("#math-preview").text(value)
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub])
+            this.renderMathInContentArea()
+            // $("#math-preview").html("<img src=\"http://latex.codecogs.com/gif.latex?"
+                // + value +"\" alt=\""+ value +"\">")
+        }
+
+    }
+
+    this.setupMathJaxRenderer = function() {
+        MathJax.Ajax.config.root = "/de.tu-berlin.eduzen.mathjax-renderer/script/vendor/mathjax"
+        MathJax.Hub.Config({
+            "extensions": ["tex2jax.js", "mml2jax.js", "MathEvents.js", "MathZoom.js", "MathMenu.js", "toMathML.js",
+            "TeX/noErrors.js","TeX/noUndefined.js","TeX/AMSmath.js","TeX/AMSsymbols.js", "FontWarnings.js"],
+            "jax": ["input/TeX", "output/SVG"], // "input/MathML", "output/HTML-CSS", "output/NativeMML"
+            "tex2jax": {"inlineMath": [["$","$"],["\\(","\\)"]]},
+            "menuSettings": {
+                "mpContext": true, "mpMouse": true, "zscale": "200%", "texHints": true
+            },
+            "errorSettings": {
+                "message": ["[Math Error]"]
+            },
+            "displayAlign": "left",
+            "HTML-CSS": {"scale": 120},
+            "SVG": {"blacker": 8, "scale": 110},
+            "v1.0-compatible": false,
+            "skipStartupTypeset": false,
+            "elements": ["resource_input,math-live-preview"]
+        });
+        // console.log("testing to get at an iframe.. into mathJax rendering")
+        // console.log($(".cke_wysiwyg_frame").context.childNodes[1].childNodes[2])
+        MathJax.Hub.Configured() // bootstrap mathjax.js lib now
+    }
+
+
+
     /** HTML5 History API utility methods **/
 
     this.registerHistoryStates = function () {
@@ -153,7 +323,37 @@
 
 
 
-    /** GUIToolkit Helper Methods copied from dm4-webclient module **/
+    /** GUIToolkit Helper Methods copied among others from dm4-webclient module **/
+
+    /** sorting asc by item.composite['dm4.ratings.score'].value */
+    this.score_sort_asc = function (a, b) {
+        // console.log(a)
+        var scoreA = 0
+        if (a.composite.hasOwnProperty('dm4.ratings.score')) {
+            scoreA = a.composite['dm4.ratings.score'].value
+        }
+        var scoreB = 0
+        if (b.composite.hasOwnProperty('dm4.ratings.score')) {
+            scoreB = b.composite['dm4.ratings.score'].value
+        }
+        if (scoreA > scoreB) // sort string descending
+          return -1
+        if (scoreA < scoreB)
+          return 1
+        return 0 //default return value (no sorting)
+    }
+
+    /** sorting asc by item.value */
+    this.alphabetical_sort_asc = function (a, b) {
+        // console.log(a)
+        var scoreA = a.value
+        var scoreB = b.value
+        if (scoreA < scoreB) // sort string ascending
+          return -1
+        if (scoreA > scoreB)
+          return 1
+        return 0 //default return value (no sorting)
+    }
 
     /**
     * @param   path        the file repository path (a string) to upload the selected file to. Must begin with "/".
@@ -197,31 +397,6 @@
                 }
             }
         }
-    }
-
-    this.setupMathJaxRenderer = function() {
-        MathJax.Ajax.config.root = "/de.tu-berlin.eduzen.mathjax-renderer/script/vendor/mathjax"
-        MathJax.Hub.Config({
-            "extensions": ["tex2jax.js", "mml2jax.js", "MathEvents.js", "MathZoom.js", "MathMenu.js", "toMathML.js",
-            "TeX/noErrors.js","TeX/noUndefined.js","TeX/AMSmath.js","TeX/AMSsymbols.js", "FontWarnings.js"],
-            "jax": ["input/TeX", "output/SVG"], // "input/MathML", "output/HTML-CSS", "output/NativeMML"
-            "tex2jax": {"inlineMath": [["$","$"],["\\(","\\)"]]},
-            "menuSettings": {
-                "mpContext": true, "mpMouse": true, "zscale": "200%", "texHints": true
-            },
-            "errorSettings": {
-                "message": ["[Math Error]"]
-            },
-            "displayAlign": "left",
-            "HTML-CSS": {"scale": 120},
-            "SVG": {"blacker": 8, "scale": 110},
-            "v1.0-compatible": false,
-            "skipStartupTypeset": false,
-            "elements": ["resource_input, math-live-preview"]
-        });
-        // console.log("testing to get at an iframe.. into mathJax rendering")
-        // console.log($(".cke_wysiwyg_frame").context.childNodes[1].childNodes[2])
-        MathJax.Hub.Configured() // bootstrap mathjax.js lib now
     }
 
     this.getTagsSubmitted = function () {
@@ -305,6 +480,45 @@
 
     }
 
+    this.submitResource = function() {
+        // TODO: clean up this mixed up method.
+        // var pageContent = $('#resource_input').val()
+        var valueToSubmit = this.getTeXAndHTMLSource(document.getElementById("resource_input"))
+        var qualifiedTags = this.getTagsSubmitted()
+        var tagsToReference = this.getTagTopicsToReference(qualifiedTags)
+        var tagsToCreate = this.getTagTopicsToCreate(qualifiedTags, tagsToReference)
+        // rendering notifications
+        var saving = $('<b id="message" class="label">Saving...</b>').insertBefore('input.submit')
+        saving.fadeOut(4000)
+        $('div.header').css("opacity", ".6")
+        // creating the resource
+        var resource = createResourceTopic(valueToSubmit)
+        // an creating/associtating tags with this resource
+        for (i=0; i < tagsToCreate.length; i++) {
+            var newTag = createTagTopic(tagsToCreate[i])
+            if (newTag != undefined) {
+                var assoc = createResourceTagAssociation(resource, newTag)
+                console.log("created new Assoc successfully .. " + assoc.id)
+            }
+        }
+        for (k=0; k < tagsToReference.length; k++) {
+            if (tagsToReference[k] != undefined) {
+                var newAssoc = createResourceTagAssociation(resource, tagsToReference[k])
+                console.log("created new Assoc successfully .. " + newAssoc.id)
+            }
+        }
+        // rendering notifications
+        $('#message').html("Fine. Thanks!")
+        saving.fadeIn(4000).fadeOut(3000)
+        $('#resource_input').html("")
+        $('input.tag').val("")
+        $('div.header').css("opacity", "1")
+        // unnecessary, just inserBefore the createResourceTopic at the top of our list
+        this.loadAllResources()
+        this.showResultsetView()
+        // TODO: render some "Saved" Notification
+    }
+
     /** RESTful utility methods for the trt-views **/
 
     function createResourceTopic(value) {
@@ -323,7 +537,7 @@
 
     function createTagTopic(name) {
         if (name != undefined) {
-            var topicModel = {"type_uri": "dm4.tags.tag", "composite": { "dm4.tags.label": name }}
+            var topicModel = {"type_uri": "dm4.tags.tag", "composite": {"dm4.tags.label": name}}
             // "dm4.resources.content": "ref_uri:tub.eduzen.approach_undecided",
             var tagTopic = dmc.create_topic(topicModel)
             if (tagTopic == undefined) throw new Error("Something mad happened.")

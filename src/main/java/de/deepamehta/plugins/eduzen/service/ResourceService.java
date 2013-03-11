@@ -19,4 +19,12 @@ public interface ResourceService extends PluginService {
 
   Resource createContent(ResourceTopic topic, ClientState clientState);
 
+  ResultSet<RelatedTopic> getResourcesByTag(long tagId, ClientState clientState);
+
+  ResultSet<RelatedTopic> getResourcesByTwoTags(long firstId, long secondId, ClientState clientState);
+
+  Topic upvoteResourceById(long resourceId, ClientState clientState);
+
+  Topic downvoteResourceById(long resourceId, ClientState clientState);
+
 }
