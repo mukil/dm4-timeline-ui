@@ -105,7 +105,7 @@
 
     this.setupPageControls = function() {
         // setting up sort-controls and input button
-        $("a#submit").click(function(e) { window.scrollTo(0) })
+        $("a#submit").click(function(e) {window.scrollTo(0)})
 
         $("a#most-popular").click(function(e) {
             // just sort all currently existing resources (client-side)
@@ -160,17 +160,20 @@
             $topic = setupResultListItem(item)
             $resultlist.append($topic)
         })
-        $resultlist.append('<p class="empty">nbsp;</p>')
+        $resultlist.append('<p class="empty">&nbsp;</p>')
         $('div.results').html($resultlist)
     }
 
     this.setupResultListItem = function(item) {
         var score = (item.composite['dm4.ratings.score'] != undefined) ? item.composite['dm4.ratings.score'].value : 0
         // construct list item
-        var $topic = $('<li id="' +item.id+ '">').text(item.value)
+        var title = new Date(parseInt(item.value))
+        var $topic = $('<li id="' +item.id+ '">').text("Dieser Beitrag wurde eingereicht am  " +
+            title.getDate() + "." + title.getMonth() + " " + title.getFullYear() + " um "
+            + title.getHours() + ":" +title.getMinutes() + " Uhr und hat " + score + " Votes")
         var $body = $('<div class="item-content">' +item.composite['dm4.resources.content'].value +
-            '<i>Score:' +score+ '</i></div>');
-        var $toolbar = $('<div class="toolbar"></div>')
+            '</div>');
+        var $toolbar = $('<div class="toolbar">Vote </div>')
         var $upvote = $('<a id="' +item.id+ '" class="btn vote">+</a>')
             $upvote.click(function(e) {
                 var updatedTopic = dmc.request("GET", "/eduzen/up/resource/" + e.target.id)
@@ -292,7 +295,7 @@
             "SVG": {"blacker": 8, "scale": 110},
             "v1.0-compatible": false,
             "skipStartupTypeset": false,
-            "elements": ["resource_input,math-live-preview"]
+            "elements": ["resource_input, math-live-preview, body"]
         });
         // console.log("testing to get at an iframe.. into mathJax rendering")
         // console.log($(".cke_wysiwyg_frame").context.childNodes[1].childNodes[2])
@@ -348,9 +351,9 @@
         // console.log(a)
         var scoreA = a.value
         var scoreB = b.value
-        if (scoreA < scoreB) // sort string ascending
+        if (scoreA > scoreB) // sort string descending
           return -1
-        if (scoreA > scoreB)
+        if (scoreA < scoreB)
           return 1
         return 0 //default return value (no sorting)
     }
