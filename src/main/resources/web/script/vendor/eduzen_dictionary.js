@@ -25,10 +25,13 @@ function eduzenDictionary(lang) {
         "tub.eduzen.correct": "Korrekt",
         "tub.eduzen.wrong": "Falsch",
         "false": "Falsch",
-        "true": "Korrekt"    
+        "true": "Korrekt"
       }
     }
     return stateNames[uri];
   }
+
+  this.monthNames = [ "Januar", "Februar", "März", "April", "Mai", "Juni",
+    "July", "August", "September", "Oktober", "November", "Dezember" ];
 }
 

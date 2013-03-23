@@ -21,7 +21,7 @@ public interface ResourceService extends PluginService {
 
   ResultSet<RelatedTopic> getResourcesByTag(long tagId, ClientState clientState);
 
-  ResultSet<RelatedTopic> getResourcesByTwoTags(long firstId, long secondId, ClientState clientState);
+  ResultSet<RelatedTopic> getResourcesByTags(String tags, ClientState clientState);
 
   Topic upvoteResourceById(long resourceId, ClientState clientState);
 

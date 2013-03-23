@@ -5,7 +5,9 @@ function AppModel() {
         var availableTags = undefined
         var availableResources = undefined
 
-        var tagFilter = undefined
+        var isSortedByScore = undefined
+
+        var tagFilter = []
 
         return {
             setAvailableTags: function (elements) {
@@ -29,8 +31,21 @@ function AppModel() {
                     }
                 }
             },
-            setTagFilter: function (elements) {
-                tagFilter = elements
+            addTagToFilter: function (tag) {
+                tagFilter.push(tag)
+            },
+            removeTagFromFilter: function (givenTag) {
+                var newTagFilter = []
+                for (i=0; i <= tagFilter.length; i++) {
+                    var tag = tagFilter[i]
+                    if (tag.id != givenTag.id) newTagFilter.push(tag)
+                }
+                console.log("removed tag from tagfilter (" +tagFilter+ ") == (" +newTagFilter+ ")")
+                tagFilter = newTagFilter
+            },
+            setTagFilter: function (newTagFilter) {
+                console.log("replacing tagfilter (" +tagFilter+ ") with (" +newTagFilter+ ")")
+                tagFilter = newTagFilter
             },
             getTagFilter: function () {
                 return tagFilter
@@ -48,10 +63,11 @@ function AppModel() {
     })();
 
     AppModel = function () { // re-define the function for subsequent calls
-        return instance;
-    };
+        instance.isSortedByScore = false
+        return instance
+    }
 
-    return AppModel(); // call the new function
+    return AppModel() // call the new function
 
     // js singleton implementation credits go to http://stackoverflow.com/users/5445/cms
     // with http://stackoverflow.com/questions/1895635/javascript-singleton-question#1895669

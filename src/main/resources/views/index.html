@@ -30,11 +30,11 @@
         <script type="text/javascript">
             var pkBaseURL = (("https:" == document.location.protocol) ? "https://research.eduzen.tu-berlin.de/analytics/" : "http://research.eduzen.tu-berlin.de/analytics/");
             document.write(unescape("%3Cscript src='" + pkBaseURL + "piwik.js' type='text/javascript'%3E%3C/script%3E"));
-            </script><script type="text/javascript">
+        </script><script type="text/javascript">
             try {
-            var piwikTracker = Piwik.getTracker(pkBaseURL + "piwik.php", 1);
-            piwikTracker.trackPageView();
-            piwikTracker.enableLinkTracking();
+                var piwikTracker = Piwik.getTracker(pkBaseURL + "piwik.php", 2);
+                piwikTracker.trackPageView();
+                piwikTracker.enableLinkTracking();
             } catch( err ) {}
         </script>
         <!-- End Piwik Tracking Code -->
@@ -48,18 +48,19 @@
 
     </head>
 
-    <body>
+    <body class="eduzen notes">
         <div class="header">
             <h3 class="hello">
                 <!-- Share your educational resource*-->
             </h3>
             <div class="content-area">
                 <p><!-- i class="label">Educational resource</i-->
-                    <b class="header-title">Neuen Inhalt eintragen</b>
+                    <b class="header-title">Inhalt hinzuf&uuml;gen</b>
                 </p>
                 <div id="resource_input" contenteditable="true"></div> <!--  -->
                 <p>
-                    <input type="text" placeholder="Tag deinen Inhalt" size="50" class="tag"></input>
+                    <b class="header-title">Inhalt verschlagworten,</b>
+                    <input type="text" placeholder="bitte." size="50" class="tag"></input>
                     <input type="button" value="OK" class="submit btn" onclick="javascript:submitResource()"></input>
                 </p>
             </div>
@@ -67,15 +68,17 @@
 
         <div class="timeline" data-0="position:static;" data-top-top="position:fixed;top:0;">
 
+            <div class="options">
+                <span class="result-count"></span>
+                <span class="result-sort"></span>
+                <span class="result-text">sortiert</span>
+                <span class="tag-filter-info"></span>
+                <a class="btn sort" id="most-popular">Sortierung nach Bewertung</a>
+                <a class="btn add" id="submit">Neuen Inhalt hinzuf&uuml;gen</a>
+            </div>
+
             <div class="info" id="nav">
-                <br/>
-                <b class="header-title">Zeitleiste aller offenen Lehr- und Lerninhalte</b>
-                <div class="tag-filter-info"></div>
-                    <!--a class="btn sort" id="most-popular">Zurücksetzen</a-->
-                    <a class="btn sort" id="reset-sort">Neueste zuerst</a>
-                    <a class="btn sort" id="most-popular">Am besten bewertet</a>
-                <b class="label">Sortierung</b>
-                <a class="btn sort" id="submit">Neuen Inhalt hinzuf&uuml;gen</a>
+                <b class="header-title"></b>
             </div>
 
         </div>
@@ -93,9 +96,10 @@
             This <a href="http://eduzen.tu-berlin.de/content-platform">platform</a> is a prototypical experiment seeded by the <a href="http://eduzen.tu-berlin.de" title="Find our projects website">educationZEN project</a>, please send <a href="mailto:team@eduzen.tu-berlin.de" title="Mailto: team@eduzen.tu.berlin.de">them</a> your ideas on how to improve it.
         </div>
 
-        <noscript>
-            <img src="http://research.eduzen.tu-berlin.de/analytics/piwik.php?idsite=1" style="border:0" alt="" />
-        </noscript>
+        <noscript><p>
+            <img src="http://research.eduzen.tu-berlin.de/analytics/piwik.php?idsite=2" style="border:0" alt="" />
+        </p></noscript>
+
 
     </body>
 

@@ -1,105 +1,123 @@
 
-.hello {
+
+body.eduzen notes {
+    padding: 0px;
+    margin: 25px !important;
+    font-size: 16px;
+    line-height: 1.2em;
+}
+
+.eduzen .hello {
     font-size: 24px;
     font-weight: bold;
     font-family: Arial, sans-serif;
 }
 
-.hello small {
+.eduzen .hello small {
     font-size: 12px;
     font-weight: normal;
 }
 
-.header {
+.eduzen .header {
     margin-left: 40px;
     margin-top: 10px;
     color: #383838;
 }
 
-b.header-title {
+/**
+.eduzen b.header-title {
     font-size: 1.17em;
+} **/
+
+.eduzen span.meta {
+    color: #a9a9a9;
+    margin-right: 4px;
 }
 
-div.tag-list {
-    margin-top: 15px;
-    padding-bottom: 15px;
-    line-height: 2.4em;
+.eduzen div.tag-list {
+    margin-left: 6px;
+    margin-top: 6px;
+    min-height: 36px;
 }
 
-/** div.results {
-    margin-top: 25px;
-} */
-
-#nav.info b.label {
-    float:right;
-    padding-top: 3px;
-    padding-right: 10px;
-    color: #383838;
-    font-size: 1.17em;
+.eduzen div.results b.label {
+    margin-left: 45px;
 }
 
-#nav.info b.meta {
-    padding-right: 7px;
-    color: #383838;
-    font-size: 1.17em;
-}
-
-#nav.info.unrendered {
-    border-top: 1px solid #f5f5f5;
-    border-bottom: 1px solid #f5f5f5;
-}
-
-.timeline.rendered a#submit.btn.sort {
-    display: none;
-}
-
-.timeline.unrendered a#submit.btn.sort {
-    display: block;
-}
-
-.timeline.rendered a#submit.btn.sort,
-.timeline.unrendered a#submit.btn.sort {
-    padding-right: 10px;
-}
-
-#nav a.btn.sort {
+.eduzen .timeline .options a.btn.add,
+.eduzen .timeline .options a.btn.sort {
     float: right;
-    padding: 4px;
 }
 
-#nav a.btn.tag-filter {
-    padding: 4px;
+.eduzen .timeline.rendered a.btn.add {
+    display: none;
+    padding-right: 10px;
 }
 
-div.tag-filter-info {
+.eduzen .timeline.unrendered a.btn.add {
     display: inline-block;
+    padding-right: 10px;
 }
 
-a.btn.tag.selected,
-#nav a.btn.sort.selected {
-    background-color: #4a4a4a;
-    color: #FF7C00;
-}
-
-.timeline {
+.eduzen .timeline {
     background-color: #fff;
     padding-left: 40px; padding-right: 40px;
     border-top: 1px solid #f5f5f5;
     border-bottom: 1px solid #f5f5f5;
     z-index: 100;
-    width: 95%;
+    padding-top: 6px;
+    width: 92%;
 }
 
-.unrendered #nav.info {
+.eduzen .timeline .info a {
+    text-decoration: none;
+}
+
+/**
+.eduzen .timeline .info {
+    min-height: 100px;
+} **/
+
+.eduzen div.tag-filter-info {
+    display: inline-block;
+}
+
+.eduzen div.tag-filter-info .buttons {
+    margin-left: 5px;
+}
+
+.eduzen .result-count {
+    margin-left: 6px;
+}
+
+.eduzen #most-popular.selected,
+.eduzen a.btn.tag.selected,
+#nav a.btn.sort.selected {
+    background-color: #4a4a4a;
+    color: #FF7C00;
+}
+
+.eduzen #most-popular {
+    padding: 5px;
+}
+
+.eduzen .result-text,
+.eduzen .result-count,
+.eduzen .result-sort {
+    color: #a9a9a9;
+    padding-top: 3px;
+}
+
+.eduzen .unrendered #nav.info {
     padding-right: 40px;
 }
 
-.results .list {
+.eduzen .results .list {
     padding-left: 40px;
     margin-bottom: 60px;
 }
 
-.footer {
+.eduzen .footer {
     border-top: 1px solid #f5f5f5;
     background-color: #fff;
     position: fixed; bottom: 0px;
@@ -112,49 +130,97 @@ a.btn.tag.selected,
     width: 100%;
 }
 
-#content-area {
+.eduzen #content-area {
     /** border: 1px solid #f5f5f5;
     padding: 5px 20px;  **/
     color: #383838;
 }
 
-#cke_resource-input { /** This is somewhat surrounding the ck-editor toolbar **/ }
+.eduzen #cke_resource-input { /** This is somewhat surrounding the ck-editor toolbar **/ }
 
-#resource_input {
+.eduzen #resource_input {
     background-color: #f1f1f1;
     padding: 10px;
     min-height: 45px;
-    margin-right: 80px;
+    margin-right: 40px;
     min-width: 360px;
+    border: 1px solid #ffc700;
 }
 
-i.label {
+.eduzen i.label {
     font-weight: bold;
     color: #383838;
     font-style: normal;
 }
 
-input.submit {
+.eduzen i.tag {
+    padding-left: 4px;
+}
+
+/** input areas */
+
+.eduzen input.submit {
     float: right;
-    margin-right: 80px;
+    margin-right: 40px;
     padding-left: 18px;
     padding-right: 18px;
     padding-bottom: 4px;
     padding-top: 4px;
 }
 
-input.tag {
+.eduzen input.new-tag {
+    width: 92px;
+    height: 13px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+.eduzen input.new-tag,
+.eduzen input.tag {
     padding-left: 7px;
     padding-bottom: 5px;
     padding-top: 5px;
 }
 
-body {
-    padding: 0px;
-    margin: 0px;
-    font-size: 16px;
-    line-height: 1.2em;
+#resource_input:focus,
+.eduzen .button:focus,
+.eduzen input.button:focus,
+.eduzen input:focus {
+    /** color: #fff; **/
+    border: 1px solid #2486bb;
 }
+
+.eduzen input.new-tag,
+.eduzen input.tag {
+    border: 1px solid transparent;
+}
+.eduzen a:focus,
+.eduzen input.new-tag:focus,
+.eduzen input.tag:focus,
+.eduzen #resource_input:focus {
+    /** color: #fff; **/
+    border: 1px solid #2486bb;
+}
+
+input.cke_dialog_ui_input_text:focus {
+    color: #383838;
+}
+
+.eduzen .add-tag-dialog {
+    display: inline-block;
+    width: 240px;
+}
+
+.eduzen .save-tag.btn {
+    position: relative;
+    left: 102px;
+}
+
+.eduzen .close-tag.btn {
+    position: relative;
+    left: 91px;
+}
+
 
 /** Some original style defs **/
 
@@ -169,38 +235,16 @@ body {
   margin: 0.5em;
 }
 
-p.empty {
+.eduzen p.empty {
     height: 70px;
 }
 
-.eduzen #header {
-    background-color: #fff; min-height: 40px;
-    z-index: 999;
-    border-bottom: 2px solid #12b4d7;
+.eduzen label {
+    display: block;
 }
 
-.eduzen #two-column {
-    float: left;
-}
-
-.eduzen #content {
-    margin-left: 40px;
-    padding-bottom: 80px;
-    margin-top: 20px;
-}
-
-.eduzen #user-form #message {
-    margin-left: 20px;
-}
-
-.eduzen #bottom {
-    position: fixed;
-    bottom: 0px; left: 0px; padding: 4px;
-    max-height: 130px;
-    border-top: 2px solid #12b4d7;
-    background-color: #fff;
-    width: 100%;
-    z-index: 998;
+.eduzen button {
+    padding: 6px; height: 30px
 }
 
 .eduzen .title {
@@ -209,7 +253,7 @@ p.empty {
     font-weight: bold;
 }
 
-.label.small {
+.eduzen .label.small {
     font-size: 12px;
 }
 
@@ -241,28 +285,29 @@ p.empty {
 }
 
 .eduzen #result-list,
-ul.list {
+.eduzen ul.list {
     float: left;
 }
 
-ul.list .item-content {
+.eduzen ul.list .item-content {
     color: #383838;
     padding: 5px;
     z-index: 1;
     border: 1px solid #f5f5f5;
     margin: 5px;
-    margin-left:
+    padding-bottom: 20px;
 }
 
 .eduzen ul.objects,
-ul.list {
+.eduzen ul.list {
     color: #343434;
     padding-left: 0px;
     list-style-type: none;
+    position: relative;
 }
 
 .eduzen ul.objects li,
-ul.list li {
+.eduzen ul.list li {
     border: 1px solid #ffc700;
     padding: 4px; margin-top: 4px;
     padding-top: 10px;
@@ -271,150 +316,97 @@ ul.list li {
     margin-bottom: 20px;
 }
 
-input.cke_dialog_ui_input_text:focus {
-    color: #383838;
+.eduzen li a:focus,
+.eduzen ul.list li a:focus {
+    border: 1px solid #12b4d7;
+}
+
+.eduzen .timeline a,
+.eduzen .results a,
+.eduzen .footer a,
+.eduzen li a,
+.eduzen ul.list li a {
+    border: 1px solid #fff;
+    padding: 5px;
 }
 
 .eduzen ul.objects li.selected,
-ul.list li.selected {
+.eduzen ul.list li.selected {
     border: 1px solid #2486bb;
 }
 
-.eduzen .excercise-view {
-    padding: 4px; margin: 4px; margin-left: 0px;
-}
+/** Typography, Lists, Buttons and Emphasizers **/
 
-.eduzen .add-excercise-object {
-    padding: 4px; padding-right: 8px;
-    font-size: 12px;
-}
-
-.eduzen .excercise-object {
-    cursor: pointer;
-}
-
-.eduzen .add-excercise {
-    float:right; padding: 4px;
-    font-size: 12px;
-}
-
-.eduzen .add-excercise a:focus {
-    border: none;
-}
-
-.eduzen .excercise-collection {
-    float: left; text-align: left;
-    padding: 4px;
-}
-
-.eduzen .excercise-element {
-    float: left; text-align: left;
-    border: 1px solid #2486bb; margin: 4px; padding: 4px;
-    font-size: 12px; padding-right: 10px;
-}
-
-.eduzen .excercise-element .button {
-  cursor: pointer;
-}
-
-/** Typography, Buttons and Emphasizers **/
-
-.btn {
+.eduzen .btn {
+    display: inline-block;
     cursor:pointer;
-    padding: 4px;
+    padding: 6px;
     margin-right: 4px;
 }
 
-
-.toolbar {
+/***.eduzen .toolbar {
     position: relative;
-    text-align: right;
+    color: #a9a9a9;
+    padding-left: 5px;
+    top: -7px; left: 10px;
+} */
+
+.eduzen .tags {
+    padding-right: 10px;
+    margin-right: 10px;
+}
+
+.eduzen div.votes {
+    display: inline-block;
+}
+
+.eduzen div.toolbar {
+    display: inline-block;
+}
+
+.eduzen .save-tag,
+.eduzen .close-tag,
+.eduzen .edit-item,
+.eduzen .add-tag,
+.eduzen .tag-info {
     color: #0782C1;
 }
 
-.btn.vote {
+.eduzen .btn.vote {
     padding-left: 10px;
     padding-right: 10px;
     color: #0782C1;
-    border: none;
     font-weight: bold;
+    border: 1px solid transparent;
 }
 
-.btn.vote:hover {
+.eduzen .toolbar .btn.add-tag.selected {
+    margin-left: 4px;
+}
+
+.eduzen .btn.add-tag.selected,
+.eduzen .btn.edit-item:hover,
+.eduzen .btn.add-tag:hover,
+.eduzen .btn.vote:hover {
     background-color: #FFC700;
     color: #383838;
-    border: none;
+    border: 1px solid transparent;
 }
 
-.btn.tag {
+.eduzen .btn.tag {
     border: 1px #0782C1 solid;
 }
 
-.btn.tag:hover {
+.eduzen .btn.tag:hover {
     background-color: #4a4a4a;
     color: #FFC700;
     border: 1px #FF7C00 solid;
 }
 
-.btn.tag.selected {
+.eduzen .btn.tag.selected {
     background-color: #4a4a4a;
     color: #FFC700;
 }
-
-.eduzen .hint {
-    margin-top: 4px;
-}
-
-.eduzen .hint .excercise-object {
-    border: 1px solid #FFC700;
-    padding-left: 2px; padding-right: 2px;
-    margin-top: 4px; cursor: default; margin-right: 4px;
-}
-
-.eduzen .name a {
-    text-decoration: none;
-    color: #000;
-    padding-top: 4px;
-    padding-bottom: 4px;
-}
-
-.eduzen .name {
-    display: block;
-    margin-top: 4px;
-}
-
-.eduzen .description {
-    display: block;
-    margin-top: 4px;
-}
-
-.eduzen .associations {
-    display: inline margin: 4px;
-}
-
-.eduzen .topicalarea {
-    color: #4a4a4a;
-    padding: 2px; font-size:12px; padding-left: 4px; padding-right: 4px;
-}
-
-.eduzen .topicalarea:hover {
-    /** background-color: #12b4d7; **/
-}
-
-.eduzen a.topicalarea {
-    cursor: pointer; text-decoration: underline; font-weight: bold;
-}
-
-/** .eduzen #page {
-    min-width: 320px;
-    display: none;
-    border: 1px solid #ccc;
-    margin-right: 20px;
-    margin-top: 20px;
-    margin-bottom: 20px;
-    margin-left:20px;
-    padding: 10px;
-} **/
 
 .eduzen .result-item {
     /** cursor: pointer; **/
@@ -438,11 +430,6 @@ ul.list li.selected {
     padding-right: 10px;
 }
 
-/** .eduzen li a:hover {
-    background-color: #4B0A1E;
-    color: #BA8A92;
-} **/
-
 .eduzen li .more-info {
     font-size: 12px;
     color: #a9a9a9;
@@ -450,137 +437,4 @@ ul.list li.selected {
     margin: 4px;
     display: block;
     margin-bottom: 10px;
-}
-
-.eduzen li .sample-solution.true {
-    height: 15px; width: 15px; display: inline;
-    -moz-border-radius: 10px; border-radius: 10px;
-    background-color: #99cc00; float: right;
-}
-
-.eduzen li .sample-solution.false {
-    height: 15px; width: 15px; display: inline;
-    -moz-border-radius: 10px; border-radius: 10px;
-    background-color: #cc4120; float: right;
-}
-
-.eduzen input, textarea {
-    border: 1px solid #ccc; outline: none; min-height: 30px;
-    padding-left: 6px; padding-right: 6px;
-}
-
-.eduzen input.inputfield {
-    min-width: 280px;
-    width: 35%;
-}
-
-.eduzen .button.disabled,
-.eduzen .button,
-.eduzen input.button {
-    font-weight: bold;
-    /** background-color: #fff; **/
-    padding: 8px; color: #fff;
-    margin-top: 4px;
-    cursor: pointer;
-}
-
-
-.eduzen .button {
-    font-size: 15px;
-    height: 30px;
-}
-
-.eduzen .button a {
-    text-decoration: none;
-    padding: 2px;
-}
-
-input,
-#resource_input {
-    background-color: #4a4a4a;
-    border: 1px solid #ffc700;
-    color: #fff;
-    /** #12b4d7; **/
-}
-
-#resource_input:focus,
-.eduzen .button:focus,
-.eduzen input.button:focus,
-input:focus {
-    color: #fff;
-    border: 1px solid #2486bb;
-}
-
-/** .ui-autocomplete .ui-widget-content a {
-    colOr: #0782C1;
-}
-
-.ui-autocomplete.ui-menu .ui-menu-item a.ui-state-hover {
-    background: #4a4a4a;
-    color: #ffc700;
-}
-
-.ui-autocomplete .ui-menu .ui-menu-item a {
-    line-height: 1.2em;
-} **/
-
-.eduzen .button.disabled {
-    background-color: #afafaf;
-    background-image: none;
-    cursor: default !important;
-}
-
-.eduzen .button.disabled a {
-    cursor: default !important;
-}
-
-.eduzen .button,
-.eduzen input.button {
-    background-image: linear-gradient(bottom, rgb(8,87,144) 36%, rgb(34,114,173) 68%);
-    background-image: -o-linear-gradient(bottom, rgb(8,87,144) 36%, rgb(34,114,173) 68%);
-    background-image: -moz-linear-gradient(bottom, rgb(8,87,144) 36%, rgb(34,114,173) 68%);
-    background-image: -webkit-linear-gradient(bottom, rgb(8,87,144) 36%, rgb(34,114,173) 68%);
-    background-image: -ms-linear-gradient(bottom, rgb(8,87,144) 36%, rgb(34,114,173) 68%);
-
-    background-image: -webkit-gradient(
-      linear,
-      left bottom,
-      left top,
-      color-stop(0.36, rgb(8,87,144)),
-      color-stop(0.68, rgb(34,114,173))
-    );
-}
-
-.eduzen .button a {
-  border: none;
-  color: #fff;
-}
-
-.eduzen a:focus,
-.eduzen input:focus,
-.eduzen li a:focus,
-ul.list li a:focus {
-    border: 1px solid #12b4d7;
-}
-
-.eduzen a, eduzen li a, ul.list li a {
-    border: 1px solid #fff;
-    padding: 5px;
-}
-
-.eduzen .topicalarea a:focus {
-    border: 1px solid #4a4a4a;
-}
-
-.eduzen textarea {
-    margin-bottom: 15px; margin-top: 5px;
-    height: 200px; width: 250px;
-}
-
-.eduzen label {
-    display: block;
-}
-
-.eduzen button {
-    padding: 6px; height: 30px
 }

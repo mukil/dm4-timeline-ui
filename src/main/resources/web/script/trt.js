@@ -3,22 +3,23 @@
     window.dmc = dmc
     var model = AppModel()
     var skroll = undefined
+    var dict = new eduzenDictionary("DE")
 
     /** Initializing our interactive page. */
 
     this.setupView = function() {
-        this.setupApplicationModel()
+        setupApplicationModel()
         skroll = skrollr.init({
 			forceHeight: false
 		})
-        this.registerHistoryStates()
-        this.setupCKEditor()
-        this.setupTagging()
-        this.setupMathJaxRenderer()
-        this.showResultsetView()
-        this.showTagView()
+        registerHistoryStates()
+        setupCKEditor()
+        setupTagFieldControls('input.tag')
+        setupMathJaxRenderer()
+        showResultsetView()
+        showTagView()
         // setup page-controls
-        this.setupPageControls()
+        setupPageControls()
     }
 
 
@@ -28,8 +29,8 @@
     this.setupApplicationModel = function() {
         // console.log(this.model) fixme: this _is_ "Window"..
         // load all available tags and resources
-        this.loadAllTags()
-        this.loadAllResources()
+        loadAllTags()
+        loadAllResources()
     }
 
     this.loadAllTags = function(limit) { // lazy, unsorted, possibly limited
@@ -42,6 +43,8 @@
             model.setAvailableTags([])
         }
     }
+
+    /** Three methods to load resources from the server-side. */
 
     this.loadAllResources = function(limit) { // lazy, unsorted, possibly limited
         //
@@ -56,7 +59,7 @@
 
     this.loadAllResourcesByTagId = function(tagId) { // lazy, unsorted, possibly limited
         //
-        var all_tagged_resources = dmc.request("GET", "/eduzen/fetch/tag/" + tagId).items
+        var all_tagged_resources = dmc.request("GET", "/notes/fetch/tag/" + tagId).items
         if (all_tagged_resources.length > 0) {
             // overriding previously set resultlist
             model.setAvailableResources(all_tagged_resources)
@@ -66,8 +69,24 @@
         }
     }
 
-    this.setupTagging = function() {
-        $("input.tag").bind( "keydown", function( event ) {
+    this.loadAllResourcesByTags = function(tagList) { // lazy, unsorted, possibly limited
+        //
+        var all_tagged_resources = dmc.request("POST", "/notes/fetch/tags/", tagList).items
+        if (all_tagged_resources != undefined) {
+            if (all_tagged_resources.length > 0) {
+                // overriding previously set resultlist
+                model.setAvailableResources(all_tagged_resources)
+                console.log("loaded " + model.getAvailableResources().length + " resources ")
+            } else {
+                model.setAvailableResources([])
+            }
+        } else {
+            console.log(all_tagged_resources)
+        }
+    }
+
+    this.setupTagFieldControls = function(identifier) {
+        $(identifier).bind( "keydown", function( event ) {
             if ( event.keyCode === $.ui.keyCode.TAB && $( this ).data( "ui-autocomplete" ).menu.active ) {
                 event.preventDefault();
             }
@@ -108,19 +127,24 @@
         $("a#submit").click(function(e) {window.scrollTo(0)})
 
         $("a#most-popular").click(function(e) {
-            // just sort all currently existing resources (client-side)
-            model.setAvailableResources(getHighestResources())
+
+            if ($("a#most-popular").hasClass("selected")) { // toggle-off
+                $("a#most-popular").removeClass("selected")
+                model.setAvailableResources(getAlphabeticalResources())
+                // model.setTagFilter([]) // fixme: allow during filtering
+                model.isSortedByScore = false // set resultset sorting flag
+            } else { // toggle-on
+                $("a#most-popular").addClass("selected")  //
+                // just sort all currently existing resources (client-side)
+                model.setAvailableResources(getHighestResources())
+                // model.setTagFilter([]) // fixme: allow during filtering
+                model.isSortedByScore = true // set resultset sorting flag
+            }
+            // update gui
             showResultsetView()
-            $("a#most-popular").addClass("selected")
         })
 
-        /** todo: implement "a#most-popular" as a toggle button.. */
-        $("a#reset-sort").click(function(e) {
-            model.setTagFilter(undefined)
-            model.setAvailableResources(getAlphabeticalResources())
-            showResultsetView()
-            $("a#most-popular").removeClass("selected")
-        })
+        $("a#test").click(loadAllResourcesByTags)
     }
 
     this.getHighestResources = function() {
@@ -145,16 +169,25 @@
         // c) load all resources with _one_ given tag d) load all resources with _two_ given tags
         // e) load all resources with _three_ given tags
 
-        $('div.results').html('<b class="label">Calculating results</b>')
+        $('div.results').html('<br/><br/><b class="label">Calculating results</b>')
         if (model.getAvailableResources().length > 0) {
             setupResultList()
         } else {
-            $('div.results').html('<b class="label">Aint got no results</b>')
+            $('div.results').html('<br/><br/><b class="label">Aint got no results</b>')
         }
     }
 
     this.setupResultList = function() {
-        var results = model.getAvailableResources()
+        var results = undefined
+        if (model.isSortedByScore) {
+            results = getHighestResources()
+            $(".result-sort").text("nach Wertung")
+        } else {
+            results = getAlphabeticalResources()
+            $(".result-sort").text("zeitlich")
+        }
+        $(".result-count").text(results.length + " Ergebnis/se ")
+        //
         var $resultlist = $('<ul class="list">')
         $.each(results, function (e, item) {
             $topic = setupResultListItem(item)
@@ -166,17 +199,78 @@
 
     this.setupResultListItem = function(item) {
         var score = (item.composite['dm4.ratings.score'] != undefined) ? item.composite['dm4.ratings.score'].value : 0
-        // construct list item
+        var tags = (item.composite['dm4.tags.tag'] != undefined) ? item.composite['dm4.tags.tag'] : []
+        // construct list item, header and content-area first
         var title = new Date(parseInt(item.value))
         var $topic = $('<li id="' +item.id+ '">').text("Dieser Beitrag wurde eingereicht am  " +
-            title.getDate() + "." + title.getMonth() + " " + title.getFullYear() + " um "
+            title.getDate() + "." + dict.monthNames[title.getMonth()] + " " + title.getFullYear() + " um "
             + title.getHours() + ":" +title.getMinutes() + " Uhr und hat " + score + " Votes")
-        var $body = $('<div class="item-content">' +item.composite['dm4.resources.content'].value +
-            '</div>');
-        var $toolbar = $('<div class="toolbar">Vote </div>')
+        var $body = $('<div class="item-content">' + item.composite['dm4.resources.content'].value + '</div>');
+        // bottom area, tag and score info area
+        var $toolbar = $('<div class="toolbar"></div>')
+        // tag info area
+        var $tagInfo = $('<span class="tag-info">Assoziiert mit folgenden Tags</span>')
+        for (i=0; i < tags.length; i++) {
+            // use tag icon..
+            $tagInfo.append('<i class="tag">' +tags[i].value+ '</i>')
+        }
+        // create edit and add buttons per result-list item
+        var $addDialog = $('<div class="add-tag-dialog"></div>')
+        var $addTag = $('<a class="add-tag btn">Tags hinzu</a>')
+            $addTag.click(function(e) {
+                var clickedListItem = parseInt(e.target.parentNode.parentNode.id)
+                // check if there is already one add-tag dialog for this list-item
+                if ($addTag.hasClass('selected')) {
+                    // remove dialog on click again
+                    $addDialog.remove()
+                    $addTag.removeClass("selected")
+                    return undefined
+                }
+                // manipulat gui and dialog
+                $addTag.addClass("selected")
+                $addDialog.empty()
+                // construct new dialog
+                var $newField = $('<input type="text" placeholder="Name" '
+                    + 'class="new-tag ui-autocomplete"></input>')
+                var $saveBtn = $('<a class="btn save-tag">Speichern</a>')
+                    $saveBtn.click(function() {
+                        // save tags, if not yet associated to this resource
+                        var tagFieldId = 'li#' +clickedListItem+ ' .toolbar div.add-tag-dialog input.new-tag'
+                        var qualifiedTags = getTagsSubmitted(tagFieldId)
+                        var existingTags = item.composite['dm4.tags.tag']
+                        var tagsToAssociate = getTagTopicsToReference(qualifiedTags)
+                        var tagsToPossiblyCreate = getTagTopicsToCreate(qualifiedTags, tagsToAssociate)
+                        var tagsToCreateAndAssociate = getTagTopicsToCreate(tagsToPossiblyCreate, existingTags)
+                        createResourceTagAssociations(item, tagsToAssociate)
+                        createNewTagsForResource(item, tagsToCreateAndAssociate)
+                        // update gui, remove dialog
+                        $addDialog.remove()
+                        $addTag.removeClass("selected")
+                    })
+                var $cancelBtn = $('<a class="btn close-tag">Abbrechen</a>')
+                    $cancelBtn.click(function() {
+                        $addDialog.remove()
+                        $addTag.removeClass("selected")
+                    })
+                $addDialog.append($newField).append($saveBtn).append($cancelBtn)
+                // place dialog in the dom
+                $addDialog.hide()
+                $addDialog.insertAfter('li#' +clickedListItem+ ' .toolbar a.add-tag.btn')
+                setupTagFieldControls('li#' +clickedListItem+ ' .toolbar div.add-tag-dialog input.new-tag')
+                $addDialog.show("slow")
+                console.log("setup new tagging dialog..")
+            })
+        /** var $edit = $('<a class="edit-item btn">bearbeite diesen Beitrag.</a>')
+            $edit.click(function(){
+                console.log("should render and add some editing dialog..")
+            }) **/
+        // append tags as listing to body
+        if (tags.length > 0) $body.append($tagInfo)
+        // score info area
+        var $votes = $('<div class="votes">Bewerte diesen Inhalt </div>')
         var $upvote = $('<a id="' +item.id+ '" class="btn vote">+</a>')
             $upvote.click(function(e) {
-                var updatedTopic = dmc.request("GET", "/eduzen/up/resource/" + e.target.id)
+                var updatedTopic = dmc.request("GET", "/notes/up/resource/" + e.target.id)
                 model.updateAvailableResource(updatedTopic)
                 // todo: cache sort-settings on client-side
                 if ($("a#most-popular").hasClass("selected")) {
@@ -185,9 +279,9 @@
                 }
                 showResultsetView()
             })
-        var $downvote = $('<a id="' +item.id+ '" class="btn vote">-</a>')
+        var $downvote = $('oder <a id="' +item.id+ '" class="btn vote">-</a>')
             $downvote.click(function(e) {
-                var updatedTopic = dmc.request("GET", "/eduzen/down/resource/" + e.target.id)
+                var updatedTopic = dmc.request("GET", "/notes/down/resource/" + e.target.id)
                 model.updateAvailableResource(updatedTopic)
                 // todo: cache sort-settings on client-side
                 if ($("a#most-popular").hasClass("selected")) {
@@ -196,10 +290,55 @@
                 }
                 showResultsetView()
             })
-        // append body and toolbar to list-item
-        $toolbar.append($upvote).append($downvote)
-        $topic.append($body).append($toolbar)
+
+        // finally append votebar, tagbar and body to list-item
+        $votes.append($upvote).append($downvote)
+        $toolbar.append(' f&uuml;ge').append($addTag)// .append(" oder ")
+        // $toolbar.append($edit)
+        // $toolbar.append($tagInfo)
+
+        $topic.append($body).append($votes).append($toolbar)
         return $topic
+    }
+
+    this.updateTagView = function() {
+        // console.log(model.getTagFilter())
+        getAllTagsInCurrentResults()
+        $('div.timeline .info div.tag-list a').remove()
+        renderTagButtons($('div.timeline .info div.tag-list'))
+
+    }
+
+    this.renderTagButtons = function($parent) {
+        var tags = model.getAvailableTags()
+        for (i=0; i < tags.length; i++) {
+            var element = tags[i]
+            var $tag = $('<a id="' +element.id+ '" class="btn tag">' +element.value+ '</a>')
+            // the event handler, if a filter-request is made
+            $tag.click(function(e) {
+                var tagId = e.target.id
+                // fixme: re-build tag-list after every single click
+                // for now we just remove the clicked button from the filter dialog
+                $("a#" + tagId).remove()
+                // add topic for clicked tag-button to our client side filter model
+                var selectedTag = model.getTagById(tagId)
+                model.addTagToFilter(selectedTag)
+                // load a tag-filter specific timeline
+                if (model.getTagFilter().length > 1) {
+                    // for more than 1 tag
+                    var parameter = {tags: model.getTagFilter()}
+                    loadAllResourcesByTags(parameter)
+                } else {
+                    // for exactly 1 tag
+                    loadAllResourcesByTagId(tagId)
+                }
+                // render tag specific filter-info header
+                showTagfilterInfo()
+                // render tag specific timeline
+                showResultsetView()
+            })
+            $parent.append($tag)
+        }
     }
 
     this.showTagView = function() {
@@ -207,51 +346,67 @@
         var tags = model.getAvailableTags()
         if (tags.length > 0) {
             //
-            var tagview = $('<div class="tag-list"><b class="label" style="float: left; padding-top: 0px;">'
-                + 'Filter nach Stichw&ouml;rtern</b></div>')
-            for (i=0; i < tags.length; i++) {
-                var element = tags[i]
-                tagview.append('<a id="' +element.id+ '" class="btn tag">' +element.value+ '</a>')
-            }
-            tagview.click(function(e) {
-                // resetting, todo: currently just one tag is supported as a filter for resources
-                resetTagfilter()
-                var tagId = e.target.id
-                // load tag specific timeline
-                var clickedTag = model.getTagById(tagId)
-                model.setTagFilter(clickedTag)
-                // update model
-                loadAllResourcesByTagId(tagId)
-                // render tag specific filter-info header
-                showTagfilterInfo()
-                // render tag specific timeline
-                showResultsetView()
-            })
-            // tagview.append('<p class="empty">nbsp;</p>')
-            $('div.timeline .info').append(tagview)
+            var $tagview = $('<div class="tag-list"><span class="label">Filter alles nach</span></div>')
+            // render all tags as buttons
+            renderTagButtons($tagview)
+            // append the tag-view to our improvised info-area (above the timeline)
+            $('div.timeline .info').append($tagview)
         } else {
-            $('div.timeline .info div.tag-list').html('<b class="label">Aint got no new tags for you</b>')
+            $('div.timeline .info div.tag-list').html('<b class="label">Aint got no tags for you</b>')
         }
     }
 
-    this.resetTagfilter = function () {
+    this.resetPageFilter = function () {
+        // update model
+        model.setTagFilter([])
+        loadAllTags()
+        loadAllResources()
         // update gui
         $(".tag-filter-info").empty()
-        // update model
-        model.setTagFilter(undefined)
-        // load tag unspecific timeline
-        loadAllResources()
+        updateTagView()
+        // show general timeline
         showResultsetView()
     }
 
     this.showTagfilterInfo = function() {
-        var tag = model.getTagFilter()
-        var $filterInfo = $('<b class="meta">unter dem Stichwort</b> <a class="btn tag selected">' +tag.value+ '</a>')
+        var $filterMeta = $('<span class="meta">unter dem/n Stichwort/en</span>')
+        var $filterButtons = $('<span class="buttons"></span>')
+        var tags = model.getTagFilter()
+        for (i=0; i < tags.length; i++) {
+            var $tagButton = $('<a class="btn tag selected">' +tags[i].value+ '</a>')
+            $filterButtons.append($tagButton)
+        }
         var $filterReset = $('<a id="all" class="btn tag-filter">Filter zur&uuml;cksetzen</a>')
             $filterReset.click(function(e) {
-                resetTagfilter()
+                resetPageFilter()
             })
-        $('.tag-filter-info').append($filterInfo).append($filterReset)
+        $('.tag-filter-info').html($filterMeta).append($filterButtons).append($filterReset)
+    }
+
+    this.getAllTagsInCurrentResults = function() {
+        var availableTags = []
+        for (i=0; i < model.getAvailableResources().length; i++) {
+            var resource = model.getAvailableResources()[i]
+
+            if (resource.composite.hasOwnProperty('dm4.tags.tag')
+                && resource.composite['dm4.tags.tag'][i] != undefined) {
+                var tag = resource.composite['dm4.tags.tag'][i]
+                console.log("resource is tagged with " + tag.value)
+                addUniqueTag(tag)
+            }
+
+        }
+        console.log("returning unique tags.. ")
+        console.log(availableTags)
+        return availableTags
+
+        function addUniqueTag(tagTopic) {
+            var isUnique = false
+            for (k=0; k < availableTags.length; k++) {
+                if (availableTags[k].value === tagTopic.value) isUnique = true
+            }
+            if (isUnique) availableTags.push(tagTopic)
+        }
     }
 
     this.setupCKEditor = function () {
@@ -265,7 +420,7 @@
             return function(){}
         })
 
-        this.renderMathInContentArea()
+        renderMathInContentArea()
 
         function renderApproachMathPreview (value) {
             $("#math-preview").text(value)
@@ -307,8 +462,8 @@
     /** HTML5 History API utility methods **/
 
     this.registerHistoryStates = function () {
-        if (window.history && history.popState) window.addEventListener('popstate', this.popHistory)
-        if (window.history && history.pushState) window.addEventListener('pushstate', this.pushHistory)
+        if (window.history && history.popState) window.addEventListener('popstate', popHistory)
+        if (window.history && history.pushState) window.addEventListener('pushstate', pushHistory)
     }
 
     this.popHistory = function (state) {
@@ -402,8 +557,10 @@
         }
     }
 
-    this.getTagsSubmitted = function () {
-        var tagline = $("input.tag").val().split( /,\s*/ )
+    this.getTagsSubmitted = function (fieldIdentifier) {
+        console.log($(fieldIdentifier))
+        if ($(fieldIdentifier).val() == undefined) return undefined
+        var tagline = $(fieldIdentifier).val().split( /,\s*/ )
         if (tagline == undefined) throw new Error("Tagging field got somehow broken.. ")
         var qualifiedTags = []
         for (i=0; i < tagline.length; i++) {
@@ -434,7 +591,7 @@
         for (i=0; i < submittedTags.length; i++) {
             var submittedTag = submittedTags[i]
             //
-            var create = true // if submitted tag is not part of tags-to-be-referenced, put in into create-queue
+            var create = true
             for (k=0; k < referencedTags.length; k++) {
                 var referencedTag = referencedTags[k]
                 // if "tag" is already part of the referenced, skip creation (comparison is case-insensitive)
@@ -486,10 +643,10 @@
     this.submitResource = function() {
         // TODO: clean up this mixed up method.
         // var pageContent = $('#resource_input').val()
-        var valueToSubmit = this.getTeXAndHTMLSource(document.getElementById("resource_input"))
-        var qualifiedTags = this.getTagsSubmitted()
-        var tagsToReference = this.getTagTopicsToReference(qualifiedTags)
-        var tagsToCreate = this.getTagTopicsToCreate(qualifiedTags, tagsToReference)
+        var valueToSubmit = getTeXAndHTMLSource(document.getElementById("resource_input"))
+        var qualifiedTags = getTagsSubmitted("input.tag")
+        var tagsToReference = getTagTopicsToReference(qualifiedTags)
+        var tagsToCreate = getTagTopicsToCreate(qualifiedTags, tagsToReference)
         // rendering notifications
         var saving = $('<b id="message" class="label">Saving...</b>').insertBefore('input.submit')
         saving.fadeOut(4000)
@@ -497,17 +654,10 @@
         // creating the resource
         var resource = createResourceTopic(valueToSubmit)
         // an creating/associtating tags with this resource
-        for (i=0; i < tagsToCreate.length; i++) {
-            var newTag = createTagTopic(tagsToCreate[i])
-            if (newTag != undefined) {
-                var assoc = createResourceTagAssociation(resource, newTag)
-                console.log("created new Assoc successfully .. " + assoc.id)
-            }
-        }
+        createNewTagsForResource(resource, tagsToCreate)
         for (k=0; k < tagsToReference.length; k++) {
             if (tagsToReference[k] != undefined) {
                 var newAssoc = createResourceTagAssociation(resource, tagsToReference[k])
-                console.log("created new Assoc successfully .. " + newAssoc.id)
             }
         }
         // rendering notifications
@@ -517,8 +667,11 @@
         $('input.tag').val("")
         $('div.header').css("opacity", "1")
         // unnecessary, just inserBefore the createResourceTopic at the top of our list
-        this.loadAllResources()
-        this.showResultsetView()
+        // or better implement observables, a model the ui can "bind" to
+        loadAllResources()
+        loadAllTags()
+        showResultsetView()
+        updateTagView()
         // TODO: render some "Saved" Notification
     }
 
@@ -536,6 +689,24 @@
             return resourceTopic;
         }
         return undefined
+    }
+
+    function createNewTagsForResource(resource, tagsToCreate) {
+        // creating new tags and associtating these with the given resource
+        for (i=0; i < tagsToCreate.length; i++) {
+            var newTag = createTagTopic(tagsToCreate[i])
+            if (newTag != undefined) {
+                var assoc = createResourceTagAssociation(resource, newTag)
+            }
+        }
+    }
+
+    function createResourceTagAssociations (resource, tagsToReference) {
+        for (k=0; k < tagsToReference.length; k++) {
+            if (tagsToReference[k] != undefined) {
+                var newAssoc = createResourceTagAssociation(resource, tagsToReference[k])
+            }
+        }
     }
 
     function createTagTopic(name) {
