@@ -33,58 +33,6 @@
         loadAllResources()
     }
 
-    this.loadAllTags = function(limit) { // lazy, unsorted, possibly limited
-        //
-        var all_tags = dmc.get_topics("dm4.tags.tag", false, false, limit).items
-        if (all_tags.length > 0) {
-            model.setAvailableTags(all_tags)
-            console.log("loaded " + model.getAvailableTags().length + " tags ")
-        } else {
-            model.setAvailableTags([])
-        }
-    }
-
-    /** Three methods to load resources from the server-side. */
-
-    this.loadAllResources = function(limit) { // lazy, unsorted, possibly limited
-        //
-        var all_resources = dmc.get_topics("dm4.resources.resource", true, true, limit).items
-        if (all_resources.length > 0) {
-            model.setAvailableResources(all_resources)
-            console.log("loaded " + model.getAvailableResources().length + " resources ")
-        } else {
-            model.setAvailableResources([])
-        }
-    }
-
-    this.loadAllResourcesByTagId = function(tagId) { // lazy, unsorted, possibly limited
-        //
-        var all_tagged_resources = dmc.request("GET", "/notes/fetch/tag/" + tagId).items
-        if (all_tagged_resources.length > 0) {
-            // overriding previously set resultlist
-            model.setAvailableResources(all_tagged_resources)
-            console.log("loaded " + model.getAvailableResources().length + " resources ")
-        } else {
-            model.setAvailableResources([])
-        }
-    }
-
-    this.loadAllResourcesByTags = function(tagList) { // lazy, unsorted, possibly limited
-        //
-        var all_tagged_resources = dmc.request("POST", "/notes/fetch/tags/", tagList).items
-        if (all_tagged_resources != undefined) {
-            if (all_tagged_resources.length > 0) {
-                // overriding previously set resultlist
-                model.setAvailableResources(all_tagged_resources)
-                console.log("loaded " + model.getAvailableResources().length + " resources ")
-            } else {
-                model.setAvailableResources([])
-            }
-        } else {
-            console.log(all_tagged_resources)
-        }
-    }
-
     this.setupTagFieldControls = function(identifier) {
         $(identifier).bind( "keydown", function( event ) {
             if ( event.keyCode === $.ui.keyCode.TAB && $( this ).data( "ui-autocomplete" ).menu.active ) {
@@ -173,7 +121,8 @@
         if (model.getAvailableResources().length > 0) {
             setupResultList()
         } else {
-            $('div.results').html('<br/><br/><b class="label">Aint got no results</b>')
+            $('div.results').html('<br/><br/><b class="label">Aint no content found. Please insert coin.</b>')
+            $('.result-text').text('')
         }
     }
 
@@ -187,6 +136,7 @@
             $(".result-sort").text("zeitlich")
         }
         $(".result-count").text(results.length + " Ergebnis/se ")
+        $('.result-text').text('sortiert')
         //
         var $resultlist = $('<ul class="list">')
         $.each(results, function (e, item) {
@@ -243,6 +193,9 @@
                         var tagsToCreateAndAssociate = getTagTopicsToCreate(tagsToPossiblyCreate, existingTags)
                         createResourceTagAssociations(item, tagsToAssociate)
                         createNewTagsForResource(item, tagsToCreateAndAssociate)
+                        // re-render both views
+                        showTagView()
+                        showResultsetView()
                         // update gui, remove dialog
                         $addDialog.remove()
                         $addTag.removeClass("selected")
@@ -301,24 +254,15 @@
         return $topic
     }
 
-    this.updateTagView = function() {
-        // console.log(model.getTagFilter())
-        getAllTagsInCurrentResults()
-        $('div.timeline .info div.tag-list a').remove()
-        renderTagButtons($('div.timeline .info div.tag-list'))
-
-    }
-
-    this.renderTagButtons = function($parent) {
-        var tags = model.getAvailableTags()
+    this.showTagButtons = function($parent, tags) {
+        //
         for (i=0; i < tags.length; i++) {
             var element = tags[i]
             var $tag = $('<a id="' +element.id+ '" class="btn tag">' +element.value+ '</a>')
             // the event handler, if a filter-request is made
             $tag.click(function(e) {
                 var tagId = e.target.id
-                // fixme: re-build tag-list after every single click
-                // for now we just remove the clicked button from the filter dialog
+                // we remove the clicked button from the filter dialog
                 $("a#" + tagId).remove()
                 // add topic for clicked tag-button to our client side filter model
                 var selectedTag = model.getTagById(tagId)
@@ -334,6 +278,8 @@
                 }
                 // render tag specific filter-info header
                 showTagfilterInfo()
+                // render filter specific tag-view
+                showTagView()
                 // render tag specific timeline
                 showResultsetView()
             })
@@ -343,16 +289,28 @@
 
     this.showTagView = function() {
         //
-        var tags = model.getAvailableTags()
-        if (tags.length > 0) {
-            //
-            var $tagview = $('<div class="tag-list"><span class="label">Filter alles nach</span></div>')
-            // render all tags as buttons
-            renderTagButtons($tagview)
-            // append the tag-view to our improvised info-area (above the timeline)
-            $('div.timeline .info').append($tagview)
+        if ($('div.timeline .info div.tag-list').length == 0) {
+            // handling initial rendering of this component
+            var tags = model.getAvailableTags()
+            if (tags.length > 0) {
+                //
+                var $tagview = $('<div class="tag-list"><span class="label">Filter alles nach</span></div>')
+                // render all tags as buttons
+                showTagButtons($tagview, tags)
+                // append the tag-view to our improvised info-area (above the timeline)
+                $('div.timeline .info').append($tagview)
+            } else {
+                $('div.timeline .info div.tag-list').html('<b class="label">Aint got no tags to show you.</b>')
+            }
         } else {
-            $('div.timeline .info div.tag-list').html('<b class="label">Aint got no tags for you</b>')
+            if (model.getTagFilter().length > 0) {
+                var currentTags = getAllTagsInCurrentResults()
+                $('div.timeline .info div.tag-list a').remove()
+                showTagButtons($('div.timeline .info div.tag-list'), currentTags)
+            } else {
+                $('div.timeline .info div.tag-list a').remove()
+                showTagButtons($('div.timeline .info div.tag-list'), model.getAvailableTags())
+            }
         }
     }
 
@@ -363,7 +321,7 @@
         loadAllResources()
         // update gui
         $(".tag-filter-info").empty()
-        updateTagView()
+        showTagView()
         // show general timeline
         showResultsetView()
     }
@@ -384,28 +342,34 @@
     }
 
     this.getAllTagsInCurrentResults = function() {
-        var availableTags = []
-        for (i=0; i < model.getAvailableResources().length; i++) {
-            var resource = model.getAvailableResources()[i]
-
+        var availableFilterTags = []
+        var availableResources = model.getAvailableResources()
+        // check through all current (filtered) resources of the result-set
+        for (i=0; i < availableResources.length; i++) {
+            var resource = availableResources[i]
+            // through all their tags and add each tag once to our new set of possible filters
             if (resource.composite.hasOwnProperty('dm4.tags.tag')
-                && resource.composite['dm4.tags.tag'][i] != undefined) {
-                var tag = resource.composite['dm4.tags.tag'][i]
-                console.log("resource is tagged with " + tag.value)
-                addUniqueTag(tag)
+                && resource.composite['dm4.tags.tag'] != undefined) {
+                var tags = resource.composite['dm4.tags.tag']
+                for (k=0; k < tags.length; k++) { // i > k > m (clojure attention!)
+                    var tag = tags[k]
+                    addUniqueTagToTagFilter(tag, availableFilterTags)
+                }
             }
 
         }
-        console.log("returning unique tags.. ")
-        console.log(availableTags)
-        return availableTags
+        return availableFilterTags
+    }
 
-        function addUniqueTag(tagTopic) {
-            var isUnique = false
-            for (k=0; k < availableTags.length; k++) {
-                if (availableTags[k].value === tagTopic.value) isUnique = true
+    this.addUniqueTagToTagFilter = function (tagTopic, filteredTags) {
+        var isUnique = true
+        for (m=0; m < filteredTags.length; m++) {
+            if (filteredTags[m].id == tagTopic.id) {
+                isUnique = false
             }
-            if (isUnique) availableTags.push(tagTopic)
+        }
+        if (isUnique) {
+            filteredTags.push(tagTopic)
         }
     }
 
@@ -513,52 +477,7 @@
         return 0 //default return value (no sorting)
     }
 
-    /**
-    * @param   path        the file repository path (a string) to upload the selected file to. Must begin with "/".
-    * @param   callback    the function that is invoked once the file has been uploaded and processed at server-side.
-    *                      One argument is passed to that function: the object (deserialzed JSON)
-    *                      returned by the (server-side) executeCommandHook. ### FIXDOC
-    */
-    this.open_upload_dialog = function(new_path, callback) {
-
-        // 1) install upload target
-        var upload_target = $("<iframe>", {name: "upload-target"}).hide()
-        $("body").append(upload_target)
-
-        // 2) create upload dialog
-        var upload_form = $("<form>", {
-        method:  "post",
-        enctype: "multipart/form-data",
-        target:  "upload-target"
-        })
-        .append($('<input type="file">').attr({name: "file", size: 60}))
-        .append($('<input class=\"button\" type="submit">').attr({value: "Upload"}))
-        //
-        var upload_dialog = this.ui.dialog({title: "Upload File", content: upload_form})
-
-        // 3) create dialog handler
-        return function() {
-        upload_form.attr("action", "/files/uebungen-uploads-wise12/" + new_path)
-        upload_dialog.open()
-        // bind handler
-        upload_target.unbind("load")    // Note: the previous handler must be removed
-        upload_target.load(upload_complete)
-
-            function upload_complete() {
-                upload_dialog.close()
-                // Note: iframes must be accessed via window.frames
-                var response = $("pre", window.frames["upload-target"].document).text()
-                try {
-                callback(JSON.parse(response))
-                } catch (e) {
-                alert("Upload failed: \"" + response + "\"\n\nException=" + JSON.stringify(e))
-                }
-            }
-        }
-    }
-
     this.getTagsSubmitted = function (fieldIdentifier) {
-        console.log($(fieldIdentifier))
         if ($(fieldIdentifier).val() == undefined) return undefined
         var tagline = $(fieldIdentifier).val().split( /,\s*/ )
         if (tagline == undefined) throw new Error("Tagging field got somehow broken.. ")
@@ -640,7 +559,7 @@
 
     }
 
-    this.submitResource = function() {
+    this.doSubmitResource = function() {
         // TODO: clean up this mixed up method.
         // var pageContent = $('#resource_input').val()
         var valueToSubmit = getTeXAndHTMLSource(document.getElementById("resource_input"))
@@ -671,9 +590,64 @@
         loadAllResources()
         loadAllTags()
         showResultsetView()
-        updateTagView()
-        // TODO: render some "Saved" Notification
+        showTagView()
     }
+
+
+
+    this.loadAllTags = function(limit) { // lazy, unsorted, possibly limited
+        //
+        var all_tags = dmc.get_topics("dm4.tags.tag", false, false, limit).items
+        if (all_tags.length > 0) {
+            model.setAvailableTags(all_tags)
+            console.log("loaded " + model.getAvailableTags().length + " tags from server-side")
+        } else {
+            model.setAvailableTags([])
+        }
+    }
+
+    /** Three methods to load resources from the server-side. */
+
+    this.loadAllResources = function(limit) { // lazy, unsorted, possibly limited
+        //
+        var all_resources = dmc.get_topics("dm4.resources.resource", true, true, limit).items
+        if (all_resources.length > 0) {
+            model.setAvailableResources(all_resources)
+            console.log("loaded " + model.getAvailableResources().length + " resources from server-side")
+        } else {
+            model.setAvailableResources([])
+        }
+    }
+
+    this.loadAllResourcesByTagId = function(tagId) { // lazy, unsorted, possibly limited
+        //
+        var all_tagged_resources = dmc.request("GET", "/notes/fetch/tag/" + tagId).items
+        if (all_tagged_resources.length > 0) {
+            // overriding previously set resultlist
+            model.setAvailableResources(all_tagged_resources)
+            console.log("loaded " + model.getAvailableResources().length + " resources from server-side")
+        } else {
+            model.setAvailableResources([])
+        }
+    }
+
+    this.loadAllResourcesByTags = function(tagList) { // lazy, unsorted, possibly limited
+        //
+        var all_tagged_resources = dmc.request("POST", "/notes/fetch/tags/", tagList).items
+        if (all_tagged_resources != undefined) {
+            if (all_tagged_resources.length > 0) {
+                // overriding previously set resultlist
+                model.setAvailableResources(all_tagged_resources)
+                console.log("loaded " + model.getAvailableResources().length + " resources from server-side")
+            } else {
+                model.setAvailableResources([])
+            }
+        } else {
+            console.log(all_tagged_resources)
+        }
+    }
+
+
 
     /** RESTful utility methods for the trt-views **/
 
@@ -686,6 +660,10 @@
             // "dm4.resources.content": "ref_uri:tub.eduzen.approach_undecided",
             var resourceTopic = dmc.create_topic(topicModel)
             if (resourceTopic == undefined) throw new Error("Something mad happened.")
+            var updated = model.addToAvailableResources(resourceTopic)
+            if (updated == undefined) {
+                throw new Error("Something mad happened while updating client side application cache.")
+            }
             return resourceTopic;
         }
         return undefined
@@ -697,6 +675,15 @@
             var newTag = createTagTopic(tagsToCreate[i])
             if (newTag != undefined) {
                 var assoc = createResourceTagAssociation(resource, newTag)
+                // add new tag to all available tags & to resource
+                var updated = model.associateTagWithAvailableResource(newTag, resource.id)
+                if (updated == undefined) {
+                    throw new Error("Something mad happened while updating client side application cache.")
+                }
+                var updateTags = model.addToAvailableTags(newTag)
+                if (updateTags == undefined) {
+                    throw new Error("Something mad happened while updating client side application cache.")
+                }
             }
         }
     }
@@ -705,6 +692,11 @@
         for (k=0; k < tagsToReference.length; k++) {
             if (tagsToReference[k] != undefined) {
                 var newAssoc = createResourceTagAssociation(resource, tagsToReference[k])
+                // update also the value on client side
+                var updated = model.associateTagWithAvailableResource(tagsToReference[k], resource.id)
+                if (updated == undefined) {
+                    throw new Error("Something mad happened while updating client side application cache.")
+                }
             }
         }
     }
@@ -715,6 +707,10 @@
             // "dm4.resources.content": "ref_uri:tub.eduzen.approach_undecided",
             var tagTopic = dmc.create_topic(topicModel)
             if (tagTopic == undefined) throw new Error("Something mad happened.")
+            var updated = model.addToAvailableTags(tagTopic)
+            if (updated == undefined) {
+                throw new Error("Something mad happened while updating client side application cache.")
+            }
             return tagTopic;
         }
         return undefined

@@ -38,6 +38,7 @@ body.eduzen notes {
     margin-left: 6px;
     margin-top: 6px;
     min-height: 36px;
+    margin-bottom: 5px;
 }
 
 .eduzen div.results b.label {
@@ -67,6 +68,7 @@ body.eduzen notes {
     z-index: 100;
     padding-top: 6px;
     width: 92%;
+    min-height: 30px;
 }
 
 .eduzen .timeline .info a {
@@ -395,6 +397,8 @@ input.cke_dialog_ui_input_text:focus {
 
 .eduzen .btn.tag {
     border: 1px #0782C1 solid;
+    margin-bottom: 5px;
+    margin-top: 5px;
 }
 
 .eduzen .btn.tag:hover {
