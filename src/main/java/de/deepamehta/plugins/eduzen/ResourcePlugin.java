@@ -54,6 +54,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     private final static String AGGREGATION = "dm4.core.aggregation";
 
     private final static String RESOURCE_URI = "dm4.resources.resource";
+    private final static String RESOURCE_CONTENT_URI = "dm4.resources.content";
     private final static String TAG_URI = "dm4.tags.tag";
     private final static String SCORE_URI = "dm4.ratings.score";
 
@@ -226,11 +227,23 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @GET
     @Path("/")
     @Produces("text/html")
-    public Viewable getFrontView () {
+    public Viewable getFrontView() {
         context.setVariable("name", "EduZEN");
         // context.setVariable("posterText", "<p>Hallo Welt this is fat, sick and clickable yo!</p>");
         return view("index");
     }
+
+    @GET
+    @Path("/{id}")
+    @Produces("text/html")
+    public Viewable getDetailView(@PathParam("id") long resourceId, @HeaderParam("Cookie") ClientState clientState) {
+        Topic resource = dms.getTopic(resourceId, true, clientState);
+        context.setVariable("resourceName", resource.getSimpleValue());
+        context.setVariable("resourceId", resource.getId());
+        return view("resource");
+    }
+
+
 
     /** Private Helper Methods */
 

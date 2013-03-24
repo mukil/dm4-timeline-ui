@@ -4,6 +4,7 @@ function AppModel() {
 
         var availableTags = undefined
         var availableResources = undefined
+        var currentResource = undefined
 
         var isSortedByScore = undefined
 
@@ -15,6 +16,12 @@ function AppModel() {
             },
             getAvailableTags: function () {
                 return availableTags
+            },
+            setCurrentResource: function (resource) {
+                currentResource = resource
+            },
+            getCurrentResource: function () {
+                return currentResource
             },
             addToAvailableTags: function (tag) {
                 return availableTags.push(tag)

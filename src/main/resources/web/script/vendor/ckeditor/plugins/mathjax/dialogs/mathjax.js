@@ -22,12 +22,12 @@ CKEDITOR.dialog.add( 'mathjaxDialog', function( editor ) {
                         type: 'html',
                         html: '<label>Vorschau</label><div id="math-live-preview"></div>',
                         setup: function (element) {
-                            var textarea = editor.document.getById("mathInput")
+                            var textarea = editor.document.getById("cke_45_textarea")
                             var livePreview = editor.document.getById("math-live-preview")
                             if (livePreview != undefined) livePreview.setText("") // clear preview
                             // register live-preview handler
                             if (textarea) {
-                                var t = textarea.$[0]
+                                var t = textarea.$
                                 // initial preview-build up
                                 var preview = editor.document.getById("math-live-preview")
                                 preview.setText(t.value)
@@ -48,7 +48,9 @@ CKEDITOR.dialog.add( 'mathjaxDialog', function( editor ) {
                 elements:[
                     {
                         type: 'html',
-                        html: '<b>LaTeX Spickzettel</b></br><p>What you type.. | What you get..</p>'
+                        html: '<b>LaTeX Spickzettel</b></br><p>Aktuell k&ouml;nnen wir euch leider nur '
+                            + 'auf die <a href="http://de.wikipedia.org/wiki/Hilfe:TeX">Wikipedia-Hilfe Seite für '
+                            + 'TeX</a><br/>verweisen, dort findet Ihr einen gut strukturierten Einstieg.</p>'
                     }
                 ]
             }
@@ -59,7 +61,6 @@ CKEDITOR.dialog.add( 'mathjaxDialog', function( editor ) {
         }, onShow: function() {
             var selection = editor.getSelection()
             var element = selection.getStartElement()
-            console.log(element)
             var latexSource = undefined // this is what we need to edit this math-formula
             // find our ascendant math-output/div container
             if ( element ) {
@@ -151,10 +152,10 @@ CKEDITOR.dialog.add( 'mathjaxDialog', function( editor ) {
 
         }, onHide: function() {
             console.log("just hiding the dialog, typesetting math in any case..")
-            MathJax.Hub.Typeset()
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, "resource_input"])
         }, onCancel: function() {
             console.log("just cancelled the dialog, typesetting math in any case..")
-            MathJax.Hub.Typeset()
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, "resource_input"])
         }
     }
 });

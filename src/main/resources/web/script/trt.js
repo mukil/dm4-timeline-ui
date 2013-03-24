@@ -4,6 +4,7 @@
     var model = AppModel()
     var skroll = undefined
     var dict = new eduzenDictionary("DE")
+    var _this = this
 
     /** Initializing our interactive page. */
 
@@ -20,6 +21,19 @@
         showTagView()
         // setup page-controls
         setupPageControls()
+    }
+
+    this.setupDetailView = function(resourceId) {
+        console.log("setting up detail view for resource id: " + resourceId)
+        // set page-data
+        setupCKEditor()
+        // initalize add tags field
+        setupTagFieldControls('input.tag')
+        setupMathJaxRenderer()
+        // initialize page-model
+        loadResourceById(resourceId)
+        showDetailsView()
+        renderMathInArea("resource_input")
     }
 
 
@@ -66,10 +80,6 @@
 
     }
 
-
-
-    /** GUI Related Methods */
-
     this.setupPageControls = function() {
         // setting up sort-controls and input button
         $("a#submit").click(function(e) {window.scrollTo(0)})
@@ -95,21 +105,18 @@
         $("a#test").click(loadAllResourcesByTags)
     }
 
-    this.getHighestResources = function() {
-        var results = model.getAvailableResources()
-        return results.sort(score_sort_asc)
-    }
+    this.showDetailsView = function() {
 
-    this.getAlphabeticalResources = function() {
-        var results = model.getAvailableResources()
-        return results.sort(alphabetical_sort_asc)
-    }
-
-    this.renderMathInContentArea = function () {
-        // typeset all elements containing TeX to SVG or HTML in default area #content
-        MathJax.Hub.Typeset()
-        // MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
-    }
+        // set content of resource
+        _this.ck.setData(model.getCurrentResource().composite['dm4.resources.content'].value)
+        // show tags for resource
+        var currentTags = model.getCurrentResource().composite['dm4.tags.tag']
+        for (i=0; i < currentTags.length; i++) {
+            var tag = currentTags[i]
+            $('#tags').append('<a class="tag"><img src="/de.deepamehta.tags/images/tag_32.png" width="20"'
+                + 'alt="Tag: '+tag.value+'">' +tag.value+ '</a>')
+        }
+   }
 
     this.showResultsetView = function() {
         // future needed variations showResultsetView will be:
@@ -143,8 +150,9 @@
             $topic = setupResultListItem(item)
             $resultlist.append($topic)
         })
-        $resultlist.append('<p class="empty">&nbsp;</p>')
         $('div.results').html($resultlist)
+        // render math in the whole page
+        renderMathInArea("resources")
     }
 
     this.setupResultListItem = function(item) {
@@ -152,17 +160,21 @@
         var tags = (item.composite['dm4.tags.tag'] != undefined) ? item.composite['dm4.tags.tag'] : []
         // construct list item, header and content-area first
         var title = new Date(parseInt(item.value))
-        var $topic = $('<li id="' +item.id+ '">').text("Dieser Beitrag wurde eingereicht am  " +
-            title.getDate() + "." + dict.monthNames[title.getMonth()] + " " + title.getFullYear() + " um "
-            + title.getHours() + ":" +title.getMinutes() + " Uhr und hat " + score + " Votes")
+        var $topic = $('<li id="' +item.id+ '">').html('Dieser Beitrag wurde eingereicht am  ' +
+            title.getDate() + '.' + dict.monthNames[title.getMonth()] + ' ' + title.getFullYear() + ' um '
+            + title.getHours() + ':' +title.getMinutes() + ' Uhr, hat eine Bewertung von '
+            + '<span class="score-info">' + score + '</span> ')
         var $body = $('<div class="item-content">' + item.composite['dm4.resources.content'].value + '</div>');
         // bottom area, tag and score info area
         var $toolbar = $('<div class="toolbar"></div>')
         // tag info area
-        var $tagInfo = $('<span class="tag-info">Assoziiert mit folgenden Tags</span>')
+        var $tagInfo = $('<span>und folgende Tags: </span>')
+        var commaCounter = 0
         for (i=0; i < tags.length; i++) {
             // use tag icon..
             $tagInfo.append('<i class="tag">' +tags[i].value+ '</i>')
+            commaCounter++
+            if (commaCounter < tags.length) $tagInfo.append(', ')
         }
         // create edit and add buttons per result-list item
         var $addDialog = $('<div class="add-tag-dialog"></div>')
@@ -193,6 +205,8 @@
                         var tagsToCreateAndAssociate = getTagTopicsToCreate(tagsToPossiblyCreate, existingTags)
                         createResourceTagAssociations(item, tagsToAssociate)
                         createNewTagsForResource(item, tagsToCreateAndAssociate)
+                        // track "added tag"-goal
+                        piwikTracker.trackGoal(4)
                         // re-render both views
                         showTagView()
                         showResultsetView()
@@ -213,18 +227,19 @@
                 $addDialog.show("slow")
                 console.log("setup new tagging dialog..")
             })
-        /** var $edit = $('<a class="edit-item btn">bearbeite diesen Beitrag.</a>')
+        var $edit = $('<a class="edit-item btn">bearbeite diesen Beitrag.</a>')
             $edit.click(function(){
+                window.location.href = '/notes/'+item.id
                 console.log("should render and add some editing dialog..")
-            }) **/
-        // append tags as listing to body
-        if (tags.length > 0) $body.append($tagInfo)
+            })
         // score info area
         var $votes = $('<div class="votes">Bewerte diesen Inhalt </div>')
         var $upvote = $('<a id="' +item.id+ '" class="btn vote">+</a>')
             $upvote.click(function(e) {
                 var updatedTopic = dmc.request("GET", "/notes/up/resource/" + e.target.id)
                 model.updateAvailableResource(updatedTopic)
+                // track "voted resource" goal
+                piwikTracker.trackGoal(3)
                 // todo: cache sort-settings on client-side
                 if ($("a#most-popular").hasClass("selected")) {
                     // update our result-set view immedieatly after upvoting
@@ -236,6 +251,8 @@
             $downvote.click(function(e) {
                 var updatedTopic = dmc.request("GET", "/notes/down/resource/" + e.target.id)
                 model.updateAvailableResource(updatedTopic)
+                // track "voted resource" goal
+                piwikTracker.trackGoal(3)
                 // todo: cache sort-settings on client-side
                 if ($("a#most-popular").hasClass("selected")) {
                     // update our result-set view immedieatly after upvoting
@@ -246,11 +263,13 @@
 
         // finally append votebar, tagbar and body to list-item
         $votes.append($upvote).append($downvote)
-        $toolbar.append(' f&uuml;ge').append($addTag)// .append(" oder ")
-        // $toolbar.append($edit)
+        $toolbar.append(' f&uuml;ge').append($addTag).append(" oder ")
+        $toolbar.append($edit)
         // $toolbar.append($tagInfo)
 
         $topic.append($body).append($votes).append($toolbar)
+        // out tag listing before body
+        if (tags.length > 0) $tagInfo.insertBefore($body)
         return $topic
     }
 
@@ -294,7 +313,7 @@
             var tags = model.getAvailableTags()
             if (tags.length > 0) {
                 //
-                var $tagview = $('<div class="tag-list"><span class="label">Filter alles nach</span></div>')
+                var $tagview = $('<div class="tag-list"><span class="label">Filter Inhalte nach</span></div>')
                 // render all tags as buttons
                 showTagButtons($tagview, tags)
                 // append the tag-view to our improvised info-area (above the timeline)
@@ -305,6 +324,7 @@
         } else {
             if (model.getTagFilter().length > 0) {
                 var currentTags = getAllTagsInCurrentResults()
+                currentTags = sliceAboutFilteredTags(currentTags)
                 $('div.timeline .info div.tag-list a').remove()
                 showTagButtons($('div.timeline .info div.tag-list'), currentTags)
             } else {
@@ -341,6 +361,16 @@
         $('.tag-filter-info').html($filterMeta).append($filterButtons).append($filterReset)
     }
 
+    this.getHighestResources = function() {
+        var results = model.getAvailableResources()
+        return results.sort(score_sort_asc)
+    }
+
+    this.getAlphabeticalResources = function() {
+        var results = model.getAvailableResources()
+        return results.sort(alphabetical_sort_asc)
+    }
+
     this.getAllTagsInCurrentResults = function() {
         var availableFilterTags = []
         var availableResources = model.getAvailableResources()
@@ -373,31 +403,36 @@
         }
     }
 
+    this.sliceAboutFilteredTags = function(tags) {
+        var filteredTags = model.getTagFilter()
+        var restOfTags = []
+        for (k=0; k < tags.length; k++) {
+            var take = true
+            // if tag is already part of our filter, exclude it from our result set
+            for (i=0; i < filteredTags.length; i++) {
+                var filteredTag = filteredTags[i]
+                if (tags[k].id == filteredTag.id) take = false
+            }
+            if (take) restOfTags.push(tags[k])
+        }
+        return restOfTags
+    }
+
     this.setupCKEditor = function () {
         // setup cK-editor
         CKEDITOR.inline( document.getElementById( 'resource_input' ) );
+        _this.ck = CKEDITOR.instances['resource_input']
         // upload-fallback: $(".button.upload").click(this.open_upload_dialog(uploadPath, this.handleUploadResponse))
         // mathjax preview handling
         $input = $('#resource_input')
         $input.keyup(function(e) {
-            renderApproachMathPreview($input.val())
+            renderMathInArea(resource_input)
             return function(){}
         })
-
-        renderMathInContentArea()
-
-        function renderApproachMathPreview (value) {
-            $("#math-preview").text(value)
-            MathJax.Hub.Queue(["Typeset", MathJax.Hub])
-            this.renderMathInContentArea()
-            // $("#math-preview").html("<img src=\"http://latex.codecogs.com/gif.latex?"
-                // + value +"\" alt=\""+ value +"\">")
-        }
-
     }
 
     this.setupMathJaxRenderer = function() {
-        MathJax.Ajax.config.root = "/de.tu-berlin.eduzen.mathjax-renderer/script/vendor/mathjax"
+        MathJax.Ajax.config.root = "http://localhost:8080/de.tu-berlin.eduzen.mathjax-renderer/script/vendor/mathjax"
         MathJax.Hub.Config({
             "extensions": ["tex2jax.js", "mml2jax.js", "MathEvents.js", "MathZoom.js", "MathMenu.js", "toMathML.js",
             "TeX/noErrors.js","TeX/noUndefined.js","TeX/AMSmath.js","TeX/AMSsymbols.js", "FontWarnings.js"],
@@ -414,11 +449,17 @@
             "SVG": {"blacker": 8, "scale": 110},
             "v1.0-compatible": false,
             "skipStartupTypeset": false,
-            "elements": ["resource_input, math-live-preview, body"]
+            "elements": ["resource_input, math-live-preview, resources"]
         });
         // console.log("testing to get at an iframe.. into mathJax rendering")
         // console.log($(".cke_wysiwyg_frame").context.childNodes[1].childNodes[2])
         MathJax.Hub.Configured() // bootstrap mathjax.js lib now
+        MathJax.Hub.Typeset()
+    }
+
+    this.renderMathInArea = function (identifier) {
+        // typeset all elements containing TeX to SVG or HTML in designated area
+        MathJax.Hub.Queue(["Typeset", MathJax.Hub, identifier]);
     }
 
 
@@ -579,6 +620,8 @@
                 var newAssoc = createResourceTagAssociation(resource, tagsToReference[k])
             }
         }
+        // track "added resource" goal
+        piwikTracker.trackGoal(5)
         // rendering notifications
         $('#message').html("Fine. Thanks!")
         saving.fadeIn(4000).fadeOut(3000)
@@ -591,6 +634,28 @@
         loadAllTags()
         showResultsetView()
         showTagView()
+    }
+
+    this.doSaveResource = function() {
+        var valueToSubmit = getTeXAndHTMLSource(document.getElementById("resource_input"))
+        // var qualifiedTags = getTagsSubmitted("input.tag")
+        // load all tags before..
+        // console.log("should update resource contents with " + valueToSubmit)
+        var resource = model.getCurrentResource()
+        resource.composite["dm4.resources.content"].value = valueToSubmit
+        var updated = dmc.update_topic(resource)
+        // track "edited resource" goal
+        piwikTracker.trackGoal(1)
+        window.location.href = "/notes" // hacketi hack hack
+    }
+
+    this.doDeleteResource = function() {
+        //
+        var resource = model.getCurrentResource()
+        var deleted = dmc.delete_topic(resource.id)
+        // track "edited resource" goal
+        piwikTracker.trackGoal(2)
+        window.location.href = "/notes" // hacketi hack hack
     }
 
 
@@ -606,7 +671,7 @@
         }
     }
 
-    /** Three methods to load resources from the server-side. */
+    /** Some methods to load resources from the server-side. */
 
     this.loadAllResources = function(limit) { // lazy, unsorted, possibly limited
         //
@@ -616,6 +681,16 @@
             console.log("loaded " + model.getAvailableResources().length + " resources from server-side")
         } else {
             model.setAvailableResources([])
+        }
+    }
+
+    this.loadResourceById = function(id) { // lazy, unsorted, possibly limited
+        //
+        var resource = dmc.get_topic_by_id(id, true)
+        if (resource != undefined) {
+            model.setCurrentResource(resource)
+        } else {
+            throw new Error("Something mad happend while loading resource.")
         }
     }
 

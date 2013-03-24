@@ -15,7 +15,6 @@
         <script type="text/javascript" src="/de.deepamehta.webclient/script/vendor/jquery/jquery-ui-1.8.21.custom.min.js"></script>
         <script type="text/javascript" src="/de.deepamehta.webclient/script/util/rest_client.js"></script>
         <script type="text/javascript" src="/de.deepamehta.webclient/script/util/gui_toolkit.js"></script>
-        <script type="text/javascript" src="/de.tu-berlin.eduzen.deepamehta-resources/script/vendor/skrollr/skrollr.min.js"></script>
         <script type="text/javascript" src="/de.tu-berlin.eduzen.deepamehta-resources/script/vendor/eduzen_dictionary.js"></script>
         <script type="text/javascript" src="/de.tu-berlin.eduzen.deepamehta-resources/script/vendor/ckeditor/ckeditor.js"></script>
         <script type="text/javascript" src="/de.tu-berlin.eduzen.deepamehta-resources/script/model/AppModel.js"></script>
@@ -24,7 +23,7 @@
         <!--<script type="text/javascript" src="https://getfirebug.com/firebug-lite.js"></script>-->
         <!-- script type="text/javascript" src="http://modernizr.com/downloads/modernizr-latest.js"></script-->
 
-        <!-- Note: We are proudly build on free and open source tools, namely jQuery, skrollr, Piwik and DeepaMehta 4. -->
+        <!-- Note: We are proudly build on free and open source tools, namely jQuery, Piwik and DeepaMehta 4. -->
 
         <!-- Piwik -->
         <script type="text/javascript">
@@ -39,66 +38,59 @@
         </script>
         <!-- End Piwik Tracking Code -->
 
-        <script type="text/javascript">
+        <script type="text/javascript" th:inline="javascript">
+            /*<![CDATA[*/
             $(document).ready(function() {
-            /** Initialize the our interactive page **/
-                setupView()
+                var resourceId = /*[[${resourceId}]]*/ '1';
+                setupDetailView(resourceId)
             })
+            /*]]>*/
         </script>
 
     </head>
 
-    <body class="eduzen notes">
+    <body class="eduzen notes note">
         <div class="header">
             <h3 class="hello">
+                Inhalt bearbeiten
                 <!-- Share your educational resource*-->
+                <a href="/notes" class="back-to-front">zur&uuml;ck zur Startseite</a>
             </h3>
             <div class="content-area">
                 <p><!-- i class="label">Educational resource</i-->
-                    <b class="header-title">Inhalt hinzuf&uuml;gen</b>
+                    <b class="label">Zeitstempel:</b>
+                    <b class="header-title" th:text="${resourceName}">Name des Inhalts</b>
                 </p>
+                <b class="label">Inhalt:</b>
                 <div id="resource_input" contenteditable="true"></div> <!--  -->
-                <p>
-                    <b class="header-title">Inhalt verschlagworten</b>
-                    <input type="text" placeholder="..." size="50" class="tag"></input>
-                    <input type="button" value="Hinzuf&uuml;gen" class="submit btn"
-                        onclick="javascript:doSubmitResource()"></input>
-                </p>
+                <br/>
+                <b class="label">Tags:</b>
+                <div id="tags"></div>
+                <br/>
+                <input type="button" value="&Auml;nderungen speichern" class="submit btn"
+                    onclick="javascript:doSaveResource()"></input>
+                <!--
+                <b class="label">Weitere Tags hinzuf&uuml;gen:</b>
+                <input type="text" placeholder="Name des Tags" size="50" class="tag"></input>
+                -->
             </div>
+            <br/><br/>
+            <p>
+                <input type="button" value="Eintrag l&ouml;schen" class="delete btn"
+                    onclick="javascript:doDeleteResource()"></input>
+                Achtung: Diese Aktion kann nicht r&uuml;ckgangig gemacht werden.
+            </p>
         </div>
-
-        <div class="timeline" data-0="position:static;" data-top-top="position:fixed;top:0;">
-
-            <div class="options">
-                <span class="result-count"></span>
-                <span class="result-sort"></span>
-                <span class="result-text"></span>
-                <span class="tag-filter-info"></span>
-                <a class="btn sort" id="most-popular">Sortierung nach Bewertung</a>
-                <a class="btn add" id="submit">Neuen Inhalt hinzuf&uuml;gen</a>
-            </div>
-
-            <div class="info" id="nav">
-                <b class="header-title"></b>
-            </div>
-
-        </div>
-
-        <!--placeholder div to prevent jumpy content when nav gets pinned -->
-        <div style="padding:2em;" data-0="display:none;" data-top-top="display:block;"
-             data-anchor-target="#nav">&nbsp;</div>
-
-        <div id="resources" class="results"></div>
 
         <div class="footer">
             <h3>Hint &amp; Imprint</h3>
-            Please always share a reference to the <b>author</b> and <b>license infos</b> in your submission.
-            Be polite and care about everything. <br/> This<a href="http://eduzen.tu-berlin.de/content-platform">
-            platform</a> is an experiment seeded by the <a href="http://eduzen.tu-berlin.de"
-               title="Find our projects website">educationZEN project</a>, please take
-            <a href="http://research.eduzen.tu-berlin.de/survey/index.php/survey/index/sid/414826/newtest/Y/lang/de-informal"
-               title="Link zur Umfrage">part in our survey</a> and help us to improve this service. You can also send
-            us your feedback in a simple <a href="mailto:team@eduzen.tu-berlin.de">mail</a>.
+            Please always share a reference to (or tag) about the author in your submission.
+            This way our platform serves some sort of "academic standard compliance".
+            <br/><br/>
+            This <a href="http://eduzen.tu-berlin.de/content-platform">platform</a> is a prototypical
+            experiment seeded by the <a href="http://eduzen.tu-berlin.de" title="Find our projects website">
+            educationZEN project</a>, please send <a href="mailto:team@eduzen.tu-berlin.de"
+            title="Mailto: team@eduzen.tu.berlin.de">them</a> your ideas on how to improve it.
         </div>
 
         <noscript><p>
