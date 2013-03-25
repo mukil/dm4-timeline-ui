@@ -547,6 +547,7 @@
 
     this.getTagTopicsToCreate = function (submittedTags, referencedTags) {
         var tagsToCreate = []
+        if (referencedTags == undefined) return submittedTags // return all submittedTags for creation
         // filter tags about the submittedTags which are not referenced
         for (i=0; i < submittedTags.length; i++) {
             var submittedTag = submittedTags[i]

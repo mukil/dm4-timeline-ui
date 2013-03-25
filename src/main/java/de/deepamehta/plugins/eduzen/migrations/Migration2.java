@@ -36,8 +36,10 @@ public class Migration2 extends Migration {
         // resource.addAssocDef(new AssociationDefinitionModel("dm4.core.aggregation_def",
             // RESOURCE_URI, FILE_URI, "dm4.core.one", "dm4.core.one"));
         // hide "Web Resources" from "Create"-Menu, thus forcing usage of our new "Resource"-Topic
-        // dms.getTopicType(WEB_RESOURCE_URI, null).getViewConfig()
-           // .addSetting("dm4.webclient.view_config", "dm4.webclient.add_to_create_menu", false);
+        dms.getTopicType(RESOURCE_URI, null).getViewConfig()
+           .addSetting("dm4.webclient.view_config", "dm4.webclient.add_to_create_menu", true);
+        dms.getTopicType(TAG_URI, null).getViewConfig()
+           .addSetting("dm4.webclient.view_config", "dm4.webclient.add_to_create_menu", true);
         assignWorkspace(resource);
         assignWorkspace(dms.getTopicType(TAG_URI, null));
 
