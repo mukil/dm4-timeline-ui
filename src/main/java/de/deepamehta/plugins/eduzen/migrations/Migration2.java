@@ -14,7 +14,7 @@ public class Migration2 extends Migration {
     private String RESOURCE_URI = "dm4.resources.resource";
     private String RESOURCE_CONTENT_URI = "dm4.resources.content";
     private String TAG_URI = "dm4.tags.tag";
-    private String RATING_URI = "dm4.ratings.score";
+    private String REVIEW_SCORE = "dm4.reviews.score";
     // private String FILE_URI = "dm4.files.file";
     // private String WEB_RESOURCE_URI = "dm4.webbrowser.web_resource";
     private String WS_DEFAULT_URI = "de.workspaces.deepamehta";
@@ -27,7 +27,7 @@ public class Migration2 extends Migration {
         resource.addAssocDef(new AssociationDefinitionModel("dm4.core.aggregation_def",
             RESOURCE_URI, TAG_URI, "dm4.core.one", "dm4.core.many"));
         resource.addAssocDef(new AssociationDefinitionModel("dm4.core.composition_def",
-            RESOURCE_URI, RATING_URI, "dm4.core.one", "dm4.core.one"));
+            RESOURCE_URI, REVIEW_SCORE, "dm4.core.one", "dm4.core.one"));
         dms.getTopicType(RESOURCE_CONTENT_URI, null).getViewConfig().addSetting("dm4.webclient.view_config",
                 "dm4.webclient.simple_renderer_uri", "tub.eduzen.mathjax_field_renderer");
         // probably we want to do this later.. but we'll see
@@ -36,12 +36,13 @@ public class Migration2 extends Migration {
         // resource.addAssocDef(new AssociationDefinitionModel("dm4.core.aggregation_def",
             // RESOURCE_URI, FILE_URI, "dm4.core.one", "dm4.core.one"));
         // hide "Web Resources" from "Create"-Menu, thus forcing usage of our new "Resource"-Topic
-        dms.getTopicType(RESOURCE_URI, null).getViewConfig()
-           .addSetting("dm4.webclient.view_config", "dm4.webclient.add_to_create_menu", true);
+        /** dms.getTopicType(RESOURCE_URI, null).getViewConfig()
+           .addSetting("dm4.webclient.view_config", "dm4.webclient.show_in_create_menu", true);
         dms.getTopicType(TAG_URI, null).getViewConfig()
-           .addSetting("dm4.webclient.view_config", "dm4.webclient.add_to_create_menu", true);
-        assignWorkspace(resource);
-        assignWorkspace(dms.getTopicType(TAG_URI, null));
+           .addSetting("dm4.webclient.view_config", "dm4.webclient.show_in_create_menu", true); **/
+        // default assignment cause of we begin our plugins types with the "dm4.*"-namespace
+        // assignWorkspace(resource);
+        // assignWorkspace(dms.getTopicType(TAG_URI, null));
 
     }
 

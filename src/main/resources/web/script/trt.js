@@ -1,7 +1,8 @@
 (function(CKEDITOR, MathJax, $, console, dmc) {
 
-    window.dmc = dmc
-    var model = AppModel()
+    this.dmc = dmc
+    this.model = AppModel()
+
     var skroll = undefined
     var dict = new eduzenDictionary("DE")
     var _this = this
@@ -17,6 +18,7 @@
         setupCKEditor()
         setupTagFieldControls('input.tag')
         setupMathJaxRenderer()
+        setupWriteAuthentication()
         showResultsetView()
         showTagView()
         // setup page-controls
@@ -24,19 +26,56 @@
     }
 
     this.setupDetailView = function(resourceId) {
-        console.log("setting up detail view for resource id: " + resourceId)
         // set page-data
-        setupCKEditor()
+        // setupCKEditor()
         // initalize add tags field
-        setupTagFieldControls('input.tag')
+        // setupTagFieldControls('input.tag')
         setupMathJaxRenderer()
+        setupWriteAuthentication()
         // initialize page-model
         loadResourceById(resourceId)
         showDetailsView()
+        $('input.submit.btn').click(setupEditDetailView) // edit button handler
         renderMathInArea("resource_input")
     }
 
+    this.setupEditDetailView = function() {
+        setupCKEditor()
+        showEditDetailsView()
+        renderMathInArea("resource_input")
+        // todo: add "cancel" button
+        var $save = $('input.submit.btn') // save button handler
+            $save.unbind('click')
+            $save.val("Änderungen speichern")
+            $save.click(doSaveResource)
+    }
 
+    this.setupWriteAuthentication = function() {
+        var username = "admin"
+        var password = ""
+        try {
+            var authorization = authorization()
+            if (authorization == undefined) return null
+            // throws 401 if login fails
+            dmc.request("POST", "/accesscontrol/login", undefined, {"Authorization": authorization})
+            show_message("Login OK", "ok")
+        } catch (e) {
+            show_message("Nutzername oder Passwort ist falsch.", "failed")
+            throw new Exception("403 - Sorry, the application ccould not establish a user session.")
+        }
+
+        /** Returns value for the "Authorization" header. */
+        function authorization() {
+            return "Basic " + btoa(username + ":" + password)   // ### FIXME: btoa() might not work in IE
+        }
+
+        function show_message(message, css_class, callback) {
+            // $("#message").fadeOut(200, function() {
+              // $(this).text(message).removeClass().addClass(css_class).fadeIn(600, callback)
+            // })
+            console.log(message)
+        }
+    }
 
     /** Application Model Related Methods */
 
@@ -105,10 +144,18 @@
         $("a#test").click(loadAllResourcesByTags)
     }
 
+    this.showEditDetailsView = function() {
+
+        // set content of resource
+        $('#resource_input').attr("contenteditable", true)
+        _this.ck.setData(model.getCurrentResource().composite['dm4.resources.content'].value)
+        // tags are already setup for this resource
+    }
+
     this.showDetailsView = function() {
 
         // set content of resource
-        _this.ck.setData(model.getCurrentResource().composite['dm4.resources.content'].value)
+        $('#resource_input').html(model.getCurrentResource().composite['dm4.resources.content'].value)
         // show tags for resource
         var currentTags = model.getCurrentResource().composite['dm4.tags.tag']
         for (i=0; i < currentTags.length; i++) {
@@ -116,7 +163,7 @@
             $('#tags').append('<a class="tag"><img src="/de.deepamehta.tags/images/tag_32.png" width="20"'
                 + 'alt="Tag: '+tag.value+'">' +tag.value+ '</a>')
         }
-   }
+    }
 
     this.showResultsetView = function() {
         // future needed variations showResultsetView will be:
@@ -156,7 +203,7 @@
     }
 
     this.setupResultListItem = function(item) {
-        var score = (item.composite['dm4.ratings.score'] != undefined) ? item.composite['dm4.ratings.score'].value : 0
+        var score = (item.composite['dm4.reviews.score'] != undefined) ? item.composite['dm4.reviews.score'].value : 0
         var tags = (item.composite['dm4.tags.tag'] != undefined) ? item.composite['dm4.tags.tag'] : []
         // construct list item, header and content-area first
         var title = new Date(parseInt(item.value))
@@ -169,13 +216,7 @@
         var $toolbar = $('<div class="toolbar"></div>')
         // tag info area
         var $tagInfo = $('<span>und folgende Tags: </span>')
-        var commaCounter = 0
-        for (i=0; i < tags.length; i++) {
-            // use tag icon..
-            $tagInfo.append('<i class="tag">' +tags[i].value+ '</i>')
-            commaCounter++
-            if (commaCounter < tags.length) $tagInfo.append(', ')
-        }
+            renderTagInfo($tagInfo, tags)
         // create edit and add buttons per result-list item
         var $addDialog = $('<div class="add-tag-dialog"></div>')
         var $addTag = $('<a class="add-tag btn">Tags hinzu</a>')
@@ -271,6 +312,16 @@
         // out tag listing before body
         if (tags.length > 0) $tagInfo.insertBefore($body)
         return $topic
+
+        function renderTagInfo($tagInfoArea, givenTags) {
+            var commaCounter = 0
+            for (ri=0; ri < givenTags.length; ri++) {
+                // use tag icon..
+                $tagInfoArea.append('<i class="tag">' +givenTags[ri].value+ '</i>')
+                commaCounter++
+                if (commaCounter < givenTags.length) $tagInfoArea.append(', ')
+            }
+        }
     }
 
     this.showTagButtons = function($parent, tags) {
@@ -488,16 +539,16 @@
 
     /** GUIToolkit Helper Methods copied among others from dm4-webclient module **/
 
-    /** sorting asc by item.composite['dm4.ratings.score'].value */
+    /** sorting asc by item.composite[model.REVIEW_SCORE_TYPE_URI].value */
     this.score_sort_asc = function (a, b) {
         // console.log(a)
         var scoreA = 0
-        if (a.composite.hasOwnProperty('dm4.ratings.score')) {
-            scoreA = a.composite['dm4.ratings.score'].value
+        if (a.composite.hasOwnProperty('dm4.reviews.score')) {
+            scoreA = a.composite['dm4.reviews.score'].value
         }
         var scoreB = 0
-        if (b.composite.hasOwnProperty('dm4.ratings.score')) {
-            scoreB = b.composite['dm4.ratings.score'].value
+        if (b.composite.hasOwnProperty('dm4.reviews.score')) {
+            scoreB = b.composite['dm4.reviews.score'].value
         }
         if (scoreA > scoreB) // sort string descending
           return -1
@@ -525,7 +576,9 @@
         var qualifiedTags = []
         for (i=0; i < tagline.length; i++) {
             var tag = tagline[i]
-            if (tag != undefined || tag != "") qualifiedTags.push(tag)
+            // credits for the regexp go to user Bracketworks in:
+            // http://stackoverflow.com/questions/154059/how-do-you-check-for-an-empty-string-in-javascript#154068
+            if (tag.match(/\S/) != null) qualifiedTags.push(tag)
         }
         return qualifiedTags
     }
@@ -536,7 +589,6 @@
             var tag = qualifiedTags[i]
             for (k=0; k < model.getAvailableTags().length; k++) {
                 var tagTopic = model.getAvailableTags()[k]
-                // (comparison is case-insensitive)
                 if (tagTopic.value.toLowerCase() == tag.toLowerCase()) {
                     tagTopics.push(tagTopic)
                 }
@@ -560,7 +612,7 @@
                     create = false
                 }
             }
-            if (create && submittedTag != "") tagsToCreate.push(submittedTag) // fixme: quality check in getSubmitted..
+            if (create) tagsToCreate.push(submittedTag)
         }
         return tagsToCreate
     }
@@ -606,16 +658,17 @@
         // var pageContent = $('#resource_input').val()
         var valueToSubmit = getTeXAndHTMLSource(document.getElementById("resource_input"))
         var qualifiedTags = getTagsSubmitted("input.tag")
+        // differentiate in tags to create and existing tags in db (which need to be associated)
         var tagsToReference = getTagTopicsToReference(qualifiedTags)
         var tagsToCreate = getTagTopicsToCreate(qualifiedTags, tagsToReference)
         // rendering notifications
         var saving = $('<b id="message" class="label">Saving...</b>').insertBefore('input.submit')
-        saving.fadeOut(4000)
+            saving.fadeOut(4000)
         $('div.header').css("opacity", ".6")
-        // creating the resource
-        var resource = createResourceTopic(valueToSubmit)
+        // creating the new resource, with aggregated new tags
+        var resource = createResourceTopic(valueToSubmit, tagsToCreate)
         // an creating/associtating tags with this resource
-        createNewTagsForResource(resource, tagsToCreate)
+        /* createNewTagsForResource(resource, tagsToCreate) **/
         for (k=0; k < tagsToReference.length; k++) {
             if (tagsToReference[k] != undefined) {
                 var newAssoc = createResourceTagAssociation(resource, tagsToReference[k])
@@ -727,12 +780,22 @@
 
     /** RESTful utility methods for the trt-views **/
 
-    function createResourceTopic(value) {
+    function createResourceTopic(value, tagsToCreate) {
         if (value != undefined) {
             var topicModel = {"type_uri": "dm4.resources.resource", "composite": {
-                "dm4.resources.content": value, "dm4.resources.name": new Date().getTime().toString(),
-                "dm4.resources.is_published": true
+                "dm4.resources.content": value,
+                "dm4.resources.name": new Date().getTime().toString(),
+                "dm4.resources.is_published": true,
+                "dm4.tags.tag": [], // aggregated composite cannot be created (?)
+                "dm4.reviews.score": 0
             }}
+            // create resource directly with all aggregated composite tags
+            for (t=0; t < tagsToCreate.length; t++) {
+                topicModel.composite['dm4.tags.tag'].push({
+                    "dm4.tags.label": tagsToCreate[t],
+                    "dm4.tags.definition": ""
+                })
+            }
             // "dm4.resources.content": "ref_uri:tub.eduzen.approach_undecided",
             var resourceTopic = dmc.create_topic(topicModel)
             if (resourceTopic == undefined) throw new Error("Something mad happened.")
@@ -740,7 +803,7 @@
             if (updated == undefined) {
                 throw new Error("Something mad happened while updating client side application cache.")
             }
-            return resourceTopic;
+            return resourceTopic
         }
         return undefined
     }
@@ -779,7 +842,8 @@
 
     function createTagTopic(name) {
         if (name != undefined) {
-            var topicModel = {"type_uri": "dm4.tags.tag", "composite": {"dm4.tags.label": name}}
+            var topicModel = {"type_uri": "dm4.tags.tag",
+                "composite": {"dm4.tags.label": name, "dm4.tags.definition": ""}}
             // "dm4.resources.content": "ref_uri:tub.eduzen.approach_undecided",
             var tagTopic = dmc.create_topic(topicModel)
             if (tagTopic == undefined) throw new Error("Something mad happened.")

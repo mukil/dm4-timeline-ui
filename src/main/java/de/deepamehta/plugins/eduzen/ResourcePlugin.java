@@ -54,11 +54,11 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     private final static String AGGREGATION = "dm4.core.aggregation";
 
     private final static String RESOURCE_URI = "dm4.resources.resource";
-    private final static String RESOURCE_CONTENT_URI = "dm4.resources.content";
+    // private final static String RESOURCE_CONTENT_URI = "dm4.resources.content";
     private final static String TAG_URI = "dm4.tags.tag";
-    private final static String SCORE_URI = "dm4.ratings.score";
+    private final static String SCORE_URI = "dm4.reviews.score";
 
-    private static final String WS_EDUZEN_EDITORS = "de.workspaces.deepamehta";
+    // private static final String WS_EDUZEN_EDITORS = "de.workspaces.deepamehta";
     // private static final String WS_EDUZEN_USERS = "tub.eduzen.workspace_users";
 
     public ResourcePlugin() {
@@ -116,7 +116,6 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Override
     public ResultSet<RelatedTopic> getResourcesByTags(String tags, @HeaderParam("Cookie") ClientState clientState) {
         ResultSet<RelatedTopic> all_results = new ResultSet<RelatedTopic>();
-        log.info("fetching resources by tags : " + tags.toString());
         try {
             JSONObject tagList = new JSONObject(tags);
             if (tagList.has("tags")) {
@@ -132,7 +131,6 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
                     ResultSet<RelatedTopic> tag_resources = givenTag.getRelatedTopics(AGGREGATION, CHILD_URI,
                         PARENT_URI, RESOURCE_URI, true, false, 0, clientState);
                     Set<RelatedTopic> missmatches = new LinkedHashSet<RelatedTopic>();
-                    log.info("tag1 provides us with relations to " + tag_resources.getSize() + " resources..");
                     Iterator<RelatedTopic> iterator = tag_resources.getIterator();
                     // ResultSet<RelatedTopic> removables = new LinkedHashSet<RelatedTopic>();
                     while (iterator.hasNext()) {
@@ -176,18 +174,12 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Produces("application/json")
     @Override
     public Topic upvoteResourceById(@PathParam("id") long resourceId, @HeaderParam("Cookie") ClientState clientState) {
-        log.fine("up-voting resource with ID \"" + resourceId + "\"");
         DeepaMehtaTransaction tx = dms.beginTx();
         Topic resource = null;
         try {
             resource = dms.getTopic(resourceId, true, clientState);
-            if ( resource.getCompositeValue().getModel().has(SCORE_URI)) {
-                int score = resource.getCompositeValue().getModel().getInt(SCORE_URI) + 1;
-                resource.getCompositeValue().set(SCORE_URI, score, clientState, new Directives());
-                // fixme: throw error if Topic has no SCORE as child types
-            } else {
-                resource.getCompositeValue().set(SCORE_URI, 1, clientState, new Directives());
-            }
+            int score = resource.getCompositeValue().getModel().getInt(SCORE_URI) + 1;
+            resource.getCompositeValue().set(SCORE_URI, score, clientState, new Directives());
             tx.success();
         } catch (Exception e) {
             throw new WebApplicationException(new RuntimeException("something went wrong", e));
@@ -204,17 +196,13 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Produces("application/json")
     @Override
     public Topic downvoteResourceById(@PathParam("id") long resourceId, @HeaderParam("Cookie") ClientState clientState) {
-        log.fine("down-voting resource with ID \"" + resourceId + "\"");
         DeepaMehtaTransaction tx = dms.beginTx();
         Topic resource = null;
         try {
             resource = dms.getTopic(resourceId, true, clientState);
-            if ( resource.getCompositeValue().getModel().has(SCORE_URI)) {
-                int score = resource.getCompositeValue().getModel().getInt(SCORE_URI) - 1;
-                resource.getCompositeValue().set(SCORE_URI, score, clientState, new Directives());
-            } else {
-                resource.getCompositeValue().set(SCORE_URI, -1, clientState, new Directives());
-            }
+            // check type definition if topics of any given type have a SCORE_URI
+            int score = resource.getCompositeValue().getModel().getInt(SCORE_URI) - 1;
+            resource.getCompositeValue().set(SCORE_URI, score, clientState, new Directives());
             tx.success();
         } catch (Exception e) {
             throw new WebApplicationException(new RuntimeException("something went wrong", e));

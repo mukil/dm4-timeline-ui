@@ -2,11 +2,9 @@ function AppModel() {
 
     var instance = (function() {
 
-        var availableTags = undefined
-        var availableResources = undefined
+        var availableTags = []
+        var availableResources = []
         var currentResource = undefined
-
-        var isSortedByScore = undefined
 
         var tagFilter = []
 

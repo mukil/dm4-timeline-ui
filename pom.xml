@@ -13,8 +13,8 @@
     <parent>
         <groupId>de.deepamehta</groupId>
         <artifactId>deepamehta-parent</artifactId>
-        <version>4</version>
-	<relativePath>../deepamehta/modules/dm4-parent/pom.xml</relativePath>
+        <version>5</version>
+        <relativePath>../deepamehta/modules/dm4-parent/pom.xml</relativePath>
     </parent>
 
 

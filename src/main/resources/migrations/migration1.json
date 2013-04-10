@@ -9,8 +9,8 @@
                 {
                     "type_uri": "dm4.webclient.view_config",
                     "composite": {
-                        "dm4.webclient.add_to_create_menu": false,
-                        "dm4.webclient.is_searchable_unit": false,
+                        "dm4.webclient.show_in_create_menu": false,
+                        "dm4.webclient.searchable_as_unit": false,
                         "dm4.webclient.rows": 1
                     }
                 }
@@ -25,8 +25,8 @@
                 {
                     "type_uri": "dm4.webclient.view_config",
                     "composite": {
-                        "dm4.webclient.add_to_create_menu": false,
-                        "dm4.webclient.is_searchable_unit": false,
+                        "dm4.webclient.show_in_create_menu": false,
+                        "dm4.webclient.searchable_as_unit": false,
                         "dm4.webclient.input_field_rows": 4
                     }
                 }
@@ -40,8 +40,8 @@
                 {
                     "type_uri": "dm4.webclient.view_config",
                     "composite": {
-                        "dm4.webclient.add_to_create_menu": false,
-                        "dm4.webclient.is_searchable_unit": false
+                        "dm4.webclient.show_in_create_menu": false,
+                        "dm4.webclient.searchable_as_unit": false
                     }
                 }
             ]
@@ -71,8 +71,8 @@
                     "type_uri": "dm4.webclient.view_config",
                     "composite": {
                         "dm4.webclient.icon": "/de.tu-berlin.eduzen.deepamehta-resources/images/black_32.png",
-                        "dm4.webclient.add_to_create_menu": true,
-                        "dm4.webclient.is_searchable_unit": true
+                        "dm4.webclient.show_in_create_menu": true,
+                        "dm4.webclient.searchable_as_unit": true
                     }
                 }
             ]
