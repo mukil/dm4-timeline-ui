@@ -15,7 +15,7 @@ public class Migration2 extends Migration {
     private String REVIEW_SCORE = "org.deepamehta.reviews.score";
     private String TAG_URI = "dm4.tags.tag";
 
-    // private String WEB_RESOURCE_URI = "dm4.webbrowser.web_resource";
+    private String WEB_RESOURCE_URI = "dm4.webbrowser.web_resource";
     private String WS_DEFAULT_URI = "de.workspaces.deepamehta";
 
     @Override
@@ -30,11 +30,11 @@ public class Migration2 extends Migration {
         dms.getTopicType(RESOURCE_CONTENT_URI, null).getViewConfig().addSetting("dm4.webclient.view_config",
                 "dm4.webclient.simple_renderer_uri", "tub.eduzen.mathjax_field_renderer");
         // probably we want to do this later.. but we'll see
-        // resource.addAssocDef(new AssociationDefinitionModel("dm4.core.aggregation_def",
-            // RESOURCE_URI, WEB_RESOURCE_URI, "dm4.core.one", "dm4.core.one"));
-        // resource.addAssocDef(new AssociationDefinitionModel("dm4.core.aggregation_def",
-            // RESOURCE_URI, FILE_URI, "dm4.core.one", "dm4.core.one"));
-        // hide "Web Resources" from "Create"-Menu, thus forcing usage of our new "Resource"-Topic
+        resource.addAssocDef(new AssociationDefinitionModel("dm4.core.aggregation_def",
+            RESOURCE_URI, WEB_RESOURCE_URI, "dm4.core.one", "dm4.core.many"));
+        // hide "Web Resources" from "Create"-Menu, thus enforcing usage of our "Resource"-Topic
+        dms.getTopicType(WEB_RESOURCE_URI, null).getViewConfig()
+            .addSetting("dm4.webclient.view_config", "dm4.webclient.show_in_create_menu", false);
         assignWorkspace(resource); // assign just the parent type to ws "DeepaMehta"
 
     }

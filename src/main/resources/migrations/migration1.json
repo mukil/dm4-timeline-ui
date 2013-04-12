@@ -47,6 +47,76 @@
             ]
         },
         {
+            "value": "Last Modified",
+            "uri": "org.deepamehta.resources.last_modified_at",
+            "data_type_uri": "dm4.core.number",
+            "view_config_topics": [
+                {
+                    "type_uri": "dm4.webclient.view_config",
+                    "composite": {
+                        "dm4.webclient.show_in_create_menu": false,
+                        "dm4.webclient.searchable_as_unit": false
+                    }
+                }
+            ]
+        },
+        {
+            "value": "Created at",
+            "uri": "org.deepamehta.resources.created_at",
+            "data_type_uri": "dm4.core.number",
+            "view_config_topics": [
+                {
+                    "type_uri": "dm4.webclient.view_config",
+                    "composite": {
+                        "dm4.webclient.show_in_create_menu": false,
+                        "dm4.webclient.searchable_as_unit": false
+                    }
+                }
+            ]
+        },
+        {
+            "value": "Name of Author",
+            "uri": "org.deepamehta.resources.author",
+            "data_type_uri": "dm4.core.text",
+            "view_config_topics": [
+                {
+                    "type_uri": "dm4.webclient.view_config",
+                    "composite": {
+                        "dm4.webclient.show_in_create_menu": false,
+                        "dm4.webclient.searchable_as_unit": false
+                    }
+                }
+            ]
+        },
+        {
+            "value": "License",
+            "uri": "org.deepamehta.resources.license",
+            "data_type_uri": "dm4.core.text",
+            "view_config_topics": [
+                {
+                    "type_uri": "dm4.webclient.view_config",
+                    "composite": {
+                        "dm4.webclient.show_in_create_menu": false,
+                        "dm4.webclient.searchable_as_unit": false
+                    }
+                }
+            ]
+        },
+        {
+            "value": "License Jurisdiction",
+            "uri": "org.deepamehta.resources.license_jurisdiction",
+            "data_type_uri": "dm4.core.text",
+            "view_config_topics": [
+                {
+                    "type_uri": "dm4.webclient.view_config",
+                    "composite": {
+                        "dm4.webclient.show_in_create_menu": false,
+                        "dm4.webclient.searchable_as_unit": false
+                    }
+                }
+            ]
+        },
+        {
             "value": "Resource",
             "uri": "org.deepamehta.resources.resource",
             "data_type_uri": "dm4.core.composite",
@@ -62,10 +132,38 @@
                     "assoc_type_uri":           "dm4.core.composition_def"
                 },
                 {
+                    "child_type_uri":           "org.deepamehta.resources.author",
+                    "child_cardinality_uri":    "dm4.core.one",
+                    "parent_cardinality_uri":   "dm4.core.many",
+                    "assoc_type_uri":           "dm4.core.aggregation_def"
+                },
+                {
+                    "child_type_uri":           "org.deepamehta.resources.license",
+                    "child_cardinality_uri":    "dm4.core.one",
+                    "parent_cardinality_uri":   "dm4.core.many",
+                    "assoc_type_uri":           "dm4.core.aggregation_def"
+                },
+                {
+                    "child_type_uri":           "org.deepamehta.resources.license_jurisdiction",
+                    "child_cardinality_uri":    "dm4.core.one",
+                    "parent_cardinality_uri":   "dm4.core.many",
+                    "assoc_type_uri":           "dm4.core.aggregation_def"
+                },
+                {
+                    "child_type_uri":           "org.deepamehta.resources.created_at",
+                    "child_cardinality_uri":    "dm4.core.one",
+                    "assoc_type_uri":           "dm4.core.composition_def"
+                },
+                {
+                    "child_type_uri":           "org.deepamehta.resources.last_modified_at",
+                    "child_cardinality_uri":    "dm4.core.one",
+                    "assoc_type_uri":           "dm4.core.composition_def"
+                },
+                {
                     "child_type_uri":           "org.deepamehta.resources.is_published",
                     "child_cardinality_uri":    "dm4.core.one",
                     "assoc_type_uri":           "dm4.core.composition_def"
-                } ### Timestamp is missing yet
+                }
             ], "view_config_topics": [
                 {
                     "type_uri": "dm4.webclient.view_config",
@@ -77,5 +175,88 @@
                 }
             ]
         }
+    ],
+    "topics": [
+        {
+            "value": "Copyright",
+            "type_uri": "org.deepamehta.resources.license",
+            "uri": "org.deepamehta.licenses.copyright"
+        },
+        {
+            "value": "Public Domain",
+            "type_uri": "org.deepamehta.resources.license",
+            "uri": "org.deepamehta.licenses.public_domain"
+        },
+        {
+            "value": "Copyright Year",
+            "type_uri": "org.deepamehta.resources.license",
+            "uri": "org.deepamehta.licenses.copyright_year"
+        },
+        {
+            "value": "GNU's Free Documentation License",
+            "type_uri": "org.deepamehta.resources.license",
+            "uri": "org.deepamehta.licenses.gdfl"
+        },
+        {
+            "value": "GNU GPL v2.0",
+            "type_uri": "org.deepamehta.resources.license",
+            "uri": "org.deepamehta.licenses.gpl_2"
+        },
+        {
+            "value": "GNU GPL v3.0",
+            "type_uri": "org.deepamehta.resources.license",
+            "uri": "org.deepamehta.licenses.gpl_3"
+        },
+        {
+            "value": "WTFPL v2.0",
+            "type_uri": "org.deepamehta.resources.license",
+            "uri": "org.deepamehta.licenses.wtf"
+        },
+        {
+            "value": "CC-BY 3.0",
+            "type_uri": "org.deepamehta.resources.license",
+            "uri": "org.deepamehta.licenses.cc_by"
+        },
+        {
+            "value": "CC-BY-ND 3.0",
+            "type_uri": "org.deepamehta.resources.license",
+            "uri": "org.deepamehta.licenses.cc_by_nd"
+        },
+        {
+            "value": "CC-BY-SA 3.0",
+            "type_uri": "org.deepamehta.resources.license",
+            "uri": "org.deepamehta.licenses.cc_by_sa"
+        },
+        {
+            "value": "CC-BY-NC 3.0",
+            "type_uri": "org.deepamehta.resources.license",
+            "uri": "org.deepamehta.licenses.cc_by_nc"
+        },
+        {
+            "value": "CC-BY-NC-SA 3.0",
+            "type_uri": "org.deepamehta.resources.license",
+            "uri": "org.deepamehta.licenses.cc_by_sa_nc"
+        },
+        {
+            "value": "International",
+            "type_uri": "org.deepamehta.resources.license_jurisdiction",
+            "uri": "org.deepamehta.licenses.intl"
+        },
+        {
+            "value": "Germany",
+            "type_uri": "org.deepamehta.resources.license_jurisdiction",
+            "uri": "org.deepamehta.licenses.ger"
+        },
+        {
+            "value": "United Kingdom: England & Wales",
+            "type_uri": "org.deepamehta.resources.license_jurisdiction",
+            "uri": "org.deepamehta.licenses.uk_w"
+        },
+        {
+            "value": "United States of America",
+            "type_uri": "org.deepamehta.resources.license_jurisdiction",
+            "uri": "org.deepamehta.licenses.usa"
+        }
+
     ]
 }
