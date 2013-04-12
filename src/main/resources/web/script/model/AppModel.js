@@ -49,11 +49,11 @@ function AppModel() {
                     var oldItem = availableResources[i]
                     if (oldItem.id == resourceId) {
                         var resource = availableResources[i]
-                        var existingTags = resource.composite['dm4.tags.tag']
+                        var existingTags = resource.composite[instance.TAGS_URI]
                         if (existingTags == undefined) {
-                            resource.composite['dm4.tags.tag'] = tag
+                            resource.composite[instance.TAGS_URI] = [tag]
                         } else {
-                            resource.composite['dm4.tags.tag'].push(tag)
+                            resource.composite[instance.TAGS_URI].push(tag)
                         }
                         return resource
                     }
@@ -85,12 +85,21 @@ function AppModel() {
                     }
                 }
                 return undefined
-            }
+            },
+            NOTES_URI: "org.deepamehta.resources.resource",
+            NOTE_CONTENT_URI: "org.deepamehta.resources.content",
+            NOTE_NAME_URI: "org.deepamehta.resources.name",
+            NOTE_IS_PUBLISHED_URI: "org.deepamehta.resources.is_published",
+            TAGS_URI: "dm4.tags.tag",
+            TAG_LABEL_URI: "dm4.tags.label",
+            TAG_DEFINITION_URI: "dm4.tags.definition",
+            REVIEW_SCORE_URI: "org.deepamehta.reviews.score",
+            isSortedByScore: false
         };
     })();
 
     AppModel = function () { // re-define the function for subsequent calls
-        instance.isSortedByScore = false
+
         return instance
     }
 

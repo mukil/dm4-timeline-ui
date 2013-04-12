@@ -2,10 +2,21 @@
 
     this.dmc = dmc
     this.model = AppModel()
+    this.emc = new EMC(dmc, model)
 
     var skroll = undefined
     var dict = new eduzenDictionary("DE")
     var _this = this
+
+    var TAG_URI = "dm4.tags.tag" // fixme: doublings
+    var REVIEW_SCORE_URI = "org.deepamehta.reviews.score" // fixme: doublings
+    var NOTES_URI = "org.deepamehta.resources.resource" // fixme: doublings
+    var NOTE_CONTENT_URI = "org.deepamehta.resources.content" // fixme: doublings
+
+    /**
+     *  Fixmes: adding Tag to resource which has none (no display update), adding tag to resource which has one adds
+     *  new tag twice to tag-filter-view
+     **/
 
     /** Initializing our interactive page. */
 
@@ -36,13 +47,11 @@
         loadResourceById(resourceId)
         showDetailsView()
         $('input.submit.btn').click(setupEditDetailView) // edit button handler
-        renderMathInArea("resource_input")
     }
 
     this.setupEditDetailView = function() {
         setupCKEditor()
         showEditDetailsView()
-        renderMathInArea("resource_input")
         // todo: add "cancel" button
         var $save = $('input.submit.btn') // save button handler
             $save.unbind('click')
@@ -148,21 +157,26 @@
 
         // set content of resource
         $('#resource_input').attr("contenteditable", true)
-        _this.ck.setData(model.getCurrentResource().composite['dm4.resources.content'].value)
+        _this.ck.setData(model.getCurrentResource().composite[NOTE_CONTENT_URI].value)
         // tags are already setup for this resource
+        renderMathInArea("resource_input")
     }
 
     this.showDetailsView = function() {
 
         // set content of resource
-        $('#resource_input').html(model.getCurrentResource().composite['dm4.resources.content'].value)
+        // fixme: catch notes without content
+        $('#resource_input').html(model.getCurrentResource().composite[NOTE_CONTENT_URI].value)
         // show tags for resource
-        var currentTags = model.getCurrentResource().composite['dm4.tags.tag']
-        for (i=0; i < currentTags.length; i++) {
-            var tag = currentTags[i]
-            $('#tags').append('<a class="tag"><img src="/de.deepamehta.tags/images/tag_32.png" width="20"'
-                + 'alt="Tag: '+tag.value+'">' +tag.value+ '</a>')
+        var currentTags = model.getCurrentResource().composite[TAG_URI]
+        if (currentTags != undefined) {
+            for (i=0; i < currentTags.length; i++) {
+                var tag = currentTags[i]
+                $('#tags').append('<a class="tag"><img src="/de.deepamehta.tags/images/tag_32.png" width="20"'
+                    + 'alt="Tag: '+tag.value+'">' +tag.value+ '</a>')
+            }
         }
+        renderMathInArea("resource_input")
     }
 
     this.showResultsetView = function() {
@@ -203,15 +217,16 @@
     }
 
     this.setupResultListItem = function(item) {
-        var score = (item.composite['dm4.reviews.score'] != undefined) ? item.composite['dm4.reviews.score'].value : 0
-        var tags = (item.composite['dm4.tags.tag'] != undefined) ? item.composite['dm4.tags.tag'] : []
+        var score = (item.composite[REVIEW_SCORE_URI] != undefined) ? item.composite[REVIEW_SCORE_URI].value : 0
+        var tags = (item.composite[TAG_URI] != undefined) ? item.composite[TAG_URI] : []
+        var content = (item.composite[NOTE_CONTENT_URI] != undefined) ? item.composite[NOTE_CONTENT_URI].value : ""
         // construct list item, header and content-area first
         var title = new Date(parseInt(item.value))
         var $topic = $('<li id="' +item.id+ '">').html('Dieser Beitrag wurde eingereicht am  ' +
             title.getDate() + '.' + dict.monthNames[title.getMonth()] + ' ' + title.getFullYear() + ' um '
             + title.getHours() + ':' +title.getMinutes() + ' Uhr, hat eine Bewertung von '
             + '<span class="score-info">' + score + '</span> ')
-        var $body = $('<div class="item-content">' + item.composite['dm4.resources.content'].value + '</div>');
+        var $body = $('<div class="item-content">' + content + '</div>');
         // bottom area, tag and score info area
         var $toolbar = $('<div class="toolbar"></div>')
         // tag info area
@@ -240,14 +255,14 @@
                         // save tags, if not yet associated to this resource
                         var tagFieldId = 'li#' +clickedListItem+ ' .toolbar div.add-tag-dialog input.new-tag'
                         var qualifiedTags = getTagsSubmitted(tagFieldId)
-                        var existingTags = item.composite['dm4.tags.tag']
+                        var existingTags = item.composite[TAG_URI]
                         var tagsToAssociate = getTagTopicsToReference(qualifiedTags)
                         var tagsToPossiblyCreate = getTagTopicsToCreate(qualifiedTags, tagsToAssociate)
                         var tagsToCreateAndAssociate = getTagTopicsToCreate(tagsToPossiblyCreate, existingTags)
-                        createResourceTagAssociations(item, tagsToAssociate)
-                        createNewTagsForResource(item, tagsToCreateAndAssociate)
+                        emc.createResourceTagAssociations(item, tagsToAssociate)
+                        emc.createNewTagsForResource(item, tagsToCreateAndAssociate)
                         // track "added tag"-goal
-                        piwikTracker.trackGoal(4)
+                        // piwikTracker.trackGoal(4)
                         // re-render both views
                         showTagView()
                         showResultsetView()
@@ -266,7 +281,6 @@
                 $addDialog.insertAfter('li#' +clickedListItem+ ' .toolbar a.add-tag.btn')
                 setupTagFieldControls('li#' +clickedListItem+ ' .toolbar div.add-tag-dialog input.new-tag')
                 $addDialog.show("slow")
-                console.log("setup new tagging dialog..")
             })
         var $edit = $('<a class="edit-item btn">bearbeite diesen Beitrag.</a>')
             $edit.click(function(){
@@ -280,7 +294,7 @@
                 var updatedTopic = dmc.request("GET", "/notes/up/resource/" + e.target.id)
                 model.updateAvailableResource(updatedTopic)
                 // track "voted resource" goal
-                piwikTracker.trackGoal(3)
+                // piwikTracker.trackGoal(3)
                 // todo: cache sort-settings on client-side
                 if ($("a#most-popular").hasClass("selected")) {
                     // update our result-set view immedieatly after upvoting
@@ -293,7 +307,7 @@
                 var updatedTopic = dmc.request("GET", "/notes/down/resource/" + e.target.id)
                 model.updateAvailableResource(updatedTopic)
                 // track "voted resource" goal
-                piwikTracker.trackGoal(3)
+                // piwikTracker.trackGoal(3)
                 // todo: cache sort-settings on client-side
                 if ($("a#most-popular").hasClass("selected")) {
                     // update our result-set view immedieatly after upvoting
@@ -375,7 +389,7 @@
         } else {
             if (model.getTagFilter().length > 0) {
                 var currentTags = getAllTagsInCurrentResults()
-                currentTags = sliceAboutFilteredTags(currentTags)
+                    currentTags = sliceAboutFilteredTags(currentTags)
                 $('div.timeline .info div.tag-list a').remove()
                 showTagButtons($('div.timeline .info div.tag-list'), currentTags)
             } else {
@@ -429,9 +443,9 @@
         for (i=0; i < availableResources.length; i++) {
             var resource = availableResources[i]
             // through all their tags and add each tag once to our new set of possible filters
-            if (resource.composite.hasOwnProperty('dm4.tags.tag')
-                && resource.composite['dm4.tags.tag'] != undefined) {
-                var tags = resource.composite['dm4.tags.tag']
+            if (resource.composite.hasOwnProperty(TAG_URI)
+                && resource.composite[TAG_URI] != undefined) {
+                var tags = resource.composite[TAG_URI]
                 for (k=0; k < tags.length; k++) { // i > k > m (clojure attention!)
                     var tag = tags[k]
                     addUniqueTagToTagFilter(tag, availableFilterTags)
@@ -543,12 +557,12 @@
     this.score_sort_asc = function (a, b) {
         // console.log(a)
         var scoreA = 0
-        if (a.composite.hasOwnProperty('dm4.reviews.score')) {
-            scoreA = a.composite['dm4.reviews.score'].value
+        if (a.composite.hasOwnProperty(REVIEW_SCORE_URI)) {
+            scoreA = a.composite[REVIEW_SCORE_URI].value
         }
         var scoreB = 0
-        if (b.composite.hasOwnProperty('dm4.reviews.score')) {
-            scoreB = b.composite['dm4.reviews.score'].value
+        if (b.composite.hasOwnProperty(REVIEW_SCORE_URI)) {
+            scoreB = b.composite[REVIEW_SCORE_URI].value
         }
         if (scoreA > scoreB) // sort string descending
           return -1
@@ -666,16 +680,16 @@
             saving.fadeOut(4000)
         $('div.header').css("opacity", ".6")
         // creating the new resource, with aggregated new tags
-        var resource = createResourceTopic(valueToSubmit, tagsToCreate)
+        var resource = emc.createResourceTopic(valueToSubmit, tagsToCreate)
         // an creating/associtating tags with this resource
         /* createNewTagsForResource(resource, tagsToCreate) **/
         for (k=0; k < tagsToReference.length; k++) {
             if (tagsToReference[k] != undefined) {
-                var newAssoc = createResourceTagAssociation(resource, tagsToReference[k])
+                var newAssoc = emc.createResourceTagAssociation(resource, tagsToReference[k])
             }
         }
         // track "added resource" goal
-        piwikTracker.trackGoal(5)
+        // piwikTracker.trackGoal(5)
         // rendering notifications
         $('#message').html("Fine. Thanks!")
         saving.fadeIn(4000).fadeOut(3000)
@@ -696,10 +710,10 @@
         // load all tags before..
         // console.log("should update resource contents with " + valueToSubmit)
         var resource = model.getCurrentResource()
-        resource.composite["dm4.resources.content"].value = valueToSubmit
+            resource.composite[NOTE_CONTENT_URI].value = valueToSubmit
         var updated = dmc.update_topic(resource)
         // track "edited resource" goal
-        piwikTracker.trackGoal(1)
+        // piwikTracker.trackGoal(1)
         window.location.href = "/notes" // hacketi hack hack
     }
 
@@ -708,7 +722,7 @@
         var resource = model.getCurrentResource()
         var deleted = dmc.delete_topic(resource.id)
         // track "edited resource" goal
-        piwikTracker.trackGoal(2)
+        // piwikTracker.trackGoal(2)
         window.location.href = "/notes" // hacketi hack hack
     }
 
@@ -716,7 +730,7 @@
 
     this.loadAllTags = function(limit) { // lazy, unsorted, possibly limited
         //
-        var all_tags = dmc.get_topics("dm4.tags.tag", false, false, limit).items
+        var all_tags = dmc.get_topics(TAG_URI, false, false, limit).items
         if (all_tags.length > 0) {
             model.setAvailableTags(all_tags)
             console.log("loaded " + model.getAvailableTags().length + " tags from server-side")
@@ -729,7 +743,7 @@
 
     this.loadAllResources = function(limit) { // lazy, unsorted, possibly limited
         //
-        var all_resources = dmc.get_topics("dm4.resources.resource", true, true, limit).items
+        var all_resources = dmc.get_topics(NOTES_URI, true, true, limit).items
         if (all_resources.length > 0) {
             model.setAvailableResources(all_resources)
             console.log("loaded " + model.getAvailableResources().length + " resources from server-side")
@@ -774,100 +788,6 @@
         } else {
             console.log(all_tagged_resources)
         }
-    }
-
-
-
-    /** RESTful utility methods for the trt-views **/
-
-    function createResourceTopic(value, tagsToCreate) {
-        if (value != undefined) {
-            var topicModel = {"type_uri": "dm4.resources.resource", "composite": {
-                "dm4.resources.content": value,
-                "dm4.resources.name": new Date().getTime().toString(),
-                "dm4.resources.is_published": true,
-                "dm4.tags.tag": [], // aggregated composite cannot be created (?)
-                "dm4.reviews.score": 0
-            }}
-            // create resource directly with all aggregated composite tags
-            for (t=0; t < tagsToCreate.length; t++) {
-                topicModel.composite['dm4.tags.tag'].push({
-                    "dm4.tags.label": tagsToCreate[t],
-                    "dm4.tags.definition": ""
-                })
-            }
-            // "dm4.resources.content": "ref_uri:tub.eduzen.approach_undecided",
-            var resourceTopic = dmc.create_topic(topicModel)
-            if (resourceTopic == undefined) throw new Error("Something mad happened.")
-            var updated = model.addToAvailableResources(resourceTopic)
-            if (updated == undefined) {
-                throw new Error("Something mad happened while updating client side application cache.")
-            }
-            return resourceTopic
-        }
-        return undefined
-    }
-
-    function createNewTagsForResource(resource, tagsToCreate) {
-        // creating new tags and associtating these with the given resource
-        for (i=0; i < tagsToCreate.length; i++) {
-            var newTag = createTagTopic(tagsToCreate[i])
-            if (newTag != undefined) {
-                var assoc = createResourceTagAssociation(resource, newTag)
-                // add new tag to all available tags & to resource
-                var updated = model.associateTagWithAvailableResource(newTag, resource.id)
-                if (updated == undefined) {
-                    throw new Error("Something mad happened while updating client side application cache.")
-                }
-                var updateTags = model.addToAvailableTags(newTag)
-                if (updateTags == undefined) {
-                    throw new Error("Something mad happened while updating client side application cache.")
-                }
-            }
-        }
-    }
-
-    function createResourceTagAssociations (resource, tagsToReference) {
-        for (k=0; k < tagsToReference.length; k++) {
-            if (tagsToReference[k] != undefined) {
-                var newAssoc = createResourceTagAssociation(resource, tagsToReference[k])
-                // update also the value on client side
-                var updated = model.associateTagWithAvailableResource(tagsToReference[k], resource.id)
-                if (updated == undefined) {
-                    throw new Error("Something mad happened while updating client side application cache.")
-                }
-            }
-        }
-    }
-
-    function createTagTopic(name) {
-        if (name != undefined) {
-            var topicModel = {"type_uri": "dm4.tags.tag",
-                "composite": {"dm4.tags.label": name, "dm4.tags.definition": ""}}
-            // "dm4.resources.content": "ref_uri:tub.eduzen.approach_undecided",
-            var tagTopic = dmc.create_topic(topicModel)
-            if (tagTopic == undefined) throw new Error("Something mad happened.")
-            var updated = model.addToAvailableTags(tagTopic)
-            if (updated == undefined) {
-                throw new Error("Something mad happened while updating client side application cache.")
-            }
-            return tagTopic;
-        }
-        return undefined
-    }
-
-    function createResourceTagAssociation(resourceTopic, tagTopic) {
-        if (resourceTopic != undefined && tagTopic != undefined) {
-            var assocModel = {"type_uri": "dm4.core.aggregation",
-                "role_1":{"topic_id":resourceTopic.id, "role_type_uri":"dm4.core.parent"},
-                "role_2":{"topic_id":tagTopic.id, "role_type_uri":"dm4.core.child"}
-            }
-            // "dm4.resources.content": "ref_uri:tub.eduzen.approach_undecided",
-            var association= dmc.create_association(assocModel)
-            if (association== undefined) throw new Error("Something mad happened.")
-            return association;
-        }
-        return undefined
     }
 
 })(CKEDITOR, MathJax, jQuery, console, new RESTClient("/core"))

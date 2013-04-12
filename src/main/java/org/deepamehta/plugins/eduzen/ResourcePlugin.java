@@ -1,6 +1,5 @@
-package de.deepamehta.plugins.eduzen;
+package org.deepamehta.plugins.eduzen;
 
-import com.sun.jersey.api.view.Viewable;
 import java.util.logging.Logger;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -18,26 +17,23 @@ import javax.ws.rs.WebApplicationException;
 
 import de.deepamehta.core.Topic;
 import de.deepamehta.core.ResultSet;
-import de.deepamehta.core.osgi.PluginActivator;
 import de.deepamehta.core.model.TopicModel;
-import de.deepamehta.core.model.SimpleValue;
 import de.deepamehta.core.RelatedTopic;
 import de.deepamehta.core.model.CompositeValueModel;
 import de.deepamehta.core.service.ClientState;
 import de.deepamehta.core.service.Directives;
-import de.deepamehta.core.service.PluginService;
-import de.deepamehta.core.service.annotation.ConsumesService;
 import de.deepamehta.core.storage.spi.DeepaMehtaTransaction;
-import de.deepamehta.plugins.eduzen.service.ResourceService;
-import de.deepamehta.plugins.eduzen.model.Resource;
-import de.deepamehta.plugins.eduzen.model.ResourceTopic;
-import de.deepamehta.plugins.accesscontrol.service.AccessControlService;
 import de.deepamehta.plugins.webactivator.WebActivatorPlugin;
-import de.deepamehta.plugins.workspaces.service.WorkspacesService;
-import java.util.logging.Level;
+
+import org.deepamehta.plugins.eduzen.service.ResourceService;
+import org.deepamehta.plugins.eduzen.model.Resource;
+import org.deepamehta.plugins.eduzen.model.ResourceTopic;
+
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+
+import com.sun.jersey.api.view.Viewable;
 
 
 @Path("/notes")
@@ -53,10 +49,9 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     private final static String PARENT_URI = "dm4.core.parent";
     private final static String AGGREGATION = "dm4.core.aggregation";
 
-    private final static String RESOURCE_URI = "dm4.resources.resource";
-    // private final static String RESOURCE_CONTENT_URI = "dm4.resources.content";
+    private final static String RESOURCE_URI = "org.deepamehta.resources.resource";
     private final static String TAG_URI = "dm4.tags.tag";
-    private final static String SCORE_URI = "dm4.reviews.score";
+    private final static String SCORE_URI = "org.deepamehta.reviews.score";
 
     // private static final String WS_EDUZEN_EDITORS = "de.workspaces.deepamehta";
     // private static final String WS_EDUZEN_USERS = "tub.eduzen.workspace_users";

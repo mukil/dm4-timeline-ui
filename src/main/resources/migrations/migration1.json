@@ -2,7 +2,7 @@
     "topic_types": [
         {
             "value": "Name",
-            "uri": "dm4.resources.name",
+            "uri": "org.deepamehta.resources.name",
             "data_type_uri": "dm4.core.text",
             "index_mode_uris": ["dm4.core.fulltext", "dm4.core.key"],
             "view_config_topics": [
@@ -18,7 +18,7 @@
         },
         {
             "value": "Content",
-            "uri": "dm4.resources.content",
+            "uri": "org.deepamehta.resources.content",
             "data_type_uri": "dm4.core.html",
             "index_mode_uris": ["dm4.core.fulltext"],
             "view_config_topics": [
@@ -34,7 +34,7 @@
         },
         {
             "value": "Published",
-            "uri": "dm4.resources.is_published",
+            "uri": "org.deepamehta.resources.is_published",
             "data_type_uri": "dm4.core.boolean",
             "view_config_topics": [
                 {
@@ -48,21 +48,21 @@
         },
         {
             "value": "Resource",
-            "uri": "dm4.resources.resource",
+            "uri": "org.deepamehta.resources.resource",
             "data_type_uri": "dm4.core.composite",
             "assoc_defs": [
                 {
-                    "child_type_uri":           "dm4.resources.name",
+                    "child_type_uri":           "org.deepamehta.resources.name",
                     "child_cardinality_uri":    "dm4.core.one",
                     "assoc_type_uri":           "dm4.core.composition_def"
                 },
                 {
-                    "child_type_uri":           "dm4.resources.content",
+                    "child_type_uri":           "org.deepamehta.resources.content",
                     "child_cardinality_uri":    "dm4.core.one",
                     "assoc_type_uri":           "dm4.core.composition_def"
                 },
                 {
-                    "child_type_uri":           "dm4.resources.is_published",
+                    "child_type_uri":           "org.deepamehta.resources.is_published",
                     "child_cardinality_uri":    "dm4.core.one",
                     "assoc_type_uri":           "dm4.core.composition_def"
                 } ### Timestamp is missing yet
@@ -70,7 +70,7 @@
                 {
                     "type_uri": "dm4.webclient.view_config",
                     "composite": {
-                        "dm4.webclient.icon": "/de.tu-berlin.eduzen.deepamehta-resources/images/black_32.png",
+                        "dm4.webclient.icon": "/org.deepamehta.eduzen-tagging-notes/images/black_32.png",
                         "dm4.webclient.show_in_create_menu": true,
                         "dm4.webclient.searchable_as_unit": true
                     }

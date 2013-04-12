@@ -1,4 +1,4 @@
-package de.deepamehta.plugins.eduzen.model;
+package org.deepamehta.plugins.eduzen.model;
 
 
 import de.deepamehta.core.JSONEnabled;

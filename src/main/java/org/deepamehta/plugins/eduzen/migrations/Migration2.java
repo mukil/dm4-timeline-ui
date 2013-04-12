@@ -1,8 +1,7 @@
-package de.deepamehta.plugins.eduzen.migrations;
+package org.deepamehta.plugins.eduzen.migrations;
 
 import java.util.logging.Logger;
 import de.deepamehta.core.service.Migration;
-import de.deepamehta.core.AssociationType;
 import de.deepamehta.core.Topic;
 import de.deepamehta.core.TopicType;
 import de.deepamehta.core.model.*;
@@ -11,11 +10,11 @@ public class Migration2 extends Migration {
 
     private Logger logger = Logger.getLogger(getClass().getName());
 
-    private String RESOURCE_URI = "dm4.resources.resource";
-    private String RESOURCE_CONTENT_URI = "dm4.resources.content";
+    private String RESOURCE_URI = "org.deepamehta.resources.resource";
+    private String RESOURCE_CONTENT_URI = "org.deepamehta.resources.content";
+    private String REVIEW_SCORE = "org.deepamehta.reviews.score";
     private String TAG_URI = "dm4.tags.tag";
-    private String REVIEW_SCORE = "dm4.reviews.score";
-    // private String FILE_URI = "dm4.files.file";
+
     // private String WEB_RESOURCE_URI = "dm4.webbrowser.web_resource";
     private String WS_DEFAULT_URI = "de.workspaces.deepamehta";
 
@@ -36,13 +35,7 @@ public class Migration2 extends Migration {
         // resource.addAssocDef(new AssociationDefinitionModel("dm4.core.aggregation_def",
             // RESOURCE_URI, FILE_URI, "dm4.core.one", "dm4.core.one"));
         // hide "Web Resources" from "Create"-Menu, thus forcing usage of our new "Resource"-Topic
-        /** dms.getTopicType(RESOURCE_URI, null).getViewConfig()
-           .addSetting("dm4.webclient.view_config", "dm4.webclient.show_in_create_menu", true);
-        dms.getTopicType(TAG_URI, null).getViewConfig()
-           .addSetting("dm4.webclient.view_config", "dm4.webclient.show_in_create_menu", true); **/
-        // default assignment cause of we begin our plugins types with the "dm4.*"-namespace
-        // assignWorkspace(resource);
-        // assignWorkspace(dms.getTopicType(TAG_URI, null));
+        assignWorkspace(resource); // assign just the parent type to ws "DeepaMehta"
 
     }
 

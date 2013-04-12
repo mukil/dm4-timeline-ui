@@ -4,10 +4,10 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <name>DeepaMehta 4 Eduzen Resources</name>
-    <groupId>de.tu-berlin.eduzen</groupId>
-    <artifactId>deepamehta-resources</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <name>org.deepamehta Tagging Notes</name>
+    <groupId>org.deepamehta</groupId>
+    <artifactId>eduzen-tagging-notes</artifactId>
+    <version>0.2-SNAPSHOT</version>
     <packaging>bundle</packaging>
 
     <parent>
@@ -22,17 +22,17 @@
         <dependency>
             <groupId>de.deepamehta</groupId>
             <artifactId>deepamehta-core</artifactId>
-            <version>4.1-SNAPSHOT</version>
+            <version>4.1</version>
         </dependency>
         <dependency>
             <groupId>de.deepamehta</groupId>
             <artifactId>deepamehta-accesscontrol</artifactId>
-            <version>4.1-SNAPSHOT</version>
+            <version>4.1</version>
         </dependency>
         <dependency>
             <groupId>de.deepamehta</groupId>
             <artifactId>deepamehta-webactivator</artifactId>
-            <version>0.3</version>
+            <version>0.3.1</version>
         </dependency>
 <!--       <dependency>
             <groupId>de.tu-berlin.eduzen</groupId>
@@ -45,8 +45,8 @@
             <version>1.1</version>
         </dependency>
         <dependency>
-            <groupId>de.deepamehta</groupId>
-            <artifactId>deepamehta-rating</artifactId>
+            <groupId>org.deepamehta</groupId>
+            <artifactId>deepamehta-reviews</artifactId>
             <version>0.1</version>
         </dependency>-->
     </dependencies>
@@ -59,7 +59,7 @@
                 <configuration>
                     <instructions>
                         <Bundle-Activator>
-                            de.deepamehta.plugins.eduzen.ResourcePlugin
+                            org.deepamehta.plugins.eduzen.ResourcePlugin
                         </Bundle-Activator>
                     </instructions>
                 </configuration>
