@@ -10,6 +10,7 @@
 
     var TAG_URI = "dm4.tags.tag" // fixme: doublings
     var REVIEW_SCORE_URI = "org.deepamehta.reviews.score" // fixme: doublings
+    var CREATED_AT_URI = "org.deepamehta.resources.created_at" // fixme: doublings
     var NOTES_URI = "org.deepamehta.resources.resource" // fixme: doublings
     var NOTE_CONTENT_URI = "org.deepamehta.resources.content" // fixme: doublings
 
@@ -170,7 +171,7 @@
         // show tags for resource
         var currentTags = model.getCurrentResource().composite[TAG_URI]
         if (currentTags != undefined) {
-            for (i=0; i < currentTags.length; i++) {
+            for (var i=0; i < currentTags.length; i++) {
                 var tag = currentTags[i]
                 $('#tags').append('<a class="tag"><img src="/de.deepamehta.tags/images/tag_32.png" width="20"'
                     + 'alt="Tag: '+tag.value+'">' +tag.value+ '</a>')
@@ -221,7 +222,7 @@
         var tags = (item.composite[TAG_URI] != undefined) ? item.composite[TAG_URI] : []
         var content = (item.composite[NOTE_CONTENT_URI] != undefined) ? item.composite[NOTE_CONTENT_URI].value : ""
         // construct list item, header and content-area first
-        var title = new Date(parseInt(item.value))
+        var title = new Date(parseInt(item.composite[CREATED_AT_URI].value))
         var $topic = $('<li id="' +item.id+ '">').html('Dieser Beitrag wurde eingereicht am  ' +
             title.getDate() + '.' + dict.monthNames[title.getMonth()] + ' ' + title.getFullYear() + ' um '
             + title.getHours() + ':' +title.getMinutes() + ' Uhr, hat eine Bewertung von '
@@ -282,7 +283,7 @@
                 setupTagFieldControls('li#' +clickedListItem+ ' .toolbar div.add-tag-dialog input.new-tag')
                 $addDialog.show("slow")
             })
-        var $edit = $('<a class="edit-item btn">bearbeite diesen Beitrag.</a>')
+        var $edit = $('<a class="edit-item btn">zur Detailansicht dieses Beitrags.</a>')
             $edit.click(function(){
                 window.location.href = '/notes/'+item.id
                 console.log("should render and add some editing dialog..")
@@ -318,7 +319,7 @@
 
         // finally append votebar, tagbar and body to list-item
         $votes.append($upvote).append($downvote)
-        $toolbar.append(' f&uuml;ge').append($addTag).append(" oder ")
+        $toolbar.append(' f&uuml;ge').append($addTag).append(" oder gehe ")
         $toolbar.append($edit)
         // $toolbar.append($tagInfo)
 
@@ -329,7 +330,7 @@
 
         function renderTagInfo($tagInfoArea, givenTags) {
             var commaCounter = 0
-            for (ri=0; ri < givenTags.length; ri++) {
+            for (var ri=0; ri < givenTags.length; ri++) {
                 // use tag icon..
                 $tagInfoArea.append('<i class="tag">' +givenTags[ri].value+ '</i>')
                 commaCounter++
@@ -340,7 +341,7 @@
 
     this.showTagButtons = function($parent, tags) {
         //
-        for (i=0; i < tags.length; i++) {
+        for (var i=0; i < tags.length; i++) {
             var element = tags[i]
             var $tag = $('<a id="' +element.id+ '" class="btn tag">' +element.value+ '</a>')
             // the event handler, if a filter-request is made
@@ -415,7 +416,7 @@
         var $filterMeta = $('<span class="meta">unter dem/n Stichwort/en</span>')
         var $filterButtons = $('<span class="buttons"></span>')
         var tags = model.getTagFilter()
-        for (i=0; i < tags.length; i++) {
+        for (var i=0; i < tags.length; i++) {
             var $tagButton = $('<a class="btn tag selected">' +tags[i].value+ '</a>')
             $filterButtons.append($tagButton)
         }
@@ -433,20 +434,20 @@
 
     this.getAlphabeticalResources = function() {
         var results = model.getAvailableResources()
-        return results.sort(alphabetical_sort_asc)
+        return results.sort(created_at_sort_asc)
     }
 
     this.getAllTagsInCurrentResults = function() {
         var availableFilterTags = []
         var availableResources = model.getAvailableResources()
         // check through all current (filtered) resources of the result-set
-        for (i=0; i < availableResources.length; i++) {
+        for (var i=0; i < availableResources.length; i++) {
             var resource = availableResources[i]
             // through all their tags and add each tag once to our new set of possible filters
             if (resource.composite.hasOwnProperty(TAG_URI)
                 && resource.composite[TAG_URI] != undefined) {
                 var tags = resource.composite[TAG_URI]
-                for (k=0; k < tags.length; k++) { // i > k > m (clojure attention!)
+                for (var k=0; k < tags.length; k++) { // i > k > m (clojure attention!)
                     var tag = tags[k]
                     addUniqueTagToTagFilter(tag, availableFilterTags)
                 }
@@ -458,7 +459,7 @@
 
     this.addUniqueTagToTagFilter = function (tagTopic, filteredTags) {
         var isUnique = true
-        for (m=0; m < filteredTags.length; m++) {
+        for (var m=0; m < filteredTags.length; m++) {
             if (filteredTags[m].id == tagTopic.id) {
                 isUnique = false
             }
@@ -471,10 +472,10 @@
     this.sliceAboutFilteredTags = function(tags) {
         var filteredTags = model.getTagFilter()
         var restOfTags = []
-        for (k=0; k < tags.length; k++) {
+        for (var k=0; k < tags.length; k++) {
             var take = true
             // if tag is already part of our filter, exclude it from our result set
-            for (i=0; i < filteredTags.length; i++) {
+            for (var i=0; i < filteredTags.length; i++) {
                 var filteredTag = filteredTags[i]
                 if (tags[k].id == filteredTag.id) take = false
             }
@@ -556,14 +557,8 @@
     /** sorting asc by item.composite[model.REVIEW_SCORE_TYPE_URI].value */
     this.score_sort_asc = function (a, b) {
         // console.log(a)
-        var scoreA = 0
-        if (a.composite.hasOwnProperty(REVIEW_SCORE_URI)) {
-            scoreA = a.composite[REVIEW_SCORE_URI].value
-        }
-        var scoreB = 0
-        if (b.composite.hasOwnProperty(REVIEW_SCORE_URI)) {
-            scoreB = b.composite[REVIEW_SCORE_URI].value
-        }
+        var scoreA = a.composite[REVIEW_SCORE_URI].value
+        var scoreB = b.composite[REVIEW_SCORE_URI].value
         if (scoreA > scoreB) // sort string descending
           return -1
         if (scoreA < scoreB)
@@ -572,10 +567,10 @@
     }
 
     /** sorting asc by item.value */
-    this.alphabetical_sort_asc = function (a, b) {
+    this.created_at_sort_asc = function (a, b) {
         // console.log(a)
-        var scoreA = a.value
-        var scoreB = b.value
+        var scoreA = a.composite[CREATED_AT_URI].value
+        var scoreB = b.composite[CREATED_AT_URI].value
         if (scoreA > scoreB) // sort string descending
           return -1
         if (scoreA < scoreB)
@@ -588,22 +583,30 @@
         var tagline = $(fieldIdentifier).val().split( /,\s*/ )
         if (tagline == undefined) throw new Error("Tagging field got somehow broken.. ")
         var qualifiedTags = []
-        for (i=0; i < tagline.length; i++) {
+        for (var i=0; i < tagline.length; i++) {
             var tag = tagline[i]
             // credits for the regexp go to user Bracketworks in:
             // http://stackoverflow.com/questions/154059/how-do-you-check-for-an-empty-string-in-javascript#154068
-            if (tag.match(/\S/) != null) qualifiedTags.push(tag)
+            if (tag.match(/\S/) != null) { // remove empty strings
+                // remove possibly entered duplicates from submitted tags
+                var qualified = true
+                for (var k=0; k < qualifiedTags.length; k++) {
+                    var validatedTag = qualifiedTags[k]
+                    if (validatedTag.toLowerCase() === tag.toLowerCase()) qualified = false
+                }
+                if (qualified) qualifiedTags.push(tag)
+            }
         }
         return qualifiedTags
     }
 
     this.getTagTopicsToReference = function (qualifiedTags) {
         var tagTopics = []
-        for (i=0; i < qualifiedTags.length; i++) {
+        for (var i=0; i < qualifiedTags.length; i++) {
             var tag = qualifiedTags[i]
-            for (k=0; k < model.getAvailableTags().length; k++) {
+            for (var k=0; k < model.getAvailableTags().length; k++) {
                 var tagTopic = model.getAvailableTags()[k]
-                if (tagTopic.value.toLowerCase() == tag.toLowerCase()) {
+                if (tagTopic.value.toLowerCase() === tag.toLowerCase()) {
                     tagTopics.push(tagTopic)
                 }
             }
@@ -615,14 +618,14 @@
         var tagsToCreate = []
         if (referencedTags == undefined) return submittedTags // return all submittedTags for creation
         // filter tags about the submittedTags which are not referenced
-        for (i=0; i < submittedTags.length; i++) {
+        for (var i=0; i < submittedTags.length; i++) {
             var submittedTag = submittedTags[i]
             //
             var create = true
-            for (k=0; k < referencedTags.length; k++) {
+            for (var k=0; k < referencedTags.length; k++) {
                 var referencedTag = referencedTags[k]
                 // if "tag" is already part of the referenced, skip creation (comparison is case-insensitive)
-                if (submittedTag.toLowerCase() == referencedTag.value.toLowerCase()) {
+                if (submittedTag.toLowerCase() === referencedTag.value.toLowerCase()) {
                     create = false
                 }
             }
@@ -633,7 +636,7 @@
 
     this.getTeXAndHTMLSource = function (body) {
         var objects = $('.math-output', body)
-        for (i=0; i < objects.length; i++) {
+        for (var i=0; i < objects.length; i++) {
             var div = objects[i]
             var containerId = div.id
             var mathjaxId = $('script', div).attr('id')
@@ -683,7 +686,7 @@
         var resource = emc.createResourceTopic(valueToSubmit, tagsToCreate)
         // an creating/associtating tags with this resource
         /* createNewTagsForResource(resource, tagsToCreate) **/
-        for (k=0; k < tagsToReference.length; k++) {
+        for (var k=0; k < tagsToReference.length; k++) {
             if (tagsToReference[k] != undefined) {
                 var newAssoc = emc.createResourceTagAssociation(resource, tagsToReference[k])
             }

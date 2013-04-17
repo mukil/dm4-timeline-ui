@@ -9,12 +9,15 @@ function EMC (dmc, model) {
 
         if (value != undefined) {
             // FIXME: doubled URIs in code find out how to use variables as keys in a declarative object construction
-            //
+            // TODO: initializ aggregated license properly on each new resource
             var topicModel = {
                 "type_uri": "org.deepamehta.resources.resource",
                 "composite": {
+                    "org.deepamehta.resources.name": "",
                     "org.deepamehta.resources.content": value,
-                    "org.deepamehta.resources.name": new Date().getTime().toString(),
+                    "org.deepamehta.resources.created_at": new Date().getTime().toString(),
+                    "org.deepamehta.resources.last_modified_at": new Date().getTime().toString(),
+                    "org.deepamehta.resources.author": "Anonymous",
                     "org.deepamehta.resources.is_published": true,
                     "dm4.tags.tag": [], // aggregated composite cannot be created (?)
                     "org.deepamehta.reviews.score": 0
