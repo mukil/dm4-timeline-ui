@@ -24,7 +24,7 @@ function EMC (dmc, model) {
                 }
             }
             // create resource directly with all aggregated composite tags
-            for (t=0; t < tagsToCreate.length; t++) {
+            for (var t=0; t < tagsToCreate.length; t++) {
                 topicModel.composite["dm4.tags.tag"].push({
                     "dm4.tags.label": tagsToCreate[t],
                     "dm4.tags.definition": ""
@@ -44,7 +44,7 @@ function EMC (dmc, model) {
 
     this.createNewTagsForResource = function (resource, tagsToCreate) {
         // creating new tags and associtating these with the given resource
-        for (i=0; i < tagsToCreate.length; i++) {
+        for (var i=0; i < tagsToCreate.length; i++) {
             var newTag = _this.createTagTopic(tagsToCreate[i])
             if (newTag != undefined) {
                 var assoc = _this.createResourceTagAssociation(resource, newTag)
@@ -56,7 +56,7 @@ function EMC (dmc, model) {
     }
 
     this.createResourceTagAssociations = function (resource, tagsToReference) {
-        for (k=0; k < tagsToReference.length; k++) {
+        for (var k=0; k < tagsToReference.length; k++) {
             if (tagsToReference[k] != undefined) {
                 var newAssoc = _this.createResourceTagAssociation(resource, tagsToReference[k])
             }

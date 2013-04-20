@@ -68,9 +68,9 @@
             if (authorization == undefined) return null
             // throws 401 if login fails
             dmc.request("POST", "/accesscontrol/login", undefined, {"Authorization": authorization})
-            show_message("Login OK", "ok")
+            // show_message("Login OK", "ok")
         } catch (e) {
-            show_message("Nutzername oder Passwort ist falsch.", "failed")
+            // show_message("Nutzername oder Passwort ist falsch.", "failed")
             throw new Exception("403 - Sorry, the application ccould not establish a user session.")
         }
 
@@ -614,16 +614,16 @@
         return tagTopics
     }
 
-    this.getTagTopicsToCreate = function (submittedTags, referencedTags) {
+    this.getTagTopicsToCreate = function (submittedTags, availableTags) {
         var tagsToCreate = []
-        if (referencedTags == undefined) return submittedTags // return all submittedTags for creation
+        if (availableTags == undefined) return submittedTags // return all submittedTags for creation
         // filter tags about the submittedTags which are not referenced
         for (var i=0; i < submittedTags.length; i++) {
             var submittedTag = submittedTags[i]
             //
             var create = true
-            for (var k=0; k < referencedTags.length; k++) {
-                var referencedTag = referencedTags[k]
+            for (var k=0; k < availableTags.length; k++) {
+                var referencedTag = availableTags[k]
                 // if "tag" is already part of the referenced, skip creation (comparison is case-insensitive)
                 if (submittedTag.toLowerCase() === referencedTag.value.toLowerCase()) {
                     create = false
