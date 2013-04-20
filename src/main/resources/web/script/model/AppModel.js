@@ -45,7 +45,7 @@ function AppModel() {
                 return undefined
             },
             associateTagWithAvailableResource: function (tag, resourceId) {
-                for (i=0; i < availableResources.length; i++) {
+                for (var i=0; i < availableResources.length; i++) {
                     var oldItem = availableResources[i]
                     if (oldItem.id == resourceId) {
                         var resource = availableResources[i]
@@ -65,7 +65,7 @@ function AppModel() {
             },
             removeTagFromFilter: function (givenTag) {
                 var newTagFilter = []
-                for (i=0; i <= tagFilter.length; i++) {
+                for (var i=0; i <= tagFilter.length; i++) {
                     var tag = tagFilter[i]
                     if (tag.id != givenTag.id) newTagFilter.push(tag)
                 }
@@ -78,7 +78,7 @@ function AppModel() {
                 return tagFilter
             },
             getTagById: function(id) {
-                for (i=0; i < availableTags.length; i++) {
+                for (var i=0; i < availableTags.length; i++) {
                     var el = availableTags[i]
                     if (el.id == id) {
                         return el
