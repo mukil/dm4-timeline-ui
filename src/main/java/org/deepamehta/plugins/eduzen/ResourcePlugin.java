@@ -50,6 +50,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     private final static String AGGREGATION = "dm4.core.aggregation";
 
     private final static String RESOURCE_URI = "org.deepamehta.resources.resource";
+    private final static String RESOURCE_CREATED_AT_URI = "org.deepamehta.resources.created_at";
     private final static String TAG_URI = "dm4.tags.tag";
     private final static String SCORE_URI = "org.deepamehta.reviews.score";
 
@@ -221,7 +222,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Produces("text/html")
     public Viewable getDetailView(@PathParam("id") long resourceId, @HeaderParam("Cookie") ClientState clientState) {
         Topic resource = dms.getTopic(resourceId, true, clientState);
-        context.setVariable("resourceName", resource.getSimpleValue());
+        context.setVariable("resourceName", resource.getCompositeValue().getModel().getLong(RESOURCE_CREATED_AT_URI));
         context.setVariable("resourceId", resource.getId());
         return view("resource");
     }

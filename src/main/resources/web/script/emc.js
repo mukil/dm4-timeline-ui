@@ -15,8 +15,8 @@ function EMC (dmc, model) {
                 "composite": {
                     "org.deepamehta.resources.name": "",
                     "org.deepamehta.resources.content": value,
-                    "org.deepamehta.resources.created_at": new Date().getTime().toString(),
-                    "org.deepamehta.resources.last_modified_at": new Date().getTime().toString(),
+                    "org.deepamehta.resources.created_at": new Date().getTime(),
+                    "org.deepamehta.resources.last_modified_at": new Date().getTime(),
                     "org.deepamehta.resources.author": "Anonymous",
                     "org.deepamehta.resources.is_published": true,
                     "dm4.tags.tag": [], // aggregated composite cannot be created (?)

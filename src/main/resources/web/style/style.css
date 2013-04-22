@@ -1,5 +1,4 @@
 
-
 body.eduzen notes {
     padding: 0px;
     margin: 25px !important;
@@ -21,13 +20,9 @@ body.eduzen notes {
 .eduzen .header {
     margin-left: 40px;
     margin-top: 10px;
+    margin-bottom: 10px;
     color: #383838;
 }
-
-/**
-.eduzen b.header-title {
-    font-size: 1.17em;
-} **/
 
 .eduzen span.meta {
     color: #a9a9a9;
@@ -45,19 +40,23 @@ body.eduzen notes {
     margin-left: 45px;
 }
 
-.eduzen .timeline .options a.btn.add,
-.eduzen .timeline .options a.btn.sort {
-    float: right;
-}
-
-.eduzen .timeline.rendered a.btn.add {
+.eduzen .timeline.rendered a#new {
     display: none;
     padding-right: 10px;
 }
 
-.eduzen .timeline.unrendered a.btn.add {
+.eduzen .back-to-front {
+    right: 80px !important;
+}
+
+.eduzen .back-to-front,
+.eduzen .timeline.unrendered a#new {
     display: inline-block;
-    padding-right: 10px;
+    padding: 7px;
+    border: 1px solid #f1f1f1;
+    position: absolute; right: 320px; top: 0px;
+    border-top: 1px solid #fff;
+    padding-top: 9px;
 }
 
 .eduzen .timeline {
@@ -66,7 +65,6 @@ body.eduzen notes {
     border-top: 1px solid #f5f5f5;
     border-bottom: 1px solid #f5f5f5;
     z-index: 100;
-    padding-top: 6px;
     width: 92%;
     min-height: 30px;
 }
@@ -88,11 +86,6 @@ body.eduzen notes {
     margin-left: 5px;
 }
 
-.eduzen .result-count {
-    margin-left: 6px;
-}
-
-.eduzen #most-popular.selected,
 .eduzen a.btn.tag.selected,
 #nav a.btn.sort.selected {
     background-color: #0782C1;
@@ -100,15 +93,8 @@ body.eduzen notes {
     border: 1px solid #343434;
 }
 
-.eduzen #most-popular {
-    padding: 5px;
-}
-
-.eduzen .result-text,
-.eduzen .result-count,
-.eduzen .result-sort {
+.eduzen .options {
     color: #a9a9a9;
-    padding-top: 3px;
 }
 
 .eduzen .unrendered #nav.info {
@@ -162,11 +148,6 @@ body.eduzen notes {
     vertical-align: baseline;
 }
 
-.eduzen.note .back-to-front {
-    float: right;
-    margin-right: 40px;
-}
-
 .eduzen .tag img {
     padding: 3px;
 }
@@ -195,12 +176,12 @@ body.eduzen notes {
 /** input areas */
 
 .eduzen input.submit {
-    float: right;
+    position: relative;
+    top: -1px; float: right;
     margin-right: 40px;
-    padding-left: 18px;
-    padding-right: 18px;
-    padding-bottom: 4px;
-    padding-top: 4px;
+    background-color: #fff;
+    border: 1px solid #f5f5f5;
+    border-top: 1px solid transparent;
 }
 
 .eduzen input.new-tag {
@@ -208,6 +189,7 @@ body.eduzen notes {
     height: 13px;
     padding-top: 3px;
     padding-bottom: 3px;
+    display: inline-block;
 }
 
 .eduzen input.new-tag,
@@ -215,20 +197,17 @@ body.eduzen notes {
     padding-left: 7px;
     padding-bottom: 5px;
     padding-top: 5px;
+    border: 1px solid #ffc700 !important;
+    background-color: #f1f1f1;
 }
 
-#resource_input:focus,
 .eduzen .button:focus,
 .eduzen input.button:focus,
 .eduzen input:focus {
     /** color: #fff; **/
-    border: 1px solid #2486bb;
+    border: 1px solid #2486bb !important;
 }
 
-.eduzen input.new-tag,
-.eduzen input.tag {
-    border: 1px solid transparent;
-}
 .eduzen a:focus,
 .eduzen input.new-tag:focus,
 .eduzen input.tag:focus,
@@ -274,9 +253,9 @@ input.cke_dialog_ui_input_text:focus {
     height: 70px;
 }
 
-.eduzen label {
+/** .eduzen label {
     display: block;
-}
+} **/
 
 .eduzen button {
     padding: 6px; height: 30px
@@ -292,7 +271,6 @@ input.cke_dialog_ui_input_text:focus {
     font-size: 12px;
 }
 
-.eduzen label,
 .eduzen .label {
     font-weight: bold;
     line-height: 1.6em;
@@ -333,6 +311,13 @@ input.cke_dialog_ui_input_text:focus {
     margin-left: 0px;
     margin-right: 0px;
     padding-bottom: 10px;
+}
+
+.eduzen ul.list .item-content ol li,
+.eduzen ul.list .item-content ul li {
+    border: 0px solid transparent;
+    padding: 5px;
+    margin: 5px;
 }
 
 .eduzen .item-content a {
@@ -490,4 +475,68 @@ input.cke_dialog_ui_input_text:focus {
     margin: 4px;
     display: block;
     margin-bottom: 10px;
+}
+
+.sort {
+    display: inline-block;
+    position: absolute;
+    right: 100px;
+    top: 6px;
+}
+
+.sort-label {
+    display: inline-block;
+    position: absolute;
+    right: 160px;
+    padding-top: 4px;
+    top: 6px;
+}
+
+/** Thx to the author/s of http://proto.io/freebies/onoff/ for the following lines. */
+
+.sort .onoffswitch {
+    position: relative; width: 52px;
+    -webkit-user-select:none; -moz-user-select:none; -ms-user-select: none;
+}
+.sort .onoffswitch-checkbox {
+    display: none;
+}
+.sort .onoffswitch-label {
+    display: block; overflow: hidden; cursor: pointer;
+    border: 1px solid #999999; border-radius: 4px;
+}
+.sort .onoffswitch-inner {
+    width: 200%; margin-left: -100%;
+    -moz-transition: margin 0.3s ease-in 0s; -webkit-transition: margin 0.3s ease-in 0s;
+    -o-transition: margin 0.3s ease-in 0s; transition: margin 0.3s ease-in 0s;
+}
+.sort .onoffswitch-inner:before, .onoffswitch-inner:after {
+    float: left; width: 50%; height: 20px; padding: 0; line-height: 20px;
+    color: white;
+    -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;
+}
+.sort .onoffswitch-inner:before {
+    content: "An";
+    padding-left: 5px;
+    background-color: #0782C1; color: #FFFFFF;
+}
+.sort .onoffswitch-inner:after {
+    content: "Aus";
+    padding-right: 5px;
+    background-color: #FFFFFF; color: #999999;
+    text-align: right;
+}
+.sort .onoffswitch-switch {
+    width: 10px; margin: 5px;
+    background: #FFFFFF;
+    border: 1px solid #999999; border-radius: 4px;
+    position: absolute; top: 0; bottom: 0; right: 28px;
+    -moz-transition: all 0.3s ease-in 0s; -webkit-transition: all 0.3s ease-in 0s;
+    -o-transition: all 0.3s ease-in 0s; transition: all 0.3s ease-in 0s;
+}
+.sort .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+    margin-left: 0;
+}
+.sort .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
+    right: 0px;
 }

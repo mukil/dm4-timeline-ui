@@ -131,17 +131,17 @@
 
     this.setupPageControls = function() {
         // setting up sort-controls and input button
-        $("a#submit").click(function(e) {window.scrollTo(0)})
+        $("a#new").click(function(e) {window.scrollTo(0)})
 
-        $("a#most-popular").click(function(e) {
+        $(".onoffswitch-label").click(function(e) {
 
-            if ($("a#most-popular").hasClass("selected")) { // toggle-off
-                $("a#most-popular").removeClass("selected")
+            if (model.isSortedByScore) { // turn toggle-off
+                // $("a#most-popular").removeClass("selected")
                 model.setAvailableResources(getAlphabeticalResources())
                 // model.setTagFilter([]) // fixme: allow during filtering
                 model.isSortedByScore = false // set resultset sorting flag
-            } else { // toggle-on
-                $("a#most-popular").addClass("selected")  //
+            } else { // turn toggle-on
+                // $("a#most-popular").addClass("selected")  //
                 // just sort all currently existing resources (client-side)
                 model.setAvailableResources(getHighestResources())
                 // model.setTagFilter([]) // fixme: allow during filtering
@@ -151,7 +151,7 @@
             showResultsetView()
         })
 
-        $("a#test").click(loadAllResourcesByTags)
+        // $("a#test").click(loadAllResourcesByTags)
     }
 
     this.showEditDetailsView = function() {
@@ -199,13 +199,13 @@
         var results = undefined
         if (model.isSortedByScore) {
             results = getHighestResources()
-            $(".result-sort").text("nach Wertung")
+            // $(".result-sort").text("nach Wertung")
         } else {
             results = getAlphabeticalResources()
-            $(".result-sort").text("zeitlich")
+            // $(".result-sort").text("zeitlich")
         }
-        $(".result-count").text(results.length + " Ergebnis/se ")
-        $('.result-text').text('sortiert')
+        /** $(".result-count").text(results.length + " Ergebnis/se ")
+        $('.result-text').text('sortiert') **/
         //
         var $resultlist = $('<ul class="list">')
         $.each(results, function (e, item) {
@@ -486,7 +486,8 @@
 
     this.setupCKEditor = function () {
         // setup cK-editor
-        CKEDITOR.inline( document.getElementById( 'resource_input' ) );
+        CKEDITOR.inline( document.getElementById( 'resource_input' ) )
+        // TODO: onclick enter show/hide virtual placeholder text
         _this.ck = CKEDITOR.instances['resource_input']
         // upload-fallback: $(".button.upload").click(this.open_upload_dialog(uploadPath, this.handleUploadResponse))
         // mathjax preview handling

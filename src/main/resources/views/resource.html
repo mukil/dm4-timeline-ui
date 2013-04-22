@@ -55,20 +55,21 @@
             <h3 class="hello">
                 Inhalt bearbeiten
                 <!-- Share your educational resource*-->
-                <a href="/notes" class="back-to-front">zur&uuml;ck zur Startseite</a>
             </h3>
+            <a href="/notes" class="back-to-front">zur&uuml;ck zur Startseite</a>
             <div class="content-area">
-                <p><!-- i class="label">Educational resource</i-->
-                    <b class="label">Zeitstempel:</b>
-                    <b class="header-title" th:text="${resourceName}">Name des Inhalts</b>
-                </p>
+                <!-- i class="label">Educational resource</i-->
+                <b class="label">Erstellt am:&nbsp;</b>
+                <b class="header-title" th:text="${resourceName}">Name des Inhalts</b>
+                <br/>
+                <br/>
                 <b class="label">Inhalt:</b>
                 <div id="resource_input" contenteditable="false"></div> <!--  -->
+                <input type="button" value="Inhalt &auml;ndern" class="submit btn"></input>
+                <br/>
                 <br/>
                 <b class="label">Tags:</b>
                 <div id="tags"></div>
-                <br/>
-                <input type="button" value="Inhalt &auml;ndern" class="submit btn"></input>
                 <!--
                 <b class="label">Weitere Tags hinzuf&uuml;gen:</b>
                 <input type="text" placeholder="Name des Tags" size="50" class="tag"></input>

@@ -60,12 +60,12 @@
                     <b class="header-title">Inhalt hinzuf&uuml;gen</b>
                 </p>
                 <div id="resource_input" contenteditable="true"></div> <!--  -->
-                <p>
-                    <b class="header-title">Inhalt verschlagworten</b>
-                    <input type="text" placeholder="..." size="50" class="tag"></input>
-                    <input type="button" value="Hinzuf&uuml;gen" class="submit btn"
+                <input type="button" value="Hinzuf&uuml;gen" class="submit btn"
                         onclick="javascript:doSubmitResource()"></input>
+                <p>
+                    <b class="header-title">Tags hinzuf&uuml;gen</b>
                 </p>
+                <input type="text" placeholder="..." size="70" class="tag"></input>
             </div>
         </div>
 
@@ -76,8 +76,18 @@
                 <span class="result-sort"></span>
                 <span class="result-text"></span>
                 <span class="tag-filter-info"></span>
-                <a class="btn sort" id="most-popular">Sortierung nach Bewertung</a>
-                <a class="btn add" id="submit">Neuen Inhalt hinzuf&uuml;gen</a>
+                <div class="sort">
+                    <div class="onoffswitch" id="most-popular-toggle">
+                    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch"></input>
+                    <label class="onoffswitch-label" for="myonoffswitch">
+                        <div class="onoffswitch-inner"></div>
+                        <div class="onoffswitch-switch"></div>
+                    </label>
+                    </div>
+                </div>
+                <div class="sort-label">Sortierung nach Bewertung</div>
+                <!-- a class="btn sort" id="most-popular">Sortierung nach Bewertung</a-->
+                <a class="btn add" id="new">Neuen Inhalt hinzuf&uuml;gen</a>
             </div>
 
             <div class="info" id="nav">
