@@ -3,7 +3,7 @@
 
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <title th:text="${resourceName}">Note: Info - (eduZEN Prototype) </title>
+        <title th:text="${resourceName}">Note: Info - (Prototype 2.0-SNAPSHOT) </title>
         <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0"/>
 
         <link rel="stylesheet" href="/org.deepamehta.eduzen-tagging-notes/style/style.css"/>
@@ -42,8 +42,7 @@
         <script type="text/javascript" th:inline="javascript">
             /*<![CDATA[*/
             $(document).ready(function() {
-                var resourceId = /*[[${resourceId}]]*/ '1';
-                setupDetailView(resourceId)
+                initializePageView()
             })
             /*]]>*/
         </script>
@@ -52,8 +51,10 @@
 
     <body class="eduzen notes note">
         <div class="header">
+
+            <div id="message"></div>
+
             <h3 class="hello">
-                Inhalt bearbeiten
                 <!-- Share your educational resource*-->
             </h3>
             <a href="/notes" class="back-to-front">zur&uuml;ck zur Startseite</a>

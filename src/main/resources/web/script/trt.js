@@ -13,16 +13,70 @@
     var CREATED_AT_URI = "org.deepamehta.resources.created_at" // fixme: doublings
     var NOTES_URI = "org.deepamehta.resources.resource" // fixme: doublings
     var NOTE_CONTENT_URI = "org.deepamehta.resources.content" // fixme: doublings
+    var OK = 200
+    var UNDER_THE_TOP = "message-top"
+    var TIMELINE = "message-timeline"
 
     /**
      *  Fixmes: adding Tag to resource which has none (no display update), adding tag to resource which has one adds
      *  new tag twice to tag-filter-view
      **/
 
+    /** Main router to all views */
+
+    this.initializePageView = function() {
+        // parse requested location
+        var pathname = window.location.pathname;
+        var attributes = pathname.split('/')
+        var noteId = attributes[2]
+        // route to distinct views
+        if (noteId === undefined || noteId === "") {
+
+            // load all available tags
+            loadAllTags()
+            // and resources
+            loadAllResources()
+            // route to main/ timeline view
+            setupView()
+
+        } else if (noteId === "tagged") {
+
+            // route to filtered timeline view
+            var tags = attributes[3]
+                tags = tags.split("1%2B")
+            // load all available tags into client-side first
+            loadAllTags()
+            // get tag id/s on client-side first
+            var selectedTag = undefined
+            for (var i=0; i < tags.length; i++) {
+                selectedTag = model.getTagByName(tags[i])
+                if (selectedTag != undefined) model.addTagToFilter(selectedTag)
+            }
+            // finally request resources (by tagIds) for a tag-specific timeline
+            if (model.getTagFilter().length > 1) {
+                // for more than 1 tag
+                var parameter = { tags: model.getTagFilter() }
+                loadAllResourcesByTags(parameter)
+            } else {
+                // for exactly 1 tag
+                loadAllResourcesByTagId(selectedTag.id)
+            }
+            setupView()
+
+        } else {
+
+            // initialize page-view model
+            loadResourceById(noteId)
+            // route to detail view
+            setupDetailView()
+            // fixme: historyApi // _this.pushHistory("detailView", "Note Info: " + noteId, "/notes/" + noteId)
+
+        }
+    }
+
     /** Initializing our interactive page. */
 
     this.setupView = function() {
-        setupApplicationModel()
         skroll = skrollr.init({
 			forceHeight: false
 		})
@@ -31,21 +85,23 @@
         setupTagFieldControls('input.tag')
         setupMathJaxRenderer()
         setupWriteAuthentication()
+        // render loaded resources in timeline
         showResultsetView()
+        // render tag specific filter-info header
+        showTagfilterInfo()
+        // render avaialble tag-filter buttons
         showTagView()
         // setup page-controls
         setupPageControls()
     }
 
-    this.setupDetailView = function(resourceId) {
+    this.setupDetailView = function() {
         // set page-data
         // setupCKEditor()
         // initalize add tags field
         // setupTagFieldControls('input.tag')
         setupMathJaxRenderer()
         setupWriteAuthentication()
-        // initialize page-model
-        loadResourceById(resourceId)
         showDetailsView()
         $('input.submit.btn').click(setupEditDetailView) // edit button handler
     }
@@ -57,20 +113,21 @@
         var $save = $('input.submit.btn') // save button handler
             $save.unbind('click')
             $save.val("Änderungen speichern")
-            $save.click(doSaveResource)
+            $save.click(_this.doSaveResource)
     }
 
     this.setupWriteAuthentication = function() {
         var username = "admin"
         var password = ""
         try {
+            // fixme: if user already is in a session
             var authorization = authorization()
             if (authorization == undefined) return null
             // throws 401 if login fails
             dmc.request("POST", "/accesscontrol/login", undefined, {"Authorization": authorization})
-            // show_message("Login OK", "ok")
+            _this.renderNotification("Session started, have fun & be nice.", OK, UNDER_THE_TOP)
         } catch (e) {
-            // show_message("Nutzername oder Passwort ist falsch.", "failed")
+            _this.renderNotification("The application could not initiate a working session for you.", 403, TIMELINE)
             throw new Exception("403 - Sorry, the application ccould not establish a user session.")
         }
 
@@ -79,21 +136,6 @@
             return "Basic " + btoa(username + ":" + password)   // ### FIXME: btoa() might not work in IE
         }
 
-        function show_message(message, css_class, callback) {
-            // $("#message").fadeOut(200, function() {
-              // $(this).text(message).removeClass().addClass(css_class).fadeIn(600, callback)
-            // })
-            console.log(message)
-        }
-    }
-
-    /** Application Model Related Methods */
-
-    this.setupApplicationModel = function() {
-        // console.log(this.model) fixme: this _is_ "Window"..
-        // load all available tags and resources
-        loadAllTags()
-        loadAllResources()
     }
 
     this.setupTagFieldControls = function(identifier) {
@@ -132,7 +174,6 @@
     this.setupPageControls = function() {
         // setting up sort-controls and input button
         $("a#new").click(function(e) {window.scrollTo(0)})
-
         $(".onoffswitch-label").click(function(e) {
 
             if (model.isSortedByScore) { // turn toggle-off
@@ -150,8 +191,6 @@
             // update gui
             showResultsetView()
         })
-
-        // $("a#test").click(loadAllResourcesByTags)
     }
 
     this.showEditDetailsView = function() {
@@ -341,6 +380,7 @@
 
     this.showTagButtons = function($parent, tags) {
         //
+        if (tags == undefined) return undefined
         for (var i=0; i < tags.length; i++) {
             var element = tags[i]
             var $tag = $('<a id="' +element.id+ '" class="btn tag">' +element.value+ '</a>')
@@ -367,55 +407,58 @@
                 showTagView()
                 // render tag specific timeline
                 showResultsetView()
+                _this.pushHistory("filteredTimeline", "Tagged Timeline", "/notes/tagged/" + model.getTagFilterURI())
             })
             $parent.append($tag)
         }
     }
 
     this.showTagView = function() {
-        //
-        if ($('div.timeline .info div.tag-list').length == 0) {
-            // handling initial rendering of this component
-            var tags = model.getAvailableTags()
-            if (tags.length > 0) {
-                //
-                var $tagview = $('<div class="tag-list"><span class="label">Filter Inhalte nach</span></div>')
-                // render all tags as buttons
-                showTagButtons($tagview, tags)
-                // append the tag-view to our improvised info-area (above the timeline)
+
+        // setup components model
+        var tagsToShow = undefined
+        if (model.getTagFilter().length == 0) {
+            // filter not set, list all available tags as filter-options
+            tagsToShow = model.getAvailableTags()
+        } else {
+            // filter set, render all tags in current results
+            tagsToShow = getAllTagsInCurrentResults()
+            tagsToShow = sliceAboutFilteredTags(tagsToShow)
+        }
+
+        // render ui/dialog
+        if (tagsToShow.length > 0) {
+
+            var $tagview = undefined
+            if ($('div.timeline .info div.tag-list').length == 0) {
+                // create ui/dialog
+                $tagview = $('<div class="tag-list"><span class="label">Filter Beitr&auml;ge nach</span></div>')
+                // place ui/dialog in info area of our timeline-view
                 $('div.timeline .info').append($tagview)
             } else {
-                $('div.timeline .info div.tag-list').html('<b class="label">Aint got no tags to show you.</b>')
+                // clean up ui/dialog
+                $('div.timeline .info div.tag-list a').remove()
+                $tagview = $('div.timeline .info div.tag-list')
             }
+            $('div.timeline .info div.tag-list span.label').html("Filter Beitr&auml;ge nach")
+            $('div.timeline .info div.tag-list').show()
+            // render all tags as buttons into our ui/dialog
+            showTagButtons($tagview, tagsToShow)
         } else {
-            if (model.getTagFilter().length > 0) {
-                var currentTags = getAllTagsInCurrentResults()
-                    currentTags = sliceAboutFilteredTags(currentTags)
-                $('div.timeline .info div.tag-list a').remove()
-                showTagButtons($('div.timeline .info div.tag-list'), currentTags)
-            } else {
-                $('div.timeline .info div.tag-list a').remove()
-                showTagButtons($('div.timeline .info div.tag-list'), model.getAvailableTags())
-            }
+            // clean up ui/dialog
+            $('div.timeline .info div.tag-list span.label').text("")
+            $('div.timeline .info div.tag-list a').remove()
+            $('div.timeline .info div.tag-list').hide()
+            console.log('WARNING: <b class="label">Aint got no tags to show you.</b>')
         }
-    }
 
-    this.resetPageFilter = function () {
-        // update model
-        model.setTagFilter([])
-        loadAllTags()
-        loadAllResources()
-        // update gui
-        $(".tag-filter-info").empty()
-        showTagView()
-        // show general timeline
-        showResultsetView()
     }
 
     this.showTagfilterInfo = function() {
+        var tags = model.getTagFilter()
+        if (tags.length == 0) return undefined
         var $filterMeta = $('<span class="meta">unter dem/n Stichwort/en</span>')
         var $filterButtons = $('<span class="buttons"></span>')
-        var tags = model.getTagFilter()
         for (var i=0; i < tags.length; i++) {
             var $tagButton = $('<a class="btn tag selected">' +tags[i].value+ '</a>')
             $filterButtons.append($tagButton)
@@ -425,6 +468,47 @@
                 resetPageFilter()
             })
         $('.tag-filter-info').html($filterMeta).append($filterButtons).append($filterReset)
+
+        /** Inner reset filter controler */
+
+        function resetPageFilter () {
+            // update model
+            model.setTagFilter([])
+            loadAllTags()
+            loadAllResources()
+            // fixme: update routing..
+            // update gui
+            $(".tag-filter-info").empty()
+            _this.pushHistory("timelineView", "Notes Timeline", "/notes")
+            showTagView()
+            // show general timeline
+            showResultsetView()
+        }
+    }
+
+    this.renderNotification = function(message, errorCode, area, css_class, callback) {
+
+        // construct dialog
+        var $closeButton = $('<a class="btn hide-message">x</a>')
+            $closeButton.click(function (e) {$("#"+area).hide()})
+        // set message
+        console.log("message dialog is visible => " + $("#"+area).is(":visible"))
+        if (errorCode == OK) {
+            $("#"+area).html(message).append($closeButton)
+        } else {
+            $("#"+area).html(message + "("+errorCode+")").append($closeButton)
+        }
+        // animation
+        $("#"+area).fadeIn('slow', function() {
+            if (errorCode === OK) {
+                // render a nice message
+                $(this).removeClass().addClass(css_class).delay(2000).fadeOut('slow', callback)
+            } else {
+                // render a nasty message
+                $(this).removeClass().addClass(css_class).delay(2000).fadeOut('slow', callback)
+            }
+        })
+        console.log(message + "("+errorCode+")")
     }
 
     this.getHighestResources = function() {
@@ -534,21 +618,20 @@
     /** HTML5 History API utility methods **/
 
     this.registerHistoryStates = function () {
-        if (window.history && history.popState) window.addEventListener('popstate', popHistory)
-        if (window.history && history.pushState) window.addEventListener('pushstate', pushHistory)
+        if (window.history && history.popState) window.addEventListener('popstate', _this.popHistory)
+        if (window.history && history.pushState) window.addEventListener('pushstate', _this.pushHistory)
     }
 
     this.popHistory = function (state) {
         if (!window.history) return
         // do handle pop events
-        console.log("popping state.. ")
+        console.log(state)
     }
 
     this.pushHistory = function (state, name, link) {
         if (!window.history) return
-        var history_entry = {state: state, url: link}
-        console.log("pushing state.. to " + link)
-        // window.history.pushState(history_entry.state, name, history_entry.url)
+        var history_entry = {state: state, name: name, url: link}
+        window.history.pushState(history_entry.state, name, history_entry.url)
     }
 
 
@@ -680,8 +763,7 @@
         var tagsToReference = getTagTopicsToReference(qualifiedTags)
         var tagsToCreate = getTagTopicsToCreate(qualifiedTags, tagsToReference)
         // rendering notifications
-        var saving = $('<b id="message" class="label">Saving...</b>').insertBefore('input.submit')
-            saving.fadeOut(4000)
+        _this.renderNotification("Saving...", OK, UNDER_THE_TOP)
         $('div.header').css("opacity", ".6")
         // creating the new resource, with aggregated new tags
         var resource = emc.createResourceTopic(valueToSubmit, tagsToCreate)
@@ -694,12 +776,11 @@
         }
         // track "added resource" goal
         // piwikTracker.trackGoal(5)
-        // rendering notifications
-        $('#message').html("Fine. Thanks!")
-        saving.fadeIn(4000).fadeOut(3000)
         $('#resource_input').html("")
         $('input.tag').val("")
         $('div.header').css("opacity", "1")
+        // rendering notifications
+        _this.renderNotification("Note submitted.", OK, UNDER_THE_TOP)
         // unnecessary, just inserBefore the createResourceTopic at the top of our list
         // or better implement observables, a model the ui can "bind" to
         loadAllResources()
@@ -716,21 +797,18 @@
         var resource = model.getCurrentResource()
             resource.composite[NOTE_CONTENT_URI].value = valueToSubmit
         var updated = dmc.update_topic(resource)
-        // track "edited resource" goal
-        // piwikTracker.trackGoal(1)
-        window.location.href = "/notes" // hacketi hack hack
+        if (updated != undefined) {
+            // rendering notifications
+            _this.renderNotification("Note updated.", OK, UNDER_THE_TOP, "", function() {
+                // track "edited resource" goal
+                // piwikTracker.trackGoal(1)
+                // _this.pushHistory("timelineView", "Notes Timeline (eduZEN Prototype 2.0-SNAPSHOT)", "/notes/")
+            })
+        } else {
+            console.log(updated)
+            _this.renderNotification("Sorry. Note could not be updated.", 500, UNDER_THE_TOP)
+        }
     }
-
-    this.doDeleteResource = function() {
-        //
-        var resource = model.getCurrentResource()
-        var deleted = dmc.delete_topic(resource.id)
-        // track "edited resource" goal
-        // piwikTracker.trackGoal(2)
-        window.location.href = "/notes" // hacketi hack hack
-    }
-
-
 
     this.loadAllTags = function(limit) { // lazy, unsorted, possibly limited
         //

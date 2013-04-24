@@ -65,7 +65,7 @@ function AppModel() {
             },
             removeTagFromFilter: function (givenTag) {
                 var newTagFilter = []
-                for (var i=0; i <= tagFilter.length; i++) {
+                for (var i=0; i < tagFilter.length; i++) {
                     var tag = tagFilter[i]
                     if (tag.id != givenTag.id) newTagFilter.push(tag)
                 }
@@ -77,10 +77,28 @@ function AppModel() {
             getTagFilter: function () {
                 return tagFilter
             },
+            getTagFilterURI: function () {
+                var filterURI = ""
+                for (var i=0; i < tagFilter.length; i++) {
+                    var tag = tagFilter[i]
+                    if (i > 0) filterURI += "1%2B"
+                    filterURI += tag.value
+                }
+                return filterURI
+            },
             getTagById: function(id) {
                 for (var i=0; i < availableTags.length; i++) {
                     var el = availableTags[i]
                     if (el.id == id) {
+                        return el
+                    }
+                }
+                return undefined
+            },
+            getTagByName: function(name) {
+                for (var i=0; i < availableTags.length; i++) {
+                    var el = availableTags[i]
+                    if (el.value === name) {
                         return el
                     }
                 }

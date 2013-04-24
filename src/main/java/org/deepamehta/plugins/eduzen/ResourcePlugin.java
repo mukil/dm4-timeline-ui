@@ -212,7 +212,15 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Path("/")
     @Produces("text/html")
     public Viewable getFrontView() {
-        context.setVariable("name", "EduZEN");
+        return view("index");
+    }
+
+    @GET
+    @Path("/tagged/{tags}")
+    @Produces("text/html")
+    public Viewable getFilteredeTimelineView(@PathParam("tags") String tagFilter,
+        @HeaderParam("Cookie") ClientState clientState) {
+        context.setVariable("tags", tagFilter);
         // context.setVariable("posterText", "<p>Hallo Welt this is fat, sick and clickable yo!</p>");
         return view("index");
     }

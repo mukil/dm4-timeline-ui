@@ -1,9 +1,40 @@
 
-body.eduzen notes {
+body.eduzen .notes {
     padding: 0px;
     margin: 25px !important;
     font-size: 16px;
     line-height: 1.2em;
+}
+
+.eduzen #message-timeline,
+.eduzen #message-top {
+    background-color: #f1f1f1;
+    border: 1px solid #FFC700;
+    padding: 3px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    text-align: center;
+    width: 312px;
+    display: none;
+    position: relative;
+}
+
+.eduzen #message-top {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.eduzen #message-timeline {
+    margin-top: 5px;
+    width: 444px;
+}
+
+.eduzen .btn.hide-message {
+    position: absolute;
+    right: 0px;
+    top: -2px;
+    border: 0px solid transparent;
 }
 
 .eduzen .hello {
@@ -30,7 +61,7 @@ body.eduzen notes {
 }
 
 .eduzen div.tag-list {
-    margin-left: 6px;
+    margin-left: 0px;
     margin-top: 6px;
     min-height: 36px;
     margin-bottom: 5px;

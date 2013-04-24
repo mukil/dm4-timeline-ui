@@ -3,7 +3,7 @@
 
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <title>Notes Timeline - (eduZEN Prototype) </title>
+        <title>Notes Timeline - (Prototype 2.0-SNAPSHOT) </title>
         <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0"/>
 
         <link rel="stylesheet" href="/org.deepamehta.eduzen-tagging-notes/style/style.css"/>
@@ -44,7 +44,7 @@
         <script type="text/javascript">
             $(document).ready(function() {
             /** Initialize the our interactive page **/
-                setupView()
+                initializePageView()
             })
         </script>
 
@@ -52,12 +52,13 @@
 
     <body class="eduzen notes">
         <div class="header">
+            <div id="message-top"></div>
             <h3 class="hello">
                 <!-- Share your educational resource*-->
             </h3>
             <div class="content-area">
                 <p><!-- i class="label">Educational resource</i-->
-                    <b class="header-title">Inhalt hinzuf&uuml;gen</b>
+                    <b class="header-title">Beitrag hinzuf&uuml;gen</b>
                 </p>
                 <div id="resource_input" contenteditable="true"></div> <!--  -->
                 <input type="button" value="Hinzuf&uuml;gen" class="submit btn"
@@ -70,6 +71,8 @@
         </div>
 
         <div class="timeline" data-0="position:static;" data-top-top="position:fixed;top:0;">
+
+            <div id="message-timeline"></div>
 
             <div class="options">
                 <span class="result-count"></span>
