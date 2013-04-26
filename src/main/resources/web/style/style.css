@@ -215,6 +215,11 @@ body.eduzen .notes {
     border-top: 1px solid transparent;
 }
 
+.eduzen input.submit:hover {
+    border: 1px solid #0782C1;
+    border-top: 1px solid transparent;
+}
+
 .eduzen input.new-tag {
     width: 92px;
     height: 13px;
@@ -257,13 +262,20 @@ input.cke_dialog_ui_input_text:focus {
 }
 
 .eduzen .save-tag.btn {
+    border: 1px solid transparent;
     position: relative;
     left: 102px;
 }
 
 .eduzen .close-tag.btn {
+    border: 1px solid transparent;
     position: relative;
-    left: 91px;
+    left: 98px;
+}
+
+.eduzen .close-tag.btn:hover,
+.eduzen .save-tag.btn:hover {
+    border: 1px solid #0782C1;
 }
 
 
@@ -342,6 +354,10 @@ input.cke_dialog_ui_input_text:focus {
     margin-left: 0px;
     margin-right: 0px;
     padding-bottom: 10px;
+}
+
+.eduzen object {
+    padding: 20px;
 }
 
 .eduzen ul.list .item-content ol li,
@@ -511,14 +527,14 @@ input.cke_dialog_ui_input_text:focus {
 .sort {
     display: inline-block;
     position: absolute;
-    right: 100px;
+    right: 60px;
     top: 6px;
 }
 
 .sort-label {
     display: inline-block;
     position: absolute;
-    right: 160px;
+    right: 120px;
     padding-top: 4px;
     top: 6px;
 }

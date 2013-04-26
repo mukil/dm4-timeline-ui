@@ -7,25 +7,28 @@ CKEDITOR.editorConfig = function( config ) {
 	// Define changes to default configuration here.
 	// For the complete reference:
 	// http://docs.ckeditor.com/#!/api/CKEDITOR.config
-    config.extraPlugins = 'mathjax,mediaembed'
+    config.extraPlugins = 'mathjax,oembed'
     config.filebrowserImageBrowseLinkUrl = '/de.deepamehta.images/browse.html'
     config.filebrowserImageUploadUrl = '/images/upload'
     // is used in "Bild-Info"-Tab to select an already uploaded image
     config.filebrowserImageBrowseUrl = '/de.deepamehta.images/browse.html'
     // config.filebrowserUploadUrl = '/images/upload'
 
+    config.oembed_maxWidth = '560'
+    config.oembed_maxHeight = '315'
+    config.oembed_WrapperClass = 'embeded'
+
 	// The toolbar groups arrangement, optimized for two toolbar rows.
 	config.toolbarGroups = [
         { name: 'others' },
 		// { name: 'clipboard',   groups: [ 'clipboard', 'undo' ] },
 		// { name: 'editing',     groups: [ 'find', 'selection', 'spellchecker' ] },
-        { name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ] },
-        { name: 'document',	   groups: [ 'mode', 'document', 'doctools' ] },
-		{ name: 'paragraph',   groups: [ 'list', 'indent', 'blocks', 'align' ] },
+        { name: 'basicstyles',  groups: [ 'basicstyles', 'cleanup' ] },
+        { name: 'document',     groups: [ 'mode', 'document', 'doctools' ] },
+		{ name: 'paragraph',    groups: [ 'list', 'indent', 'blocks', 'align' ] },
 		{ name: 'links' },
 		{ name: 'insert' },
 		{ name: 'forms' },
-        { name: 'mediaembed' },
 		{ name: 'styles' },
 		{ name: 'colors' },
         { name: 'tools' },

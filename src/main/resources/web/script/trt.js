@@ -1,13 +1,12 @@
 (function(CKEDITOR, MathJax, $, console, dmc) {
 
+    var _this = this
+
     this.dmc = dmc
     this.model = AppModel()
     this.emc = new EMC(dmc, model)
 
-    var skroll = undefined
     var dict = new eduzenDictionary("DE")
-    var _this = this
-
     var TAG_URI = "dm4.tags.tag" // fixme: doublings
     var REVIEW_SCORE_URI = "org.deepamehta.reviews.score" // fixme: doublings
     var CREATED_AT_URI = "org.deepamehta.resources.created_at" // fixme: doublings
@@ -55,11 +54,14 @@
             // finally request resources (by tagIds) for a tag-specific timeline
             if (model.getTagFilter().length > 1) {
                 // for more than 1 tag
-                var parameter = { tags: model.getTagFilter() }
+                var parameter = {tags: model.getTagFilter()}
                 loadAllResourcesByTags(parameter)
-            } else {
+            } else if (selectedTag != undefined) {
                 // for exactly 1 tag
                 loadAllResourcesByTagId(selectedTag.id)
+            } else {
+                // load all resources, could not identify any tag given
+                loadAllResources()
             }
             setupView()
 
@@ -77,9 +79,7 @@
     /** Initializing our interactive page. */
 
     this.setupView = function() {
-        skroll = skrollr.init({
-			forceHeight: false
-		})
+        skrollr.init({forceHeight: false})
         registerHistoryStates()
         setupCKEditor()
         setupTagFieldControls('input.tag')
@@ -117,8 +117,10 @@
     }
 
     this.setupWriteAuthentication = function() {
-        var username = "admin"
         var password = ""
+        var username = "admin"
+        var loggedIn = emc.getCurrentUser()
+        if (loggedIn) return undefined
         try {
             // fixme: if user already is in a session
             var authorization = authorization()
@@ -200,6 +202,7 @@
         _this.ck.setData(model.getCurrentResource().composite[NOTE_CONTENT_URI].value)
         // tags are already setup for this resource
         renderMathInArea("resource_input")
+        quickfixPDFImageRendering() // hacketi hack
     }
 
     this.showDetailsView = function() {
@@ -207,6 +210,12 @@
         // set content of resource
         // fixme: catch notes without content
         $('#resource_input').html(model.getCurrentResource().composite[NOTE_CONTENT_URI].value)
+        var created_at = new Date(model.getCurrentResource().composite[CREATED_AT_URI].value)
+        if (created_at) {
+            $('b.header-title').text(
+                created_at.getDate() + "." + dict.monthNames[created_at.getMonth()] +" "+ created_at.getFullYear()
+            )
+        }
         // show tags for resource
         var currentTags = model.getCurrentResource().composite[TAG_URI]
         if (currentTags != undefined) {
@@ -217,6 +226,7 @@
             }
         }
         renderMathInArea("resource_input")
+        quickfixPDFImageRendering() // hacketi hack
     }
 
     this.showResultsetView = function() {
@@ -254,6 +264,18 @@
         $('div.results').html($resultlist)
         // render math in the whole page
         renderMathInArea("resources")
+        quickfixPDFImageRendering() // hacketi hack
+
+    }
+
+    this.quickfixPDFImageRendering = function() {
+        $.each($('img'), function(e, item) {
+            if(item.src.toLowerCase().indexOf(".pdf") != -1 ) {
+                // console.log("remove img, render PDF-object instead.. ")
+                $('<object data="'+item.src+'" width="760" height="640" type="application/pdf">').insertAfter(item)
+                item.remove()
+            }
+        })
     }
 
     this.setupResultListItem = function(item) {
@@ -288,7 +310,7 @@
                 $addTag.addClass("selected")
                 $addDialog.empty()
                 // construct new dialog
-                var $newField = $('<input type="text" placeholder="Name" '
+                var $newField = $('<input type="text" placeholder="..." '
                     + 'class="new-tag ui-autocomplete"></input>')
                 var $saveBtn = $('<a class="btn save-tag">Speichern</a>')
                     $saveBtn.click(function() {
@@ -432,7 +454,7 @@
             var $tagview = undefined
             if ($('div.timeline .info div.tag-list').length == 0) {
                 // create ui/dialog
-                $tagview = $('<div class="tag-list"><span class="label">Filter Beitr&auml;ge nach</span></div>')
+                $tagview = $('<div class="tag-list"><span class="label">Filter nach</span></div>')
                 // place ui/dialog in info area of our timeline-view
                 $('div.timeline .info').append($tagview)
             } else {
@@ -440,7 +462,7 @@
                 $('div.timeline .info div.tag-list a').remove()
                 $tagview = $('div.timeline .info div.tag-list')
             }
-            $('div.timeline .info div.tag-list span.label').html("Filter Beitr&auml;ge nach")
+            $('div.timeline .info div.tag-list span.label').html("Filter nach")
             $('div.timeline .info div.tag-list').show()
             // render all tags as buttons into our ui/dialog
             showTagButtons($tagview, tagsToShow)
@@ -449,7 +471,6 @@
             $('div.timeline .info div.tag-list span.label').text("")
             $('div.timeline .info div.tag-list a').remove()
             $('div.timeline .info div.tag-list').hide()
-            console.log('WARNING: <b class="label">Aint got no tags to show you.</b>')
         }
 
     }
@@ -457,7 +478,7 @@
     this.showTagfilterInfo = function() {
         var tags = model.getTagFilter()
         if (tags.length == 0) return undefined
-        var $filterMeta = $('<span class="meta">unter dem/n Stichwort/en</span>')
+        var $filterMeta = $('<span class="meta">Alle Beitr&auml;ge unter dem/n Stichwort/en</span>')
         var $filterButtons = $('<span class="buttons"></span>')
         for (var i=0; i < tags.length; i++) {
             var $tagButton = $('<a class="btn tag selected">' +tags[i].value+ '</a>')
@@ -492,7 +513,6 @@
         var $closeButton = $('<a class="btn hide-message">x</a>')
             $closeButton.click(function (e) {$("#"+area).hide()})
         // set message
-        console.log("message dialog is visible => " + $("#"+area).is(":visible"))
         if (errorCode == OK) {
             $("#"+area).html(message).append($closeButton)
         } else {
@@ -506,9 +526,9 @@
             } else {
                 // render a nasty message
                 $(this).removeClass().addClass(css_class).delay(2000).fadeOut('slow', callback)
+                console.log(message + "("+errorCode+")")
             }
         })
-        console.log(message + "("+errorCode+")")
     }
 
     this.getHighestResources = function() {
@@ -802,7 +822,8 @@
             _this.renderNotification("Note updated.", OK, UNDER_THE_TOP, "", function() {
                 // track "edited resource" goal
                 // piwikTracker.trackGoal(1)
-                // _this.pushHistory("timelineView", "Notes Timeline (eduZEN Prototype 2.0-SNAPSHOT)", "/notes/")
+                // _this.pushHistory("timelineView", "Notes Timeline", "/notes")
+                history.back()
             })
         } else {
             console.log(updated)
@@ -815,7 +836,6 @@
         var all_tags = dmc.get_topics(TAG_URI, false, false, limit).items
         if (all_tags.length > 0) {
             model.setAvailableTags(all_tags)
-            console.log("loaded " + model.getAvailableTags().length + " tags from server-side")
         } else {
             model.setAvailableTags([])
         }
@@ -828,7 +848,6 @@
         var all_resources = dmc.get_topics(NOTES_URI, true, true, limit).items
         if (all_resources.length > 0) {
             model.setAvailableResources(all_resources)
-            console.log("loaded " + model.getAvailableResources().length + " resources from server-side")
         } else {
             model.setAvailableResources([])
         }
