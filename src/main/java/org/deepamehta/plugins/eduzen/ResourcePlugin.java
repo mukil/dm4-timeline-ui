@@ -216,6 +216,13 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     }
 
     @GET
+    @Path("/info")
+    @Produces("text/html")
+    public Viewable getInfoView() {
+        return view("info");
+    }
+
+    @GET
     @Path("/tagged/{tags}")
     @Produces("text/html")
     public Viewable getFilteredeTimelineView(@PathParam("tags") String tagFilter,

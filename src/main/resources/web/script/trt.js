@@ -273,7 +273,10 @@
             if(item.src.toLowerCase().indexOf(".pdf") != -1 ) {
                 // console.log("remove img, render PDF-object instead.. ")
                 $('<object data="'+item.src+'" width="760" height="640" type="application/pdf">').insertAfter(item)
-                item.remove()
+                //
+                if(typeof item.remove === 'function') {
+                    item.remove()
+                }
             }
         })
     }
@@ -507,7 +510,7 @@
         }
     }
 
-    this.renderNotification = function(message, errorCode, area, css_class, callback) {
+    this.renderNotification = function(message, errorCode, area, css_class, time, callback) {
 
         // construct dialog
         var $closeButton = $('<a class="btn hide-message">x</a>')
@@ -519,13 +522,13 @@
             $("#"+area).html(message + "("+errorCode+")").append($closeButton)
         }
         // animation
-        $("#"+area).fadeIn('slow', function() {
+        $("#"+area).fadeIn(time, function() {
             if (errorCode === OK) {
                 // render a nice message
-                $(this).removeClass().addClass(css_class).delay(2000).fadeOut('slow', callback)
+                $(this).removeClass().addClass(css_class).delay(1500).fadeOut(time, callback)
             } else {
                 // render a nasty message
-                $(this).removeClass().addClass(css_class).delay(2000).fadeOut('slow', callback)
+                $(this).removeClass().addClass(css_class).delay(1500).fadeOut(time, callback)
                 console.log(message + "("+errorCode+")")
             }
         })
@@ -783,7 +786,7 @@
         var tagsToReference = getTagTopicsToReference(qualifiedTags)
         var tagsToCreate = getTagTopicsToCreate(qualifiedTags, tagsToReference)
         // rendering notifications
-        _this.renderNotification("Saving...", OK, UNDER_THE_TOP)
+        _this.renderNotification("Saving...", OK, UNDER_THE_TOP, '', 'fast')
         $('div.header').css("opacity", ".6")
         // creating the new resource, with aggregated new tags
         var resource = emc.createResourceTopic(valueToSubmit, tagsToCreate)
@@ -800,7 +803,7 @@
         $('input.tag').val("")
         $('div.header').css("opacity", "1")
         // rendering notifications
-        _this.renderNotification("Note submitted.", OK, UNDER_THE_TOP)
+        // _this.renderNotification("Note submitted.", OK,  UNDER_THE_TOP, '', 'fast')
         // unnecessary, just inserBefore the createResourceTopic at the top of our list
         // or better implement observables, a model the ui can "bind" to
         loadAllResources()
@@ -819,15 +822,16 @@
         var updated = dmc.update_topic(resource)
         if (updated != undefined) {
             // rendering notifications
-            _this.renderNotification("Note updated.", OK, UNDER_THE_TOP, "", function() {
+            // _this.renderNotification("Note updated.", OK, UNDER_THE_TOP, "", 'fast', function() {
                 // track "edited resource" goal
                 // piwikTracker.trackGoal(1)
                 // _this.pushHistory("timelineView", "Notes Timeline", "/notes")
-                history.back()
-            })
+            // })
+            // go back
+            history.back()
         } else {
-            console.log(updated)
-            _this.renderNotification("Sorry. Note could not be updated.", 500, UNDER_THE_TOP)
+            // console.log(updated)
+            _this.renderNotification("Sorry. Note could not be updated.", 500, UNDER_THE_TOP, '', 'fast')
         }
     }
 
@@ -869,7 +873,6 @@
         if (all_tagged_resources.length > 0) {
             // overriding previously set resultlist
             model.setAvailableResources(all_tagged_resources)
-            console.log("loaded " + model.getAvailableResources().length + " resources from server-side")
         } else {
             model.setAvailableResources([])
         }
@@ -882,7 +885,6 @@
             if (all_tagged_resources.length > 0) {
                 // overriding previously set resultlist
                 model.setAvailableResources(all_tagged_resources)
-                console.log("loaded " + model.getAvailableResources().length + " resources from server-side")
             } else {
                 model.setAvailableResources([])
             }

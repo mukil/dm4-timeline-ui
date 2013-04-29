@@ -86,23 +86,32 @@ function EMC (dmc, model) {
     /** fixme: introduce a check if resource-tag assocation is not already existing */
     this.createResourceTagAssociation = function (resourceTopic, tagTopic) {
         if (resourceTopic != undefined && tagTopic != undefined) {
-            var assocModel = {"type_uri": "dm4.core.aggregation",
-                "role_1":{"topic_id":resourceTopic.id, "role_type_uri":"dm4.core.parent"},
-                "role_2":{"topic_id":tagTopic.id, "role_type_uri":"dm4.core.child"}
+            if (!_this.associationExists(resourceTopic.id, tagTopic.id, "dm4.core.aggregation")) {
+                var assocModel = {"type_uri": "dm4.core.aggregation",
+                    "role_1":{"topic_id":resourceTopic.id, "role_type_uri":"dm4.core.parent"},
+                    "role_2":{"topic_id":tagTopic.id, "role_type_uri":"dm4.core.child"}
+                }
+                // console.log("associating resource with tag in dB " + tagTopic.value)
+                var association = dmc.create_association(assocModel)
+                // console.log(association)
+                if (association == undefined) throw new Error("Something mad happened.")
+                // update also the value on client side
+                // console.log("updating resource about tag on client-side..")
+                var client_updated = model.associateTagWithAvailableResource(tagTopic, resourceTopic.id)
+                if (client_updated == undefined) {
+                    throw new Error("Something mad happened while updating client side application cache.")
+                }
+                return association;
+            } else {
+                console.log("INFO: skipping creation of yet another assocation between tag and resource")
             }
-            console.log("associating resource with tag in dB " + tagTopic.value)
-            var association = dmc.create_association(assocModel)
-            console.log(association)
-            if (association == undefined) throw new Error("Something mad happened.")
-            // update also the value on client side
-            console.log("updating resource about tag on client-side..")
-            var client_updated = model.associateTagWithAvailableResource(tagTopic, resourceTopic.id)
-            if (client_updated == undefined) {
-                throw new Error("Something mad happened while updating client side application cache.")
-            }
-            return association;
         }
         return undefined
+    }
+
+    this.associationExists = function (topicOne, topicTwo, assocType) {
+        var assocs = dmc.get_associations(topicOne, topicTwo, assocType)
+        return (assocs.length == 0) ? false :  true
     }
 
     this.getCurrentUser = function () {

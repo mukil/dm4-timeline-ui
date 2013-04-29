@@ -1,10 +1,10 @@
 
-body.eduzen .notes {
+/* body.eduzen .notes {
     padding: 0px;
     margin: 25px !important;
     font-size: 16px;
     line-height: 1.2em;
-}
+} */
 
 .eduzen #message-timeline,
 .eduzen #message-top {
@@ -18,6 +18,10 @@ body.eduzen .notes {
     width: 312px;
     display: none;
     position: relative;
+}
+
+.eduzen.notes.note #message-top {
+    position: absolute; top: 5px;
 }
 
 .eduzen #message-top {
@@ -60,6 +64,10 @@ body.eduzen .notes {
     margin-right: 4px;
 }
 
+.eduzen .timeline.unrendered div.tag-list {
+    margin-top: 35px;
+}
+
 .eduzen div.tag-list {
     margin-left: 0px;
     margin-top: 6px;
@@ -80,12 +88,30 @@ body.eduzen .notes {
     right: 80px !important;
 }
 
+.eduzen .timeline.rendered a#info,
+.eduzen .timeline.unrendered a#info {
+    display: inline-block;
+    padding: 7px;
+    border: 1px solid #f1f1f1;
+    border-top: 1px solid #fff;
+    padding-top: 9px;
+    text-decoration: none;
+}
+
+.eduzen .timeline.rendered a#info {
+    display: none;
+}
+
+.eduzen .timeline.unrendered a#info {
+    position: absolute; right: 280px; top: 0px;
+}
+
 .eduzen .back-to-front,
 .eduzen .timeline.unrendered a#new {
     display: inline-block;
     padding: 7px;
     border: 1px solid #f1f1f1;
-    position: absolute; right: 320px; top: 0px;
+    position: absolute; right: 340px; top: 0px;
     border-top: 1px solid #fff;
     padding-top: 9px;
 }
@@ -109,8 +135,13 @@ body.eduzen .notes {
     min-height: 100px;
 } **/
 
-.eduzen div.tag-filter-info {
+.eduzen span.tag-filter-info {
     display: inline-block;
+}
+
+.eduzen .timeline.unrendered span.tag-filter-info {
+    position: relative;
+    top: 20px;
 }
 
 .eduzen div.tag-filter-info .buttons {
@@ -137,10 +168,15 @@ body.eduzen .notes {
     margin-bottom: 60px;
 }
 
+/** .eduzen #menu {
+    background-color: #fff;
+    position: absolute; right: 320px; top: 0px;
+} **/
+
 .eduzen .footer {
     border-top: 1px solid #f5f5f5;
     background-color: #fff;
-    position: fixed; bottom: 0px;
+    /** position: fixed; bottom: 0px; **/
     padding-left: 40px;
     padding-right: 80px;
     margin-top: 10px;
