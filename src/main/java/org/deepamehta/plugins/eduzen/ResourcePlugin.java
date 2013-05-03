@@ -34,6 +34,9 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.sun.jersey.api.view.Viewable;
+/** import org.owasp.validator.html.AntiSamy;
+import org.owasp.validator.html.Policy;
+import org.owasp.validator.html.PolicyException; **/
 
 
 @Path("/notes")
@@ -54,7 +57,11 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     private final static String TAG_URI = "dm4.tags.tag";
     private final static String SCORE_URI = "org.deepamehta.reviews.score";
 
-    // private static final String WS_EDUZEN_EDITORS = "de.workspaces.deepamehta";
+    // private final static String POLICY_FILE_LOCATION = "antisamy-1.4.1.xml";
+    // private AntiSamy antiSamy = null;
+    // private Policy antiPolicy = null;
+
+   // private static final String WS_EDUZEN_EDITORS = "de.workspaces.deepamehta";
     // private static final String WS_EDUZEN_USERS = "tub.eduzen.workspace_users";
 
     public ResourcePlugin() {
@@ -63,6 +70,14 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
 
     @Override
     public void init() {
+        /** try {
+            log.info("Hello World from ResourcePlugin trying to load an antiSamy.. Policy");
+            // log.info("plugin is " + this.getResourceAsStream(POLICY_FILE_LOCATION));
+            antiPolicy = Policy.getInstance(POLICY_FILE_LOCATION);
+        } catch (PolicyException pe) {
+            log.info(pe.getLocalizedMessage());
+        }
+        antiSamy = new AntiSamy(); **/
         setupRenderContext();
     }
 

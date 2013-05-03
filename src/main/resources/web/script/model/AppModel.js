@@ -5,10 +5,17 @@ function AppModel() {
         var availableTags = []
         var availableResources = []
         var currentResource = undefined
+        var currentUser = undefined
 
         var tagFilter = []
 
         return {
+            setCurrentUserName: function (username) {
+                currentUser = username
+            },
+            getCurrentUserName: function () {
+                return currentUser
+            },
             setAvailableTags: function (elements) {
                 availableTags = elements
             },

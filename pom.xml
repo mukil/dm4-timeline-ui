@@ -34,7 +34,15 @@
             <artifactId>deepamehta-webactivator</artifactId>
             <version>0.3.1</version>
         </dependency>
-<!--       <dependency>
+<!--    <dependency>
+            <groupId>org.owasp</groupId>
+            <artifactId>antisamy</artifactId>
+            <version>1.4</version>
+        </dependency>
+            <Embed-Dependency>
+                antisamy
+            </Embed-Dependency>
+        <dependency>
             <groupId>de.tu-berlin.eduzen</groupId>
             <artifactId>mathjax-renderer</artifactId>
             <version>1.0</version>

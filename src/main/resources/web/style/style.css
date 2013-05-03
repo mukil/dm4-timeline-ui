@@ -59,6 +59,27 @@
     color: #383838;
 }
 
+.eduzen .timeline.rendered .username {
+    position: absolute;
+    padding: 7px;
+    padding-top: 9px;
+    border: 1px solid #a9a9a9;
+    border-top: 0px solid transparent;
+    right: 280px;
+    top: 0px;
+}
+
+.eduzen.note .username,
+.eduzen .timeline.unrendered .username {
+    padding: 7px;
+    padding-top: 9px;
+    position: absolute;
+    top: 0px;
+    left: 57px;
+    border: 1px solid #a9a9a9;
+    border-top: 0px solid transparent;
+}
+
 .eduzen span.meta {
     color: #a9a9a9;
     margin-right: 4px;
@@ -73,6 +94,11 @@
     margin-top: 6px;
     min-height: 36px;
     margin-bottom: 5px;
+    pointer-events: all;
+}
+
+.eduzen .timeline.unrendered div.tag-list .label {
+    display: block;
 }
 
 .eduzen div.results b.label {
@@ -82,6 +108,7 @@
 .eduzen .timeline.rendered a#new {
     display: none;
     padding-right: 10px;
+    pointer-events: all;
 }
 
 .eduzen .back-to-front {
@@ -104,6 +131,7 @@
 
 .eduzen .timeline.unrendered a#info {
     position: absolute; right: 280px; top: 0px;
+    background-color: #fff;
 }
 
 .eduzen .back-to-front,
@@ -114,16 +142,16 @@
     position: absolute; right: 340px; top: 0px;
     border-top: 1px solid #fff;
     padding-top: 9px;
+    background-color: #fff;
 }
 
 .eduzen .timeline {
-    background-color: #fff;
+    background-color: transparent;
     padding-left: 40px; padding-right: 40px;
-    border-top: 1px solid #f5f5f5;
-    border-bottom: 1px solid #f5f5f5;
     z-index: 100;
     width: 92%;
     min-height: 30px;
+    pointer-events: none;
 }
 
 .eduzen .timeline .info a {
@@ -140,8 +168,11 @@
 }
 
 .eduzen .timeline.unrendered span.tag-filter-info {
+    background-color: #fff;
     position: relative;
-    top: 20px;
+    top: 0px;
+    left: 140px;
+    min-height: 30px;
 }
 
 .eduzen div.tag-filter-info .buttons {
@@ -157,15 +188,31 @@
 
 .eduzen .options {
     color: #a9a9a9;
+    background-color: #fff;
+    border-bottom: 1px solid #FFC700;
+    padding-bottom: 5px;
+    pointer-events: all;
+}
+
+.eduzen .unrendered .options {
+    border-right: 1px solid #FFC700;
 }
 
 .eduzen .unrendered #nav.info {
     padding-right: 40px;
+    max-width: 26%;
+    float: right;
+    background-color: #fff;
+}
+
+.eduzen .rendered #nav.info {
+    border-bottom: 1px solid #FFC700;
 }
 
 .eduzen .results .list {
     padding-left: 40px;
     margin-bottom: 60px;
+    width: 100%;
 }
 
 /** .eduzen #menu {
@@ -197,10 +244,14 @@
     padding: 0px !important;
 }
 
-.eduzen #content-area {
+.eduzen .content-area {
     /** border: 1px solid #f5f5f5;
     padding: 5px 20px;  **/
     color: #383838;
+}
+
+.eduzen.note .content-area {
+    margin-top: 60px;
 }
 
 .eduzen .cke_dialog_page_contents a {
@@ -419,6 +470,7 @@ input.cke_dialog_ui_input_text:focus {
     padding-left: 0px;
     list-style-type: none;
     position: relative;
+    max-width: 75%;
 }
 
 .eduzen ul.objects li,
@@ -429,6 +481,8 @@ input.cke_dialog_ui_input_text:focus {
     padding-left: 15px;
     padding-right: 15px;
     margin-bottom: 20px;
+    overflow: hidden;
+    max-width: 75%;
 }
 
 .eduzen li a:focus,

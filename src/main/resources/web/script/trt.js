@@ -24,6 +24,9 @@
     /** Main router to all views */
 
     this.initializePageView = function() {
+
+        _this.setLoggedInUser()
+
         // parse requested location
         var pathname = window.location.pathname;
         var attributes = pathname.split('/')
@@ -84,7 +87,8 @@
         setupCKEditor()
         setupTagFieldControls('input.tag')
         setupMathJaxRenderer()
-        setupWriteAuthentication()
+        // setupWriteAuthentication()
+        showUserInfo()
         // render loaded resources in timeline
         showResultsetView()
         // render tag specific filter-info header
@@ -101,8 +105,11 @@
         // initalize add tags field
         // setupTagFieldControls('input.tag')
         setupMathJaxRenderer()
-        setupWriteAuthentication()
+        // setupWriteAuthentication()
+        showUserInfo()
         showDetailsView()
+        $('input.submit.btn').unbind('click')
+        $('input.submit.btn').val('Inhalt ändern')
         $('input.submit.btn').click(setupEditDetailView) // edit button handler
     }
 
@@ -114,6 +121,11 @@
             $save.unbind('click')
             $save.val("Änderungen speichern")
             $save.click(_this.doSaveResource)
+    }
+
+    this.setLoggedInUser = function () {
+        var loggedIn = emc.getCurrentUser()
+        model.setCurrentUserName(loggedIn)
     }
 
     this.setupWriteAuthentication = function() {
@@ -138,6 +150,10 @@
             return "Basic " + btoa(username + ":" + password)   // ### FIXME: btoa() might not work in IE
         }
 
+    }
+
+    this.showUserInfo = function () {
+        $('.username').text('Willkomen ' + model.getCurrentUserName())
     }
 
     this.setupTagFieldControls = function(identifier) {
@@ -207,6 +223,7 @@
 
     this.showDetailsView = function() {
 
+        $('#resource_input').attr("contenteditable", false)
         // set content of resource
         // fixme: catch notes without content
         $('#resource_input').html(model.getCurrentResource().composite[NOTE_CONTENT_URI].value)
@@ -218,6 +235,7 @@
         }
         // show tags for resource
         var currentTags = model.getCurrentResource().composite[TAG_URI]
+        $('#tags').empty()
         if (currentTags != undefined) {
             for (var i=0; i < currentTags.length; i++) {
                 var tag = currentTags[i]
@@ -457,7 +475,7 @@
             var $tagview = undefined
             if ($('div.timeline .info div.tag-list').length == 0) {
                 // create ui/dialog
-                $tagview = $('<div class="tag-list"><span class="label">Filter nach</span></div>')
+                $tagview = $('<div class="tag-list"><span class="label">Filter nach Tags</span></div>')
                 // place ui/dialog in info area of our timeline-view
                 $('div.timeline .info').append($tagview)
             } else {
@@ -465,7 +483,7 @@
                 $('div.timeline .info div.tag-list a').remove()
                 $tagview = $('div.timeline .info div.tag-list')
             }
-            $('div.timeline .info div.tag-list span.label').html("Filter nach")
+            $('div.timeline .info div.tag-list span.label').html("Filter nach Tags")
             $('div.timeline .info div.tag-list').show()
             // render all tags as buttons into our ui/dialog
             showTagButtons($tagview, tagsToShow)
@@ -481,7 +499,14 @@
     this.showTagfilterInfo = function() {
         var tags = model.getTagFilter()
         if (tags.length == 0) return undefined
-        var $filterMeta = $('<span class="meta">Alle Beitr&auml;ge unter dem/n Stichwort/en</span>')
+        var tagsLength = model.getAvailableResources().length
+        var filterMessage = ""
+        if (tagsLength > 1) {
+            filterMessage = '<b>' + tagsLength +'</b> Beitr&auml;ge getagged mit'
+        } else {
+            filterMessage = '<b>' + tagsLength +'</b> Beitrag getagged mit'
+        }
+        var $filterMeta = $('<span class="meta">'+ filterMessage +'</span>')
         var $filterButtons = $('<span class="buttons"></span>')
         for (var i=0; i < tags.length; i++) {
             var $tagButton = $('<a class="btn tag selected">' +tags[i].value+ '</a>')
@@ -828,7 +853,10 @@
                 // _this.pushHistory("timelineView", "Notes Timeline", "/notes")
             // })
             // go back
-            history.back()
+            // history.back()
+            model.updateAvailableResource(resource)
+            _this.ck.destroy()
+            setupDetailView()
         } else {
             // console.log(updated)
             _this.renderNotification("Sorry. Note could not be updated.", 500, UNDER_THE_TOP, '', 'fast')
