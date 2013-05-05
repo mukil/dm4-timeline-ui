@@ -15,10 +15,6 @@ function EMC (dmc, model) {
                 "composite": {
                     "org.deepamehta.resources.name": "",
                     "org.deepamehta.resources.content": value,
-                    "org.deepamehta.resources.created_at": new Date().getTime(),
-                    "org.deepamehta.resources.last_modified_at": new Date().getTime(),
-                    "org.deepamehta.resources.author": "Anonymous",
-                    "org.deepamehta.resources.is_published": true,
                     "dm4.tags.tag": [], // aggregated composite cannot be created (?)
                     "org.deepamehta.reviews.score": 0
                 }
@@ -30,7 +26,8 @@ function EMC (dmc, model) {
                     "dm4.tags.definition": ""
                 })
             }
-            var resourceTopic = dmc.create_topic(topicModel)
+            // var resourceTopic = dmc.create_topic(topicModel)
+            var resourceTopic = dmc.request("POST", "/notes/resource/create", topicModel)
             if (resourceTopic == undefined) throw new Error("Something mad happened.")
             var updated = model.addToAvailableResources(resourceTopic)
             if (updated == undefined) {
@@ -40,6 +37,16 @@ function EMC (dmc, model) {
         }
         return undefined
 
+    }
+
+    this.updateResourceTopic = function(resource) {
+        var resourceTopic = dmc.request("POST", "/notes/resource/update", resource)
+        if (resourceTopic == undefined) throw new Error("Something mad happened.")
+        var updated = model.addToAvailableResources(resourceTopic)
+        if (updated == undefined) {
+            throw new Error("Something mad happened while updating client side application cache.")
+        }
+        return resourceTopic
     }
 
     this.createNewTagsForResource = function (resource, tagsToCreate) {
@@ -55,6 +62,7 @@ function EMC (dmc, model) {
         }
     }
 
+    // note: aggregated composites should be updated in an update call of resource (if assoc is part of the model)
     this.createResourceTagAssociations = function (resource, tagsToReference) {
         for (var k=0; k < tagsToReference.length; k++) {
             if (tagsToReference[k] != undefined) {
@@ -115,12 +123,10 @@ function EMC (dmc, model) {
     }
 
     this.getCurrentUser = function () {
-        _this.username = dmc.request("GET", "/accesscontrol/user", undefined, undefined, "text")
-        if (_this.username != undefined && _this.username != "") {
-          return _this.username
-        } else {
-          return undefined
+        if (_this.username == undefined || _this.username == "") {
+            _this.username = dmc.request("GET", "/accesscontrol/user", undefined, undefined, "text")
         }
+        return _this.username
     }
 
 }

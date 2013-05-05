@@ -1,0 +1,19 @@
+{
+    "topics": [
+        {
+            "value": "Anonymous",
+            "type_uri": "org.deepamehta.resources.author",
+            "uri": "org.deepamehta.author.anonymous"
+        },
+        {
+            "value": "Unspecified",
+            "type_uri": "org.deepamehta.resources.license",
+            "uri": "org.deepamehta.licenses.unspecified"
+        },
+        {
+            "value": "Unknown",
+            "type_uri": "org.deepamehta.resources.license_jurisdiction",
+            "uri": "org.deepamehta.licenses.unknown"
+        },
+    ]
+}

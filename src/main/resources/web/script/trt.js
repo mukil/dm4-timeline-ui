@@ -10,6 +10,7 @@
     var TAG_URI = "dm4.tags.tag" // fixme: doublings
     var REVIEW_SCORE_URI = "org.deepamehta.reviews.score" // fixme: doublings
     var CREATED_AT_URI = "org.deepamehta.resources.created_at" // fixme: doublings
+    var LAST_MODIFIED_URI = "org.deepamehta.resources.last_modified_at" // fixme: doublings
     var NOTES_URI = "org.deepamehta.resources.resource" // fixme: doublings
     var NOTE_CONTENT_URI = "org.deepamehta.resources.content" // fixme: doublings
     var OK = 200
@@ -25,7 +26,7 @@
 
     this.initializePageView = function() {
 
-        _this.setLoggedInUser()
+        // _this.setLoggedInUser()
 
         // parse requested location
         var pathname = window.location.pathname;
@@ -54,18 +55,7 @@
                 selectedTag = model.getTagByName(tags[i])
                 if (selectedTag != undefined) model.addTagToFilter(selectedTag)
             }
-            // finally request resources (by tagIds) for a tag-specific timeline
-            if (model.getTagFilter().length > 1) {
-                // for more than 1 tag
-                var parameter = {tags: model.getTagFilter()}
-                loadAllResourcesByTags(parameter)
-            } else if (selectedTag != undefined) {
-                // for exactly 1 tag
-                loadAllResourcesByTagId(selectedTag.id)
-            } else {
-                // load all resources, could not identify any tag given
-                loadAllResources()
-            }
+            setupTaggedTimeline()
             setupView()
 
         } else {
@@ -87,7 +77,7 @@
         setupCKEditor()
         setupTagFieldControls('input.tag')
         setupMathJaxRenderer()
-        // setupWriteAuthentication()
+        setupWriteAuthentication()
         showUserInfo()
         // render loaded resources in timeline
         showResultsetView()
@@ -105,7 +95,7 @@
         // initalize add tags field
         // setupTagFieldControls('input.tag')
         setupMathJaxRenderer()
-        // setupWriteAuthentication()
+        setupWriteAuthentication()
         showUserInfo()
         showDetailsView()
         $('input.submit.btn').unbind('click')
@@ -126,20 +116,41 @@
     this.setLoggedInUser = function () {
         var loggedIn = emc.getCurrentUser()
         model.setCurrentUserName(loggedIn)
+        showUserInfo()
+    }
+
+    this.setupTaggedTimeline = function() {
+        // finally request resources (by tagIds) for a tag-specific timeline
+        if (model.getTagFilter().length > 1) {
+            // for more than 1 tag
+            var parameter = {tags: model.getTagFilter()}
+            loadAllResourcesByTags(parameter)
+        } else if (model.getTagFilter().length == 1) {
+            // for exactly 1 tag
+            var selectedTag = model.getTagFilter()[0]
+            loadAllResourcesByTagId(selectedTag.id)
+        } else {
+            // load all resources, could not identify any tag given
+            loadAllResources()
+        }
     }
 
     this.setupWriteAuthentication = function() {
         var password = ""
         var username = "admin"
         var loggedIn = emc.getCurrentUser()
-        if (loggedIn) return undefined
+        if (loggedIn) {
+            _this.setLoggedInUser()
+            return undefined
+        }
         try {
             // fixme: if user already is in a session
             var authorization = authorization()
             if (authorization == undefined) return null
             // throws 401 if login fails
             dmc.request("POST", "/accesscontrol/login", undefined, {"Authorization": authorization})
-            _this.renderNotification("Session started, have fun & be nice.", OK, UNDER_THE_TOP)
+            _this.renderNotification("Session started. Have fun thinking and be nice!", OK, TIMELINE)
+            _this.setLoggedInUser()
         } catch (e) {
             _this.renderNotification("The application could not initiate a working session for you.", 403, TIMELINE)
             throw new Exception("403 - Sorry, the application ccould not establish a user session.")
@@ -153,7 +164,7 @@
     }
 
     this.showUserInfo = function () {
-        $('.username').text('Willkomen ' + model.getCurrentUserName())
+        $('.username').text('Willkommen ' + model.getCurrentUserName())
     }
 
     this.setupTagFieldControls = function(identifier) {
@@ -191,7 +202,7 @@
 
     this.setupPageControls = function() {
         // setting up sort-controls and input button
-        $("a#new").click(function(e) {window.scrollTo(0)})
+        $("a#new").click(function(e) {window.scrollTo(0, 0)})
         $(".onoffswitch-label").click(function(e) {
 
             if (model.isSortedByScore) { // turn toggle-off
@@ -228,9 +239,15 @@
         // fixme: catch notes without content
         $('#resource_input').html(model.getCurrentResource().composite[NOTE_CONTENT_URI].value)
         var created_at = new Date(model.getCurrentResource().composite[CREATED_AT_URI].value)
+        var last_modified_at  = new Date(model.getCurrentResource().composite[LAST_MODIFIED_URI].value)
         if (created_at) {
             $('b.header-title').text(
                 created_at.getDate() + "." + dict.monthNames[created_at.getMonth()] +" "+ created_at.getFullYear()
+            )
+        }
+        if (last_modified_at) {
+            $('b.header-title').append(', <b class="label">zuletzt bearbeitet am</b> ' +
+                last_modified_at.getDate() + "." + dict.monthNames[last_modified_at.getMonth()] +" "+ last_modified_at.getFullYear()
             )
         }
         // show tags for resource
@@ -239,8 +256,9 @@
         if (currentTags != undefined) {
             for (var i=0; i < currentTags.length; i++) {
                 var tag = currentTags[i]
-                $('#tags').append('<a class="tag"><img src="/de.deepamehta.tags/images/tag_32.png" width="20"'
-                    + 'alt="Tag: '+tag.value+'">' +tag.value+ '</a>')
+                $('#tags').append('<a class="btn tag" title="Browse all notes tagged with \"' +tag.value+ '\"" '
+                    + 'href="/notes/tagged/' +tag.value+ '">' +tag.value+ '</a>&nbsp;')
+                // <img src="/de.deepamehta.tags/images/tag_32.png" width="20"' + 'alt="Tag: '+tag.value+'">'
             }
         }
         renderMathInArea("resource_input")
@@ -304,7 +322,7 @@
         var tags = (item.composite[TAG_URI] != undefined) ? item.composite[TAG_URI] : []
         var content = (item.composite[NOTE_CONTENT_URI] != undefined) ? item.composite[NOTE_CONTENT_URI].value : ""
         // construct list item, header and content-area first
-        var title = new Date(parseInt(item.composite[CREATED_AT_URI].value))
+        var title = (item.composite[CREATED_AT_URI] != undefined) ? new Date(parseInt(item.composite[CREATED_AT_URI].value)) : new Date()
         var $topic = $('<li id="' +item.id+ '">').html('Dieser Beitrag wurde eingereicht am  ' +
             title.getDate() + '.' + dict.monthNames[title.getMonth()] + ' ' + title.getFullYear() + ' um '
             + title.getHours() + ':' +title.getMinutes() + ' Uhr, hat eine Bewertung von '
@@ -368,7 +386,6 @@
         var $edit = $('<a class="edit-item btn">zur Detailansicht dieses Beitrags.</a>')
             $edit.click(function(){
                 window.location.href = '/notes/'+item.id
-                console.log("should render and add some editing dialog..")
             })
         // score info area
         var $votes = $('<div class="votes">Bewerte diesen Inhalt </div>')
@@ -435,15 +452,7 @@
                 // add topic for clicked tag-button to our client side filter model
                 var selectedTag = model.getTagById(tagId)
                 model.addTagToFilter(selectedTag)
-                // load a tag-filter specific timeline
-                if (model.getTagFilter().length > 1) {
-                    // for more than 1 tag
-                    var parameter = {tags: model.getTagFilter()}
-                    loadAllResourcesByTags(parameter)
-                } else {
-                    // for exactly 1 tag
-                    loadAllResourcesByTagId(tagId)
-                }
+                setupTaggedTimeline()
                 // render tag specific filter-info header
                 showTagfilterInfo()
                 // render filter specific tag-view
@@ -498,7 +507,10 @@
 
     this.showTagfilterInfo = function() {
         var tags = model.getTagFilter()
-        if (tags.length == 0) return undefined
+        if (tags.length == 0) {
+            $('.tag-filter-info').empty()
+            return undefined
+        }
         var tagsLength = model.getAvailableResources().length
         var filterMessage = ""
         if (tagsLength > 1) {
@@ -509,30 +521,28 @@
         var $filterMeta = $('<span class="meta">'+ filterMessage +'</span>')
         var $filterButtons = $('<span class="buttons"></span>')
         for (var i=0; i < tags.length; i++) {
+            var $closeButton = $('<a id="' +tags[i].id+ '" class="close" title="Tag aus dem Filter nehmen">x</a>')
+                $closeButton.click(function(e) {
+                    var tagId = parseInt(e.target.id)
+                    var tag = model.getTagById(tagId)
+                    model.removeTagFromFilter(tag)
+                    setupTaggedTimeline()
+                    showTagfilterInfo()
+                    showTagView()
+                    showResultsetView()
+                    // move this
+                    if (model.getTagFilter().length > 0) {
+                        _this.pushHistory("filteredTimeline", "Tagged Timeline", "/notes/tagged/" + model.getTagFilterURI())
+                    } else {
+                        _this.pushHistory("timeline", "Research Notizen Timeline", "/notes/")
+                    }
+                })
             var $tagButton = $('<a class="btn tag selected">' +tags[i].value+ '</a>')
+                $tagButton.append($closeButton)
             $filterButtons.append($tagButton)
         }
-        var $filterReset = $('<a id="all" class="btn tag-filter">Filter zur&uuml;cksetzen</a>')
-            $filterReset.click(function(e) {
-                resetPageFilter()
-            })
-        $('.tag-filter-info').html($filterMeta).append($filterButtons).append($filterReset)
+        $('.tag-filter-info').html($filterMeta).append($filterButtons)
 
-        /** Inner reset filter controler */
-
-        function resetPageFilter () {
-            // update model
-            model.setTagFilter([])
-            loadAllTags()
-            loadAllResources()
-            // fixme: update routing..
-            // update gui
-            $(".tag-filter-info").empty()
-            _this.pushHistory("timelineView", "Notes Timeline", "/notes")
-            showTagView()
-            // show general timeline
-            showResultsetView()
-        }
     }
 
     this.renderNotification = function(message, errorCode, area, css_class, time, callback) {
@@ -550,10 +560,10 @@
         $("#"+area).fadeIn(time, function() {
             if (errorCode === OK) {
                 // render a nice message
-                $(this).removeClass().addClass(css_class).delay(1500).fadeOut(time, callback)
+                $(this).removeClass().addClass(css_class).delay(2000).fadeOut(time, callback)
             } else {
                 // render a nasty message
-                $(this).removeClass().addClass(css_class).delay(1500).fadeOut(time, callback)
+                $(this).removeClass().addClass(css_class).delay(2000).fadeOut(time, callback)
                 console.log(message + "("+errorCode+")")
             }
         })
@@ -617,6 +627,13 @@
     }
 
     this.setupCKEditor = function () {
+        // setup cK-Editor help
+        $('.header a.help').click(function(e){
+            $('.header .help.info').toggle()
+            $('.header .help.info').click(function(e){
+                $('.header .help.info').toggle()
+            })
+        })
         // setup cK-editor
         CKEDITOR.inline( document.getElementById( 'resource_input' ) )
         // TODO: onclick enter show/hide virtual placeholder text
@@ -688,9 +705,11 @@
 
     /** sorting asc by item.composite[model.REVIEW_SCORE_TYPE_URI].value */
     this.score_sort_asc = function (a, b) {
-        // console.log(a)
-        var scoreA = a.composite[REVIEW_SCORE_URI].value
-        var scoreB = b.composite[REVIEW_SCORE_URI].value
+        var scoreA = 0
+        var scoreB = 0
+        if (a.composite.hasOwnProperty(REVIEW_SCORE_URI)) scoreA = a.composite[REVIEW_SCORE_URI].value
+        if (b.composite.hasOwnProperty(REVIEW_SCORE_URI)) scoreB = b.composite[REVIEW_SCORE_URI].value
+
         if (scoreA > scoreB) // sort string descending
           return -1
         if (scoreA < scoreB)
@@ -700,9 +719,11 @@
 
     /** sorting asc by item.value */
     this.created_at_sort_asc = function (a, b) {
-        // console.log(a)
-        var scoreA = a.composite[CREATED_AT_URI].value
-        var scoreB = b.composite[CREATED_AT_URI].value
+        var scoreA = 0
+        var scoreB = 0
+        if (a.composite.hasOwnProperty(CREATED_AT_URI)) scoreA = a.composite[CREATED_AT_URI].value
+        if (b.composite.hasOwnProperty(CREATED_AT_URI)) scoreB = b.composite[CREATED_AT_URI].value
+
         if (scoreA > scoreB) // sort string descending
           return -1
         if (scoreA < scoreB)
@@ -766,6 +787,9 @@
         return tagsToCreate
     }
 
+    /** via our pre-formatted div-containers (rendered-html) we fetch all accompanying scipt-containers (latex-source)
+     *  to save math-formulas as source data in our database and not as rendered-html
+     */
     this.getTeXAndHTMLSource = function (body) {
         var objects = $('.math-output', body)
         for (var i=0; i < objects.length; i++) {
@@ -811,24 +835,31 @@
         var tagsToReference = getTagTopicsToReference(qualifiedTags)
         var tagsToCreate = getTagTopicsToCreate(qualifiedTags, tagsToReference)
         // rendering notifications
-        _this.renderNotification("Saving...", OK, UNDER_THE_TOP, '', 'fast')
-        $('div.header').css("opacity", ".6")
+        // _this.renderNotification("Saving...", OK, UNDER_THE_TOP, '', 'fast')
+        // $('div.header').css("opacity", ".6")
         // creating the new resource, with aggregated new tags
-        var resource = emc.createResourceTopic(valueToSubmit, tagsToCreate)
-        // an creating/associtating tags with this resource
-        /* createNewTagsForResource(resource, tagsToCreate) **/
-        for (var k=0; k < tagsToReference.length; k++) {
-            if (tagsToReference[k] != undefined) {
-                var newAssoc = emc.createResourceTagAssociation(resource, tagsToReference[k])
+        var resource = undefined
+        if (valueToSubmit.match(/\S/) != null && valueToSubmit !== "<p><br></p>") { // no empty strings
+            resource = emc.createResourceTopic(valueToSubmit, tagsToCreate)
+            // an creating/associtating tags with this resource
+            /* createNewTagsForResource(resource, tagsToCreate) **/
+            for (var k=0; k < tagsToReference.length; k++) {
+                if (tagsToReference[k] != undefined) {
+                    var newAssoc = emc.createResourceTagAssociation(resource, tagsToReference[k])
+                    if (!newAssoc) console.log("WARNING: not created a resource tag association ..")
+                }
             }
+            // track "added resource" goal
+            // piwikTracker.trackGoal(5)
+            $('#resource_input').html("")
+            $('input.tag').val("")
+            $('div.header').css("opacity", "1")
+            // rendering notifications
+            // _this.renderNotification("Note submitted.", OK,  UNDER_THE_TOP, '', 'fast')
+        } else {
+            _this.renderNotification("Wir werden nur unfreiwillig inhaltsfreie Beitr&auml;ge speichern.",
+                400, TIMELINE, '', 'slow')
         }
-        // track "added resource" goal
-        // piwikTracker.trackGoal(5)
-        $('#resource_input').html("")
-        $('input.tag').val("")
-        $('div.header').css("opacity", "1")
-        // rendering notifications
-        // _this.renderNotification("Note submitted.", OK,  UNDER_THE_TOP, '', 'fast')
         // unnecessary, just inserBefore the createResourceTopic at the top of our list
         // or better implement observables, a model the ui can "bind" to
         loadAllResources()
@@ -839,27 +870,29 @@
 
     this.doSaveResource = function() {
         var valueToSubmit = getTeXAndHTMLSource(document.getElementById("resource_input"))
-        // var qualifiedTags = getTagsSubmitted("input.tag")
-        // load all tags before..
-        // console.log("should update resource contents with " + valueToSubmit)
-        var resource = model.getCurrentResource()
-            resource.composite[NOTE_CONTENT_URI].value = valueToSubmit
-        var updated = dmc.update_topic(resource)
-        if (updated != undefined) {
-            // rendering notifications
-            // _this.renderNotification("Note updated.", OK, UNDER_THE_TOP, "", 'fast', function() {
-                // track "edited resource" goal
-                // piwikTracker.trackGoal(1)
-                // _this.pushHistory("timelineView", "Notes Timeline", "/notes")
-            // })
-            // go back
-            // history.back()
-            model.updateAvailableResource(resource)
-            _this.ck.destroy()
-            setupDetailView()
+        if (valueToSubmit.match(/\S/) != null && valueToSubmit !== "<p><br></p>") { // no empty strings
+            var resource = model.getCurrentResource()
+                resource.composite[NOTE_CONTENT_URI].value = valueToSubmit
+            // var updated = dmc.update_topic(resource)
+            var updated = emc.updateResourceTopic(resource)
+            if (updated != undefined) {
+                // rendering notifications
+                // _this.renderNotification("Note updated.", OK, UNDER_THE_TOP, "", 'fast', function() {
+                    // track "edited resource" goal
+                    // piwikTracker.trackGoal(1)
+                    // _this.pushHistory("timelineView", "Notes Timeline", "/notes")
+                // })
+                // go back
+                // history.back()
+                model.updateAvailableResource(resource)
+                _this.ck.destroy()
+                setupDetailView()
+            } else {
+                _this.renderNotification("Sorry! Wir konnten die Notiz nicht aktualisieren.", 500, UNDER_THE_TOP, '', 'fast')
+            }
         } else {
-            // console.log(updated)
-            _this.renderNotification("Sorry. Note could not be updated.", 500, UNDER_THE_TOP, '', 'fast')
+            _this.renderNotification("Wir werden nur unfreiwillig inhaltsfreie Postings speichern.",
+                400, UNDER_THE_TOP, '', 'slow')
         }
     }
 

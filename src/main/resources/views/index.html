@@ -58,8 +58,16 @@
             </h3>
             <div class="content-area">
                 <p><!-- i class="label">Educational resource</i-->
-                    <b class="header-title">Beitrag verfassen</b>
+                    <b class="header-title">Beitrag verfassen<a class="help">*</a></b>
                 </p>
+                <div class="help info">
+                    Du kannst mithilfe unseres Editors Beitr&auml;ge in Form von HTML verfassen. Unser Editor erm&ouml;glicht dir momentan <b>Mathe-Formeln</b>, <b>Bilder</b>, <b>Web-Videos</b> und <b>Web-Sound</b> in dein HTML einzubetten.<br/>
+                    Hier eine kleine Illustration die euch diese 4 Funktionen im Editor-Bereich zeigt.<br/>
+                    <img src="/org.deepamehta.eduzen-tagging-notes/images/cK_Editor_help_01.png" /><br/>
+                    Aktuell ist es erstmals experimentell m&ouml;glich <b>&uuml;ber den Bild-Dialog auch PDF-Dokumente hochzuladen und einzubetten</b>.<br/>
+                    Wir wollen diesen Editor-Bereich st&auml;ndig weiter verbessern, insbesondere das PDF-Feature werden wir als n&auml;chstes richtig machen.<br/>
+                    <br/><br/>
+                </div>
                 <div id="resource_input" contenteditable="true"></div> <!--  -->
                 <input type="button" value="Hinzuf&uuml;gen" class="submit btn"
                         onclick="javascript:doSubmitResource()"></input>
@@ -108,21 +116,15 @@
 
         <div id="resources" class="results"></div>
 
-        <!-- div class="footer">
-            <h3>Hint &amp; Imprint</h3>
-            Please always share a reference to the <b>author</b> and <b>license infos</b> in your submission.
-            Be polite and care about everything. <br/> This<a href="http://eduzen.tu-berlin.de/content-platform">
-            platform</a> is an experiment (please see our <a href="http://eduzen.tu-berlin.de/prototype-tos"
-               title="Terms of usage for this experimental service">ToS</a>) seeded by the <a href="http://eduzen.tu-berlin.de"
-               title="Find our projects website">educationZEN project</a>, please take
-            <a href="http://research.eduzen.tu-berlin.de/survey/index.php/survey/index/sid/414826/newtest/Y/lang/de-informal"
-               title="Link zur Umfrage">part in our survey</a> and help us to improve this service. You can also send
-            us your feedback in a simple <a href="mailto:team@eduzen.tu-berlin.de">mail</a>.
-        </div-->
 
-        <!-- noscript><p>
+        <noscript><p>
+            Sorry, this is a single-page AJAX application relying on JavaScript. <br/>
+            If you want to use our web-app, you have to activate JavaScript in your browser.
+            <br/><br/>
+            Kind Regards,<br/>
+            Your eduZEN Team (team{at}eduzen.tu-berlin.de)
             <img src="http://research.eduzen.tu-berlin.de/analytics/piwik.php?idsite=2" style="border:0" alt="" />
-        </p></noscript-->
+        </p></noscript>
 
 
     </body>

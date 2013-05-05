@@ -34,6 +34,8 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.sun.jersey.api.view.Viewable;
+import de.deepamehta.core.service.Directive;
+import java.util.Date;
 /** import org.owasp.validator.html.AntiSamy;
 import org.owasp.validator.html.Policy;
 import org.owasp.validator.html.PolicyException; **/
@@ -53,7 +55,16 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     private final static String AGGREGATION = "dm4.core.aggregation";
 
     private final static String RESOURCE_URI = "org.deepamehta.resources.resource";
+    private final static String RESOURCE_CONTENT_URI = "org.deepamehta.resources.content";
     private final static String RESOURCE_CREATED_AT_URI = "org.deepamehta.resources.created_at";
+    private final static String RESOURCE_LAST_MODIFIED_URI = "org.deepamehta.resources.last_modified_at";
+    private final static String RESOURCE_PUBLISHED_URI = "org.deepamehta.resources.is_published";
+    private final static String RESOURCE_LICENSE_URI = "org.deepamehta.resources.license";
+    private final static String RESOURCE_LICENSE_UNSPECIFIED_URI = "org.deepamehta.licenses.unspecified";
+    private final static String RESOURCE_LICENSE_UNKNOWN_URI = "org.deepamehta.licenses.unknown";
+    private final static String RESOURCE_LICENSE_AREA_URI = "org.deepamehta.resources.license_jurisdiction";
+    private final static String RESOURCE_AUTHOR_NAME_URI = "org.deepamehta.resources.author";
+    private final static String RESOURCE_AUTHOR_ANONYMOUS = "org.deepamehta.author.anonymous";
     private final static String TAG_URI = "dm4.tags.tag";
     private final static String SCORE_URI = "org.deepamehta.reviews.score";
 
@@ -82,7 +93,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     }
 
     /**
-     * Creates a new <code>Content</code> instance based on the domain specific
+     * Creates a new <code>Resource</code> instance based on the domain specific
      * REST call with a alternate JSON topic representation.
      */
 
@@ -90,10 +101,81 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Path("/resource/create")
     @Produces("application/json")
     @Override
-    public Resource createContent(ResourceTopic topic, @HeaderParam("Cookie") ClientState clientState) {
-        log.info("creating \"Resource\" " + topic);
+    public Topic createResource(TopicModel topicModel, @HeaderParam("Cookie") ClientState clientState) {
+        DeepaMehtaTransaction tx = dms.beginTx();
+        Topic resource = null;
         try {
-            return new Resource(topic, dms, clientState);
+            String value = topicModel.getCompositeValueModel().getString(RESOURCE_CONTENT_URI);
+            // skipping: check in htmlContent for <script>-tag
+            // enrich new topic about content
+            topicModel.getCompositeValueModel().put(RESOURCE_CONTENT_URI, value);
+            // enrich new topic about timestamps
+            long createdAt = new Date().getTime();
+            topicModel.getCompositeValueModel().put(RESOURCE_CREATED_AT_URI, createdAt);
+            topicModel.getCompositeValueModel().put(RESOURCE_LAST_MODIFIED_URI, createdAt);
+            topicModel.getCompositeValueModel().put(RESOURCE_PUBLISHED_URI, true);
+            topicModel.getCompositeValueModel().putRef(RESOURCE_LICENSE_URI, RESOURCE_LICENSE_UNSPECIFIED_URI);
+            topicModel.getCompositeValueModel().putRef(RESOURCE_LICENSE_AREA_URI, RESOURCE_LICENSE_UNKNOWN_URI);
+            topicModel.getCompositeValueModel().putRef(RESOURCE_AUTHOR_NAME_URI, RESOURCE_AUTHOR_ANONYMOUS);
+            log.info(topicModel.getCompositeValueModel().toJSON().toString());
+            // create new topic
+            resource = dms.createTopic(topicModel, clientState); // clientstate is for workspace-assignment
+            tx.success();
+            return resource;
+        } catch (Exception e) {
+            throw new WebApplicationException(new RuntimeException("Something went wrong while creating resource", e));
+        } finally {
+            tx.finish();
+        }
+    }
+
+    /**
+     * Updates an existing <code>Resource</code> instance based on the domain specific
+     * REST call with a alternate JSON topic representation.
+     */
+
+    @POST
+    @Path("/resource/update")
+    @Produces("application/json")
+    @Override
+    public Topic updateResource(TopicModel topic, @HeaderParam("Cookie") ClientState clientState) {
+        DeepaMehtaTransaction tx = dms.beginTx();
+        Topic resource = null;
+        try {
+            // check htmlContent for <script>-tag
+            String value = topic.getCompositeValueModel().getString(RESOURCE_CONTENT_URI);
+            // updated last_modified timestamp
+            long modifiedAt = new Date().getTime();
+            // update resource topic
+            resource = dms.getTopic(topic.getId(), true, clientState);
+            // Directives updateDirective = dms.updateTopic(topic, clientState);
+            // dms.updateTopic() - most high-level model
+            // resource.update(topic, clientState, updateDirective); // id, overriding model
+            resource.setCompositeValue(new CompositeValueModel().put(RESOURCE_CONTENT_URI, value),
+                    clientState, new Directives()); // why new Directives on an AttachedObject
+            resource.setCompositeValue(new CompositeValueModel().put(RESOURCE_LAST_MODIFIED_URI, modifiedAt),
+                    clientState, new Directives());
+            tx.success();
+            return resource;
+        } catch (Exception e) {
+            throw new WebApplicationException(new RuntimeException("Something went wrong while updating resource", e));
+        } finally {
+            tx.finish();
+        }
+    }
+
+    /** Fetches all resources with one given <code>Tag</code> **/
+
+    @GET
+    @Path("/fetch/20/{from}")
+    @Produces("application/json")
+    @Override
+    public ResultSet<RelatedTopic> getAllResources(@PathParam("from") long from, @HeaderParam("Cookie") ClientState clientState) {
+        ResultSet<RelatedTopic> all_results = new ResultSet<RelatedTopic>();
+        try {
+            all_results = dms.getTopics(RESOURCE_URI, true, 0, clientState);
+            log.info("tag has " +all_results.getSize()+ " resources..");
+            return all_results;
         } catch (Exception e) {
             throw new WebApplicationException(new RuntimeException("something went wrong", e));
         }
@@ -106,9 +188,10 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Produces("application/json")
     @Override
     public ResultSet<RelatedTopic> getResourcesByTag(@PathParam("id") long tagId, @HeaderParam("Cookie") ClientState clientState) {
+        ResultSet<RelatedTopic> all_results = new ResultSet<RelatedTopic>();
         try {
             Topic givenTag = dms.getTopic(tagId, true, clientState);
-            ResultSet<RelatedTopic> all_results = givenTag.getRelatedTopics(AGGREGATION, CHILD_URI,
+            all_results = givenTag.getRelatedTopics(AGGREGATION, CHILD_URI,
                     PARENT_URI, RESOURCE_URI, true, false, 0, clientState);
             log.info("tag has " +all_results.getSize()+ " resources..");
             return all_results;
@@ -126,7 +209,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Produces("application/json")
     @Override
     public ResultSet<RelatedTopic> getResourcesByTags(String tags, @HeaderParam("Cookie") ClientState clientState) {
-        ResultSet<RelatedTopic> all_results = new ResultSet<RelatedTopic>();
+        // ResultSet<RelatedTopic> all_results = new ResultSet<RelatedTopic>();
         try {
             JSONObject tagList = new JSONObject(tags);
             if (tagList.has("tags")) {

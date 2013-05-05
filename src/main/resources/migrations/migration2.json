@@ -1,0 +1,30 @@
+{
+    "assoc_types": [
+        {
+            "value": "Creator",
+            "uri": "org.deepamehta.resources.creator_edge",
+            "data_type_uri": "dm4.core.text",
+            "view_config_topics": [
+                {
+                    "type_uri": "dm4.webclient.view_config",
+                    "composite": {
+                        "dm4.webclient.color": "#FFC700"
+                    }
+                }
+            ]
+        },
+        {
+            "value": "Contributor",
+            "uri": "org.deepamehta.resources.contributor_edge",
+            "data_type_uri": "dm4.core.text",
+            "view_config_topics": [
+                {
+                    "type_uri": "dm4.webclient.view_config",
+                    "composite": {
+                        "dm4.webclient.color": "#0782C1"
+                    }
+                }
+            ]
+        }
+    ]
+}

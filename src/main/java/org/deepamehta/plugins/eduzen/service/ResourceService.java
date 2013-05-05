@@ -17,11 +17,15 @@ import org.deepamehta.plugins.eduzen.model.ResourceTopic;
  */
 public interface ResourceService extends PluginService {
 
-  Resource createContent(ResourceTopic topic, ClientState clientState);
+  Topic createResource(TopicModel topic, ClientState clientState);
+
+  Topic updateResource(TopicModel topic, ClientState clientState);
 
   ResultSet<RelatedTopic> getResourcesByTag(long tagId, ClientState clientState);
 
   ResultSet<RelatedTopic> getResourcesByTags(String tags, ClientState clientState);
+
+  ResultSet<RelatedTopic> getAllResources(long from, ClientState clientState);
 
   Topic upvoteResourceById(long resourceId, ClientState clientState);
 
