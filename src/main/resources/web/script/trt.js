@@ -223,10 +223,11 @@
     }
 
     this.showEditDetailsView = function() {
-
+        var sourceData = getTeXAndHTMLSource(document.getElementById("resource_input"))
+        // var data = model.getCurrentResource().composite[NOTE_CONTENT_URI].value
         // set content of resource
         $('#resource_input').attr("contenteditable", true)
-        _this.ck.setData(model.getCurrentResource().composite[NOTE_CONTENT_URI].value)
+        _this.ck.setData(sourceData)
         // tags are already setup for this resource
         renderMathInArea("resource_input")
         quickfixPDFImageRendering() // hacketi hack
@@ -799,6 +800,7 @@
             // console.log("containerId: " + containerId + " mathjaxId: " + mathjaxId)
             // var math = getInputSourceById(MathJax.Hub.getAllJax("MathDiv"), mathjaxId)
             var math = $("#" + mathjaxId, body).text()
+            console.log(math)
             if ( math ) {
                 // put latexSource into div-preview container before saving this data
                 $('#'+ containerId, body).html('<span class=\"math-preview\">$$ '+ math + ' $$</span>')

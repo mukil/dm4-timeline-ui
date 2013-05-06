@@ -64,7 +64,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     private final static String RESOURCE_LICENSE_UNKNOWN_URI = "org.deepamehta.licenses.unknown";
     private final static String RESOURCE_LICENSE_AREA_URI = "org.deepamehta.resources.license_jurisdiction";
     private final static String RESOURCE_AUTHOR_NAME_URI = "org.deepamehta.resources.author";
-    private final static String RESOURCE_AUTHOR_ANONYMOUS = "org.deepamehta.author.anonymous";
+    private final static String RESOURCE_AUTHOR_ANONYMOUS_URI = "org.deepamehta.author.anonymous";
     private final static String TAG_URI = "dm4.tags.tag";
     private final static String SCORE_URI = "org.deepamehta.reviews.score";
 
@@ -116,8 +116,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             topicModel.getCompositeValueModel().put(RESOURCE_PUBLISHED_URI, true);
             topicModel.getCompositeValueModel().putRef(RESOURCE_LICENSE_URI, RESOURCE_LICENSE_UNSPECIFIED_URI);
             topicModel.getCompositeValueModel().putRef(RESOURCE_LICENSE_AREA_URI, RESOURCE_LICENSE_UNKNOWN_URI);
-            topicModel.getCompositeValueModel().putRef(RESOURCE_AUTHOR_NAME_URI, RESOURCE_AUTHOR_ANONYMOUS);
-            log.info(topicModel.getCompositeValueModel().toJSON().toString());
+            // topicModel.getCompositeValueModel().putRef(RESOURCE_AUTHOR_NAME_URI, RESOURCE_AUTHOR_ANONYMOUS_URI);
             // create new topic
             resource = dms.createTopic(topicModel, clientState); // clientstate is for workspace-assignment
             tx.success();
@@ -335,7 +334,8 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Produces("text/html")
     public Viewable getDetailView(@PathParam("id") long resourceId, @HeaderParam("Cookie") ClientState clientState) {
         Topic resource = dms.getTopic(resourceId, true, clientState);
-        context.setVariable("resourceName", resource.getCompositeValue().getModel().getLong(RESOURCE_CREATED_AT_URI));
+        String name = "" + resource.getId();
+        context.setVariable("resourceName", name);
         context.setVariable("resourceId", resource.getId());
         return view("resource");
     }

@@ -14,6 +14,6 @@
             "value": "Unknown",
             "type_uri": "org.deepamehta.resources.license_jurisdiction",
             "uri": "org.deepamehta.licenses.unknown"
-        },
+        }
     ]
 }

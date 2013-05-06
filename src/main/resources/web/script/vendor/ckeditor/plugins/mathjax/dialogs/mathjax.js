@@ -18,11 +18,13 @@ CKEDITOR.dialog.add( 'mathjaxDialog', function( editor ) {
                         commit: function( element ) {
                             element.setText( this.getValue() )
                         }
-                    }, {
+                    }/** , {
                         type: 'html',
                         html: '<label>Vorschau</label><div id="math-live-preview"></div>',
                         setup: function (element) {
-                            var textarea = editor.document.getById("cke_45_textarea")
+                            // var textarea = editor.document.getById("cke_184_textarea")
+                            // var textarea = editor.document.getElementsByClassName("cke_dialog_ui_input_textarea")
+                            // console.log($('textarea.cke_dialog_ui_input_textarea'));
                             var livePreview = editor.document.getById("math-live-preview")
                             if (livePreview != undefined) livePreview.setText("") // clear preview
                             // register live-preview handler
@@ -30,17 +32,16 @@ CKEDITOR.dialog.add( 'mathjaxDialog', function( editor ) {
                                 var t = textarea.$
                                 // initial preview-build up
                                 var preview = editor.document.getById("math-live-preview")
-                                preview.setText(t.value)
+                                    preview.setText(t.value)
                                 MathJax.Hub.Queue(["Typeset", MathJax.Hub, "math-live-preview"])
                                 // render preview after every keychange
                                 t.onkeyup = function(e) {
-                                    // console.log("user is typing tex, renderpreview..  ")
                                     preview.setText(t.value)
                                     MathJax.Hub.Queue(["Typeset", MathJax.Hub, "math-live-preview"])
                                 }
                             }
                         }
-                    }
+                    }**/
                 ]
             }, {
                 id: 'help-tab',
@@ -55,7 +56,6 @@ CKEDITOR.dialog.add( 'mathjaxDialog', function( editor ) {
                 ]
             }
         ], onLoad: function() {
-            console.log("onLoad..")
             // initial pop-up
             this.setupContent(editor.document.createText("$$  $$"))
         }, onShow: function() {
@@ -69,9 +69,8 @@ CKEDITOR.dialog.add( 'mathjaxDialog', function( editor ) {
                 if ( mathjaxDiv ) {
                     // truncate ID from DOM Element works with (MathJax 2.0)
                     var mathjaxId = mathjaxDiv.$.firstChild.id.replace('-Frame', '')
-                    console.log("find mathjax-element with id " + mathjaxId)
+                    console.log("find mathjax-element with id \"" + mathjaxId+ "\"")
                     var parentDiv = mathjaxDiv.getAscendant('div')
-                    console.log(parentDiv)
                     // now we have our output container at hand
                     var math = getInputSourceById(MathJax.Hub.getAllJax("MathDiv"), mathjaxId)
                     if ( math ) {
@@ -79,7 +78,7 @@ CKEDITOR.dialog.add( 'mathjaxDialog', function( editor ) {
                         latexSource = math.originalText
                         console.log("setting latexSource variable and assigning element the parentDiv..")
                     } else {
-                        console.log("Not found.. " + element)
+                        console.log("Not found.. " + element.id)
                         // ### prevent dialog from opening up
                     }
                 }
@@ -151,10 +150,10 @@ CKEDITOR.dialog.add( 'mathjaxDialog', function( editor ) {
             MathJax.Hub.Typeset()
 
         }, onHide: function() {
-            console.log("just hiding the dialog, typesetting math in any case..")
+            // console.log("just hiding the dialog, typesetting math in any case..")
             MathJax.Hub.Queue(["Typeset", MathJax.Hub, "resource_input"])
         }, onCancel: function() {
-            console.log("just cancelled the dialog, typesetting math in any case..")
+            // console.log("just cancelled the dialog, typesetting math in any case..")
             MathJax.Hub.Queue(["Typeset", MathJax.Hub, "resource_input"])
         }
     }
