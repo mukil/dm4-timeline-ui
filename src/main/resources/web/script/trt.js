@@ -117,6 +117,8 @@
         var loggedIn = emc.getCurrentUser()
         model.setCurrentUserName(loggedIn)
         showUserInfo()
+        var userTopic = emc.getCurrentUserTopic()
+        model.setCurrentUserTopic(userTopic)
     }
 
     this.setupTaggedTimeline = function() {
@@ -843,21 +845,25 @@
         var resource = undefined
         if (valueToSubmit.match(/\S/) != null && valueToSubmit !== "<p><br></p>") { // no empty strings
             resource = emc.createResourceTopic(valueToSubmit, tagsToCreate)
-            // an creating/associtating tags with this resource
-            /* createNewTagsForResource(resource, tagsToCreate) **/
-            for (var k=0; k < tagsToReference.length; k++) {
-                if (tagsToReference[k] != undefined) {
-                    var newAssoc = emc.createResourceTagAssociation(resource, tagsToReference[k])
-                    if (!newAssoc) console.log("WARNING: not created a resource tag association ..")
+            if (resource != undefined) {
+                // an creating/associtating tags with this resource
+                /* createNewTagsForResource(resource, tagsToCreate) **/
+                for (var k=0; k < tagsToReference.length; k++) {
+                    if (tagsToReference[k] != undefined) {
+                        var newAssoc = emc.createResourceTagAssociation(resource, tagsToReference[k])
+                        if (!newAssoc) console.log("WARNING: not created a resource tag association ..")
+                    }
                 }
+                // assign authorhsip of resource to the current user
+                emc.assignAuthorship(resource, model.getCurrentUserTopic())
+                // track "added resource" goal
+                // piwikTracker.trackGoal(5)
+                $('#resource_input').html("")
+                $('input.tag').val("")
+                $('div.header').css("opacity", "1")
+                // rendering notifications
+                // _this.renderNotification("Note submitted.", OK,  UNDER_THE_TOP, '', 'fast')
             }
-            // track "added resource" goal
-            // piwikTracker.trackGoal(5)
-            $('#resource_input').html("")
-            $('input.tag').val("")
-            $('div.header').css("opacity", "1")
-            // rendering notifications
-            // _this.renderNotification("Note submitted.", OK,  UNDER_THE_TOP, '', 'fast')
         } else {
             _this.renderNotification("Wir werden nur unfreiwillig inhaltsfreie Beitr&auml;ge speichern.",
                 400, TIMELINE, '', 'slow')
@@ -878,6 +884,8 @@
             // var updated = dmc.update_topic(resource)
             var updated = emc.updateResourceTopic(resource)
             if (updated != undefined) {
+                // assign co-authorhsip of resource to the current user
+                emc.assignCoAuthorship(updated, model.getCurrentUserTopic())
                 // rendering notifications
                 // _this.renderNotification("Note updated.", OK, UNDER_THE_TOP, "", 'fast', function() {
                     // track "edited resource" goal

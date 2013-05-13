@@ -6,6 +6,7 @@ function AppModel() {
         var availableResources = []
         var currentResource = undefined
         var currentUser = undefined
+        var currentUserTopic = undefined
 
         var tagFilter = []
 
@@ -15,6 +16,12 @@ function AppModel() {
             },
             getCurrentUserName: function () {
                 return currentUser
+            },
+            setCurrentUserTopic: function (username) {
+                currentUserTopic = username
+            },
+            getCurrentUserTopic: function () {
+                return currentUserTopic
             },
             setAvailableTags: function (elements) {
                 availableTags = elements
