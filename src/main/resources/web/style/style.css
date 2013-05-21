@@ -19,9 +19,15 @@
 }
 
 .eduzen.notes.note #message-top {
-    position: absolute; left: 240px; top: 3px;
+    position: absolute; left: 240px; top: 37px;
     padding-left: 10px;
     padding-right: 10px;
+}
+
+.eduzen.notes #message-top {
+    top: 37px;
+    margin-right: 60px;
+    margin-left: 0px;
 }
 
 .eduzen #message-top {
@@ -372,13 +378,17 @@
 
 /** input areas */
 
-.eduzen input.submit {
+.eduzen.notes input.submit {
     position: relative;
-    top: -1px; float: right;
+    top: -40px; float: right;
     margin-right: 60px;
     background-color: #fff;
     border: 1px solid #f5f5f5;
     border-top: 1px solid transparent;
+}
+
+.eduzen.note input.submit {
+    top: -1px;
 }
 
 .eduzen input.submit:hover {

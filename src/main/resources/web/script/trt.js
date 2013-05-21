@@ -1,10 +1,9 @@
 (function(CKEDITOR, MathJax, $, console, dmc) {
 
-    var _this = this
+    _this = this
 
-    this.dmc = dmc
-    this.model = AppModel()
-    this.emc = new EMC(dmc, model)
+    _this.model = AppModel()
+    _this.emc = new EMC(dmc, model)
 
     var dict = new eduzenDictionary("DE")
     var TAG_URI = "dm4.tags.tag" // fixme: doublings
@@ -181,6 +180,8 @@
         $(identifier).bind( "keydown", function( event ) {
             if ( event.keyCode === $.ui.keyCode.TAB && $( this ).data( "ui-autocomplete" ).menu.active ) {
                 event.preventDefault();
+            } else if (event.keyCode === $.ui.keyCode.ENTER) {
+                // fixme: think of submitting posting through keyboard
             }
         }).autocomplete({minLength: 0,
             source: function( request, response ) {
@@ -237,7 +238,11 @@
         // var data = model.getCurrentResource().composite[NOTE_CONTENT_URI].value
         // set content of resource
         $('#resource_input').attr("contenteditable", true)
-        _this.ck.setData(sourceData)
+        if (CKEDITOR.instances.hasOwnProperty('resource_input')) {
+            CKEDITOR.instances['resource_input'].setData(sourceData)
+        } else {
+            $('#resource_input').html(sourceData)
+        }
         // tags are already setup for this resource
         renderMathInArea("resource_input")
         quickfixPDFImageRendering() // hacketi hack
@@ -645,17 +650,25 @@
                 $('.header .help.info').toggle()
             })
         })
-        // setup cK-editor
-        CKEDITOR.inline( document.getElementById( 'resource_input' ) )
-        // TODO: onclick enter show/hide virtual placeholder text
-        _this.ck = CKEDITOR.instances['resource_input']
         // upload-fallback: $(".button.upload").click(this.open_upload_dialog(uploadPath, this.handleUploadResponse))
         // mathjax preview handling
         $input = $('#resource_input')
+        $input.attr('contenteditable', true)
         $input.keyup(function(e) {
             renderMathInArea(resource_input)
             return function(){}
         })
+        // setup cK-editor
+        CKEDITOR.inline( document.getElementById( 'resource_input' ) )
+        if (CKEDITOR.instances.hasOwnProperty('resource_input')) {
+            console.log("set up ckEditor instance succesfully..")
+            // TODO: onclick enter show/hide virtual placeholder text
+            _this.ck = CKEDITOR.instances['resource_input']
+        } else {
+            _this.renderNotification("Hinweis: Wir haben in diesem Web-Browser seit neuestem das Problem dir einen "
+                + " Rich-Text-Editor  zur Verfügung stellen. Wir arbeiten bereits an einer Lösung.   ",
+                500, UNDER_THE_TOP, "", 3000, undefined)
+        }
     }
 
     this.setupMathJaxRenderer = function() {
@@ -903,7 +916,9 @@
                 // go back
                 // history.back()
                 model.updateAvailableResource(resource)
-                _this.ck.destroy()
+                if (CKEDITOR.instances.hasOwnProperty('resource_input')) {
+                    CKEDITOR.instances['resource_input'].destroy()
+                }
                 setupDetailView()
             } else {
                 _this.renderNotification("Sorry! Wir konnten die Notiz nicht aktualisieren.", 500, UNDER_THE_TOP, '', 'fast')
