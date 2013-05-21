@@ -173,7 +173,8 @@
                         "dm4.webclient.searchable_as_unit": true
                     }
                 }
-            ]
+            ],
+            "label_config": [ "org.deepamehta.resources.name", "org.deepamehta.resources.created_at"]
         }
     ],
     "topics": [

@@ -163,4 +163,13 @@ function EMC (dmc, model) {
         return _this.username
     }
 
+    this.logout = function () {
+        var loggedOut = false
+        if (_this.username != undefined || _this.username != "") {
+            loggedOut = dmc.request("POST", "/accesscontrol/logout", undefined, undefined, "text")
+            _this.username = undefined
+        }
+        return loggedOut
+    }
+
 }

@@ -143,6 +143,8 @@
         var loggedIn = emc.getCurrentUser()
         if (loggedIn) {
             _this.setLoggedInUser()
+            var workspaceTopic = dmc.get_topic_by_value("uri", "de.workspaces.deepamehta")
+            js.set_cookie("dm4_workspace_id", workspaceTopic.id)
             return undefined
         }
         try {
@@ -166,7 +168,13 @@
     }
 
     this.showUserInfo = function () {
-        $('.username').text('Willkommen ' + model.getCurrentUserName())
+        var $username = $('.username')
+            $username.text('Willkommen ' + model.getCurrentUserName())
+        var $logout = $('<a class="btn logout">(Logout)</a>')
+            $logout.click(function(e) {
+                emc.logout()
+            })
+            $username.append($logout)
     }
 
     this.setupTagFieldControls = function(identifier) {

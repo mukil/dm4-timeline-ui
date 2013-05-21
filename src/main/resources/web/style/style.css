@@ -116,6 +116,12 @@
     right: 80px !important;
 }
 
+.eduzen .btn.logout,
+.eduzen .btn.logout {
+    padding: 0px;
+    padding-left: 5px;
+}
+
 .eduzen .timeline.rendered a#info,
 .eduzen .timeline.unrendered a#info {
     display: inline-block;
@@ -141,7 +147,7 @@
     padding: 7px;
     border: 1px solid #f1f1f1;
     position: absolute;
-    right: 540px; top: 0px;
+    right: 600px; top: 0px;
     border-top: 1px solid #fff;
     padding-top: 9px;
     background-color: #fff;

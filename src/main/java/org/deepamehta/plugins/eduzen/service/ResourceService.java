@@ -8,8 +8,6 @@ import de.deepamehta.core.model.TopicModel;
 import de.deepamehta.core.service.ClientState;
 import de.deepamehta.core.service.PluginService;
 
-import org.deepamehta.plugins.eduzen.model.Resource;
-import org.deepamehta.plugins.eduzen.model.ResourceTopic;
 
 /**
  *
