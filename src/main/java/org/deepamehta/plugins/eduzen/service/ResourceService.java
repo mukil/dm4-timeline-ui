@@ -19,14 +19,6 @@ public interface ResourceService extends PluginService {
 
   Topic updateResource(TopicModel topic, ClientState clientState);
 
-  ResultSet<RelatedTopic> getResourcesByTag(long tagId, ClientState clientState);
-
-  ResultSet<RelatedTopic> getResourcesByTags(String tags, ClientState clientState);
-
   ResultSet<RelatedTopic> getAllResources(long from, ClientState clientState);
-
-  Topic upvoteResourceById(long resourceId, ClientState clientState);
-
-  Topic downvoteResourceById(long resourceId, ClientState clientState);
 
 }

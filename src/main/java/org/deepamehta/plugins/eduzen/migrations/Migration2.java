@@ -22,20 +22,25 @@ public class Migration2 extends Migration {
     public void run() {
 
         TopicType resource = dms.getTopicType(RESOURCE_URI, null);
-        // 1) Enrich the "Resource"-Type about many "Tags", one "Score", one "File" and one "Web Resource"
-        resource.addAssocDef(new AssociationDefinitionModel("dm4.core.aggregation_def",
-            RESOURCE_URI, TAG_URI, "dm4.core.one", "dm4.core.many"));
-        resource.addAssocDef(new AssociationDefinitionModel("dm4.core.composition_def",
-            RESOURCE_URI, REVIEW_SCORE, "dm4.core.one", "dm4.core.one"));
+        assignWorkspace(resource); // assign just the parent type to ws "DeepaMehta"
+
+        // 1) Enrich the "Resource"-Type about many "Tags" and one "Score"
+        resource.addAssocDef(new AssociationDefinitionModel("dm4.core.aggregation_def", RESOURCE_URI,
+                TAG_URI, "dm4.core.one", "dm4.core.many"));
+        resource.addAssocDef(new AssociationDefinitionModel("dm4.core.composition_def", RESOURCE_URI,
+                REVIEW_SCORE, "dm4.core.one", "dm4.core.one"));
+
+        // 2) Configure Simple MathJax Renderer from "dm4-mathjax-renderer"-plugin
         dms.getTopicType(RESOURCE_CONTENT_URI, null).getViewConfig().addSetting("dm4.webclient.view_config",
                 "dm4.webclient.simple_renderer_uri", "tub.eduzen.mathjax_field_renderer");
-        // probably we want to do this later.. but we'll see
+
+        // 3) Enrich the "Resource"-Type about one "Web Resource"
         resource.addAssocDef(new AssociationDefinitionModel("dm4.core.aggregation_def",
             RESOURCE_URI, WEB_RESOURCE_URI, "dm4.core.one", "dm4.core.many"));
-        // hide "Web Resources" from "Create"-Menu, thus enforcing usage of our "Resource"-Topic
+        
+        // 4) hide "Web Resources" from "Create"-Menu, thus enforcing usage of our "Resource"-Topic
         dms.getTopicType(WEB_RESOURCE_URI, null).getViewConfig()
             .addSetting("dm4.webclient.view_config", "dm4.webclient.show_in_create_menu", false);
-        assignWorkspace(resource); // assign just the parent type to ws "DeepaMehta"
 
     }
 

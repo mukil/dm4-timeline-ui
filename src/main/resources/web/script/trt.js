@@ -381,6 +381,7 @@
                         // track "added tag"-goal
                         // piwikTracker.trackGoal(4)
                         // re-render both views
+                        // fixme: update just the edited item in result-set
                         showTagView()
                         showResultsetView()
                         // update gui, remove dialog
@@ -407,7 +408,7 @@
         var $votes = $('<div class="votes">Bewerte diesen Inhalt </div>')
         var $upvote = $('<a id="' +item.id+ '" class="btn vote">+</a>')
             $upvote.click(function(e) {
-                var updatedTopic = dmc.request("GET", "/notes/up/resource/" + e.target.id)
+                var updatedTopic = dmc.request("GET", "/review/upvote/" + e.target.id)
                 model.updateAvailableResource(updatedTopic)
                 // track "voted resource" goal
                 // piwikTracker.trackGoal(3)
@@ -420,7 +421,7 @@
             })
         var $downvote = $('oder <a id="' +item.id+ '" class="btn vote">-</a>')
             $downvote.click(function(e) {
-                var updatedTopic = dmc.request("GET", "/notes/down/resource/" + e.target.id)
+                var updatedTopic = dmc.request("GET", "/review/downvote/" + e.target.id)
                 model.updateAvailableResource(updatedTopic)
                 // track "voted resource" goal
                 // piwikTracker.trackGoal(3)
@@ -963,7 +964,7 @@
 
     this.loadAllResourcesByTagId = function(tagId) { // lazy, unsorted, possibly limited
         //
-        var all_tagged_resources = dmc.request("GET", "/notes/fetch/tag/" + tagId).items
+        var all_tagged_resources = dmc.request("GET", "/tag/" +tagId+ "/org.deepamehta.resources.resource/").items
         if (all_tagged_resources.length > 0) {
             // overriding previously set resultlist
             model.setAvailableResources(all_tagged_resources)
@@ -974,7 +975,8 @@
 
     this.loadAllResourcesByTags = function(tagList) { // lazy, unsorted, possibly limited
         //
-        var all_tagged_resources = dmc.request("POST", "/notes/fetch/tags/", tagList).items
+        var all_tagged_resources = dmc.request("POST",
+            "/tag/by_many/org.deepamehta.resources.resource", tagList).items
         if (all_tagged_resources != undefined) {
             if (all_tagged_resources.length > 0) {
                 // overriding previously set resultlist
