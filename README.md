@@ -1,12 +1,26 @@
-# DeepaMehta 4 Resources Module
+# org.deepamehta-eduzen Module for DeepaMehta 4
 
-A module introducing a simple _TopicType_ aggregating _Web Resources_ and _Files_ (which have to be uploaded and stored on server-side).
+A custom, timeline based AJAX user interface introducing a `Resource`-Type, enabling users to _tag_, _share_ and _vote_ simple HTML postings.
 
-# Install Resources Module for DeepaMehta 4
+# Requirements
 
-Download the DeepaMehta Resources 0.1 Bundle. A [download is provided here](https://github.com/downloads/mukil/dm4.resources/deepamehta-resources-0.1.jar) in this repository, also filed under `Downloads`.
+To be able to install this module you first have to have install the following DeepaMehta 4 Plugins.
 
-Place the downloaded file `deepamehta-resources-0.1.jar` in the `bundles` folder of your deepamehta installation and restart DeepaMehta.
+* `eduzen-reviews-0.2`-Bundle - [Source Code](https://github.com/mukil/org.deepamehta-reviews), [Nightly Build](http://download.deepamehta.de/nightly/)
+* `deepamehta-tags-1.1`-Bundle - [Source Code](https://github.com/mukil/dm4.tags), [Nightly Build](http://download.deepamehta.de/nightly/)
+* `deepamehta-webactivator-0.3.1`-Bundle - [Source Code](https://github.com/jri/dm4-webactivator), [Nightly Build](http://download.deepamehta.de/nightly/)
+* `mathjax-renderer-0.1.0`-Bundle - [Source Code](https://github.com/mukil/dm4-mathjax-renderer), [Nightly Build](http://download.deepamehta.de/nightly/)
+
+# Install org.deepamehta-eduzen Module
+
+To try the latest `eduzen-notes`-Bundle, which is to be considered _unstable_ and under active development, download it from [here, our nightly builds](http://download.deepamehta.de/nightly/).
+
+To download the latest _stable_ version of the `eduzen-notes`-Bundle, download it from [here, our list of stable builds](http://download.deepamehta.de/).
+
+Place the downloaded file `eduzen-notes0.X.jar` in the `bundles` folder of your deepamehta installation and restart DeepaMehta.
+
+Now you can browse to `your-host:your-port/notes` with your browser and start using the custom user interface, e.g. under `http:localhost:8080/notes`.
+
 
 # GNU Public License
 
@@ -19,6 +33,12 @@ The simple black resource icon in use by this plugin is licensed under a Creativ
 The colorful resource icon in use by this plugin () is licensed under the [LGPL](http://www.gnu.org/licenses/lgpl.html) license and was designed by [Everaldo Coelho](http://www.everaldo.com/).
 
 # Changelog
+
+0.2, May, 2013
+
+- First stable version
+
+Please check the commit messages for all details on functionality.
 
 0.1, Feb 28, 2013
 

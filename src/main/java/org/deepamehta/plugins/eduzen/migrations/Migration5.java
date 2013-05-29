@@ -8,7 +8,7 @@ import de.deepamehta.core.model.*;
 
 /** This imperative migration is just a note on the current State-of-DB, it is not "Active" and was never tested. */
 
-public class Migration3 extends Migration {
+public class Migration5 extends Migration {
 
     private Logger logger = Logger.getLogger(getClass().getName());
 
@@ -24,7 +24,7 @@ public class Migration3 extends Migration {
         TopicType reviewScore = dms.getTopicType(REVIEW_SCORE, null);
         assignWorkspace(reviewScore);
         // 2) assign more types of "org.deepamehta-tagging-resources"-plugin to default workspace "DeepaMehta"?
-        
+
     }
 
     // === Workspace ===
