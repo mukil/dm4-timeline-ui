@@ -173,7 +173,13 @@
             $username.text('Willkommen ' + _this.model.getCurrentUserName())
         var $logout = $('<a class="btn logout">(Logout)</a>')
             $logout.click(function (e) {
-                emc.logout()
+
+                try {
+                    emc.logout()
+                } catch (e) {
+                    $("body").text("You're logged out now.")
+                }
+
             })
             $username.append($logout)
     }
@@ -336,15 +342,20 @@
     }
 
     this.setupResultListItem = function (item) {
+
         var score = (item.composite[REVIEW_SCORE_URI] != undefined) ? item.composite[REVIEW_SCORE_URI].value : 0
         var tags = (item.composite[TAG_URI] != undefined) ? item.composite[TAG_URI] : []
         var content = (item.composite[NOTE_CONTENT_URI] != undefined) ? item.composite[NOTE_CONTENT_URI].value : ""
         // construct list item, header and content-area first
         var title = (item.composite[CREATED_AT_URI] != undefined) ? new Date(parseInt(item.composite[CREATED_AT_URI].value)) : new Date()
-        var $topic = $('<li id="' +item.id+ '">').html('Dieser Beitrag wurde eingereicht am  ' +
-            title.getDate() + '.' + dict.monthNames[title.getMonth()] + ' ' + title.getFullYear() + ' um '
-            + title.getHours() + ':' +title.getMinutes() + ' Uhr, hat eine Bewertung von '
-            + '<span class="score-info">' + score + '</span> ')
+
+        var $topic = $("li#" + item.id) // we have an id triple in this "component"
+        if ($topic.length <= 0) $topic = $('<li id="' +item.id+ '">') // create the new gui-"component"
+
+        var headline = 'Dieser Beitrag wurde eingereicht am  ' + title.getDate() + '.'
+                + dict.monthNames[title.getMonth()] + ' ' + title.getFullYear() + ' um ' + title.getHours() + ':'
+                + title.getMinutes() + ' Uhr, hat eine Bewertung von <span class="score-info">' + score + '</span> '
+
         var $body = $('<div class="item-content">' + content + '</div>');
         // bottom area, tag and score info area
         var $toolbar = $('<div class="toolbar"></div>')
@@ -385,7 +396,9 @@
                         // re-render both views
                         // fixme: update just the edited item in result-set
                         showTagView()
-                        showResultsetView()
+                        setupResultListItem(item)
+                        renderMathInArea(item.id)
+                        // showResultsetView()
                         // update gui, remove dialog
                         $addDialog.remove()
                         $addTag.removeClass("selected")
@@ -408,7 +421,7 @@
             })
         // score info area
         var $votes = $('<div class="votes">Bewerte diesen Inhalt </div>')
-        var $upvote = $('<a id="' +item.id+ '" class="btn vote">+</a>')
+        var $upvote = $('<a id="' +item.id+ '" class="btn vote">+</a>') // we have an id triple in this "component"
             $upvote.click(function (e) {
                 var updatedTopic = dmc.request("GET", "/review/upvote/" + e.target.id)
                 _this.model.updateAvailableResource(updatedTopic)
@@ -419,9 +432,11 @@
                     // update our result-set view immedieatly after upvoting
                     _this.model.setAvailableResources(getHighestResources())
                 }
-                showResultsetView()
+                setupResultListItem(updatedTopic)
+                renderMathInArea(item.id)
+                // showResultsetView()
             })
-        var $downvote = $('oder <a id="' +item.id+ '" class="btn vote">-</a>')
+        var $downvote = $('oder <a id="' +item.id+ '" class="btn vote">-</a>') // id triple in this "component"
             $downvote.click(function (e) {
                 var updatedTopic = dmc.request("GET", "/review/downvote/" + e.target.id)
                 _this.model.updateAvailableResource(updatedTopic)
@@ -432,7 +447,9 @@
                     // update our result-set view immedieatly after upvoting
                     _this.model.setAvailableResources(getHighestResources())
                 }
-                showResultsetView()
+                setupResultListItem(updatedTopic)
+                renderMathInArea(item.id)
+                // showResultsetView()
             })
 
         // finally append votebar, tagbar and body to list-item
@@ -441,7 +458,7 @@
         $toolbar.append($edit)
         // $toolbar.append($tagInfo)
 
-        $topic.append($body).append($votes).append($toolbar)
+        $topic.html(headline).append($body).append($votes).append($toolbar)
         // out tag listing before body
         if (tags.length > 0) $tagInfo.insertBefore($body)
         return $topic

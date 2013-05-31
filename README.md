@@ -24,7 +24,7 @@ Now you can browse to `your-host:your-port/notes` with your browser and start us
 
 # GNU Public License
 
-This DeepaMehta plugin is released under the terms of the GNU General Public License in Version 3.0, 2007. You can find a copy of that [here](http://www.gnu.org/licenses/gpl).
+This software is released under the terms of the GNU General Public License in Version 3.0, 2007.
 
 # Icon License
 
@@ -44,4 +44,4 @@ Please check the commit messages for all details on functionality.
 
 - initialization of this plugin.
 
-Copyright 2013, Malte Reißig
+Author, Malte Reißig

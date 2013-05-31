@@ -1,6 +1,6 @@
 CKEDITOR.dialog.add( 'mathjaxDialog', function( editor ) {
 
-    var DELIMITER = "$"
+    var DELIMITER = "$$"
 
     return {
         title : 'Math Input Dialog',

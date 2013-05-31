@@ -35,6 +35,16 @@
             <version>0.3.1</version>
         </dependency>
 <!--    <dependency>
+            <groupId>de.tu-berlin.eduzen</groupId>
+            <artifactId>mathjax-renderer</artifactId>
+            <version>0.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>de.deepamehta</groupId>
+            <artifactId>deepamehta-tags</artifactId>
+            <version>1.2</version>
+        </dependency>
+        <dependency>
             <groupId>org.owasp</groupId>
             <artifactId>antisamy</artifactId>
             <version>1.4</version>
@@ -43,19 +53,9 @@
                 antisamy
             </Embed-Dependency>
         <dependency>
-            <groupId>de.tu-berlin.eduzen</groupId>
-            <artifactId>mathjax-renderer</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>de.deepamehta</groupId>
-            <artifactId>deepamehta-tags</artifactId>
-            <version>1.1</version>
-        </dependency>
-        <dependency>
             <groupId>org.deepamehta</groupId>
             <artifactId>deepamehta-reviews</artifactId>
-            <version>0.1</version>
+            <version>0.2</version>
         </dependency>-->
     </dependencies>
 
