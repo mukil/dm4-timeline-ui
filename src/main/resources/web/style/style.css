@@ -228,15 +228,15 @@
 #nav a.btn.sort.selected {
     background-color: #0782C1;
     color: #fff;
-    border: 2px solid #a9a9a9;
+    /** border: 2px solid #a9a9a9; **/
     margin-left: 5px;
     /** border: 1px solid #343434; */
 }
 
 .eduzen a.btn.tag.selected .close {
     /** #0067c7 #2272AD; **/
-    padding: 4px;
-    border: 1px solid #a9a9a9;
+    /** padding: 4px;
+    border: 1px solid #a9a9a9; **/
     background-color: #fff;
     color: #fff;
     font-weight: bold;
@@ -244,6 +244,7 @@
     left: 6px;
 }
 
+.eduzen a.btn.tag.selected:hover .close,
 .eduzen a.btn.tag.selected .close:hover {
     /** background-color: transparent; */
     color: #a9a9a9;
@@ -329,6 +330,10 @@ textarea#math-input-dialog {
     padding: 5px 20px;  **/
     color: #383838;
     padding-top: 20px;
+}
+
+.eduzen .content-area li {
+    list-style-type: circle;
 }
 
 .eduzen.info .content-area {
@@ -580,6 +585,10 @@ input.cke_dialog_ui_input_text:focus {
     max-width: 75%;
 }
 
+.eduzen ul.list li div.item-content li {
+    overflow: visible;
+}
+
 .eduzen li a:focus,
 .eduzen ul.list li a:focus {
     border: 1px solid #12b4d7;
@@ -592,6 +601,10 @@ input.cke_dialog_ui_input_text:focus {
 .eduzen ul.list li a {
     border: 1px solid #fff;
     padding: 5px;
+}
+
+.eduzen ul.list li div.item-content a {
+    border: 0px solid transparent;
 }
 
 .eduzen ul.objects li.selected,
