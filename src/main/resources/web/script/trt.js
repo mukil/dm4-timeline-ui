@@ -25,8 +25,6 @@
 
     this.initializePageView = function () {
 
-        // _this.setLoggedInUser()
-
         // parse requested location
         var pathname = window.location.pathname
         var attributes = pathname.split('/')
@@ -45,13 +43,15 @@
 
             // route to filtered timeline view
             var tags = attributes[3]
-                tags = tags.split("1%2B")
+                console.log(tags)
+                tags = (tags.indexOf('+') != -1) ? tags.split("+") : tags.split("%2B")
             // load all available tags into client-side first
             loadAllTags()
             // get tag id/s on client-side first
             var selectedTag = undefined
             for (var i=0; i < tags.length; i++) {
-                selectedTag = _this.model.getTagByName(tags[i])
+                var label = decodeURIComponent(tags[i])
+                selectedTag = _this.model.getTagByName(label)
                 if (selectedTag != undefined) _this.model.addTagToFilter(selectedTag)
             }
             setupTaggedTimeline()
@@ -73,10 +73,15 @@
     this.setupView = function () {
         skrollr.init({forceHeight: false})
         registerHistoryStates()
-        setupCKEditor()
-        setupTagFieldControls('input.tag')
         setupMathJaxRenderer()
-        setupWriteAuthentication()
+        setupTagFieldControls('input.tag')
+        var status = checkLoggedInUser()
+        if (status !== null) {
+            setupUserPage()
+        } else {
+            setupGuestPage()
+        }
+        setupCKEditor()
         showUserInfo()
         // render loaded resources in timeline
         showResultsetView()
@@ -88,18 +93,80 @@
         setupPageControls()
     }
 
+    this.setupUserPage = function() {
+        $('.eduzen.notes').removeClass('guest')
+        $('div.content-area').show()
+        $('div.login-menu').hide()
+        $('a.login-menu-button').hide()
+        $('.eduzen .content-area input.submit.btn').bind('click', doSubmitResource)
+        showUserInfo()
+    }
+
+    this.setupGuestPage = function() {
+        // hide input area
+        $('div.content-area').hide()
+        $('.eduzen.notes').addClass('guest')
+        $('.eduzen .content-area input.submit.btn').unbind('click')
+        _this.model.setCurrentUserName(undefined)
+        _this.model.setCurrentUserTopic(undefined)
+        setupLoginDialog() // fixme: setupGuest avoid duplicates
+        showUserInfo()
+    }
+
+    this.setupLoginDialog= function() {
+        $('div.login-menu').remove()
+        $('a.login-menu-button').remove()
+        var $loginMenu = $('<div class="login-menu">')
+        var $username = $('<input type="text" placeholder="Username">')
+            $username.addClass('username-input')
+        var $secret = $('<input type="password" placeholder="Password">')
+            $secret.addClass('secret')
+            $secret.keyup(function (event) {
+                if (event.keyCode === $.ui.keyCode.ENTER) doLogin()
+                return function (e) {}
+            })
+        var $button = $('<input type="button" class="btn login" value="Login">')
+            $button.click(doLogin)
+        var $menuToggle = $('<a class="login-menu-button btn" href="#login">Login</a>')
+            $menuToggle.click(function (e) {
+                $('div.login-menu').toggle()
+                $menuToggle.toggleClass('pressed')
+            })
+
+        $loginMenu.append($username).append($secret).append($button)
+            .append('<span class="message">'
+                + '<a href="http://www.eduzen.tu-berlin.de/zur-notizen-webanwendung#account">Account?</a>'
+                + '</span>')
+        $($menuToggle).insertBefore('a#info')
+        $('<div class="about-login">Um Beitr&auml;ge zu verfassen musst du eingeloggt sein. Einen Account bekommst du '
+            + '<a href="http://www.eduzen.tu-berlin.de/zur-notizen-webanwendung#account">hier</a>.</div>')
+        .insertAfter('a.login-menu-button')
+        $($loginMenu).insertBefore('a#info')
+
+        function doLogin() {
+            var user = checkUserAuthorization() // login button handler
+            if (user != null) setupUserPage()
+        }
+    }
+
     this.setupDetailView = function () {
         // set page-data
         // setupCKEditor()
         // initalize add tags field
         // setupTagFieldControls('input.tag')
         setupMathJaxRenderer()
-        setupWriteAuthentication()
+        var status = checkLoggedInUser()
+        if (status !== null) {
+            $editButton = $('input.submit.btn')
+            $editButton.show()
+            $editButton.unbind('click')
+            $editButton.val('Inhalt ändern')
+            $editButton.click(_this.setupEditDetailView) // edit button handler
+        } else {
+            $('input.submit.btn').hide()
+        }
         showUserInfo()
         showDetailsView()
-        $('input.submit.btn').unbind('click')
-        $('input.submit.btn').val('Inhalt ändern')
-        $('input.submit.btn').click(setupEditDetailView) // edit button handler
     }
 
     this.setupEditDetailView = function () {
@@ -110,14 +177,6 @@
             $save.unbind('click')
             $save.val("Änderungen speichern")
             $save.click(_this.doSaveResource)
-    }
-
-    this.setLoggedInUser = function () {
-        var loggedIn = emc.getCurrentUser()
-        _this.model.setCurrentUserName(loggedIn)
-        showUserInfo()
-        var userTopic = emc.getCurrentUserTopic()
-        _this.model.setCurrentUserTopic(userTopic)
     }
 
     this.setupTaggedTimeline = function () {
@@ -136,52 +195,78 @@
         }
     }
 
-    this.setupWriteAuthentication = function () {
-        var password = ""
-        var username = "admin"
-        var loggedIn = emc.getCurrentUser()
-        if (loggedIn) {
-            _this.setLoggedInUser()
-            var workspaceTopic = dmc.get_topic_by_value("uri", "de.workspaces.deepamehta")
-            js.set_cookie("dm4_workspace_id", workspaceTopic.id)
-            return undefined
+    this.checkUserAuthorization = function(id, secret) {
+
+        if (id === undefined && secret === undefined) {
+            id = $('input.username-input').val()
+            secret = $('input.secret').val()
         }
         try {
-            // fixme: if user already is in a session
             var authorization = authorization()
-            if (authorization == undefined) return null
+            if (authorization === undefined) return null
             // throws 401 if login fails
             dmc.request("POST", "/accesscontrol/login", undefined, {"Authorization": authorization})
-            _this.renderNotification("Session started. Have fun thinking and be nice!", OK, TIMELINE)
-            _this.setLoggedInUser()
+            // _this.renderNotification("Session started. Have fun thinking and be nice!", OK, TIMELINE)
+            return _this.checkLoggedInUser()
         } catch (e) {
-            _this.renderNotification("The application could not initiate a working session for you.", 403, TIMELINE)
-            throw new Exception("403 - Sorry, the application ccould not establish a user session.")
+            $('div.login-menu .message').addClass("failed")
+            $('div.login-menu .message').text('Nutzername oder Passwort ist falsch.')
+            // _this.renderNotification("The application could not initiate a working session for you.", 403, TIMELINE)
+            // throw new Error("401 - Sorry, the application ccould not establish a user session.")
+            return null
         }
-
-        return null
 
         /** Returns value for the "Authorization" header. */
         function authorization() {
-            return "Basic " + btoa(username + ":" + password)   // ### FIXME: btoa() might not work in IE
+            return "Basic " + btoa(id + ":" + secret)   // ### FIXME: btoa() might not work in IE
         }
 
     }
 
+    this.checkLoggedInUser = function () {
+        // var password = ""
+        // var username = "admin"
+        var loggedIn = emc.getCurrentUser()
+        if (loggedIn !== "") {
+            _this.getLoggedInUserTopic(loggedIn)
+            var workspaceTopic = dmc.get_topic_by_value("uri", "de.workspaces.deepamehta")
+            js.set_cookie("dm4_workspace_id", workspaceTopic.id)
+            return loggedIn
+        }
+        return null
+    }
+
+    this.getLoggedInUserTopic = function (username) {
+        _this.model.setCurrentUserName(username)
+        var userTopic = emc.getCurrentUserTopic()
+        _this.model.setCurrentUserTopic(userTopic)
+    }
+
     this.showUserInfo = function () {
         var $username = $('.username')
-            $username.text('Willkommen ' + _this.model.getCurrentUserName())
-        var $logout = $('<a class="btn logout">(Logout)</a>')
+        var name = _this.model.getCurrentUserName()
+        if (name === undefined) {
+            $username.text('Willkommen')
+        } else {
+            $username.text('Willkommen ' + name)
+            var $logout = $('<a class="btn logout">(Logout)</a>')
             $logout.click(function (e) {
 
                 try {
-                    emc.logout()
+                    var loggedOut = emc.logout()
+                    if ($('body.eduzen.note').length > 0) {
+                        console.log("in detail view, routing back to timeline..")
+                        if (loggedOut) window.location.href = "/notes/"
+                    } else {
+                        if (loggedOut) setupGuestPage()
+                    }
                 } catch (e) {
                     $("body").text("You're logged out now.")
                 }
 
             })
             $username.append($logout)
+        }
     }
 
     this.setupTagFieldControls = function (identifier) {
@@ -415,10 +500,7 @@
                 setupTagFieldControls('li#' +clickedListItem+ ' .toolbar div.add-tag-dialog input.new-tag')
                 $addDialog.show("slow")
             })
-        var $edit = $('<a class="edit-item btn">zur Detailansicht dieses Beitrags.</a>')
-            $edit.click(function (){
-                window.location.href = '/notes/'+item.id
-            })
+        var $edit = $('<a class="edit-item btn" href="/notes/'+item.id+'">zur Detailansicht dieses Beitrags.</a>')
         // score info area
         var $votes = $('<div class="votes">Bewerte diesen Inhalt </div>')
         var $upvote = $('<a id="' +item.id+ '" class="btn vote">+</a>') // we have an id triple in this "component"
@@ -548,6 +630,9 @@
             $('.tag-filter-info').empty()
             return undefined
         }
+        // fixme: hide login-dialog if present, cause these two overlap..
+        $('div.login-menu').hide()
+        $('a.login-menu-button').removeClass('pressed')
         var tagsLength = _this.model.getAvailableResources().length
         var filterMessage = ""
         if (tagsLength > 1) {
@@ -666,9 +751,9 @@
 
     this.setupCKEditor = function () {
         // setup cK-Editor help
-        $('.header a.help').click(function (e){
+        $('.header a.help').click(function (e) {
             $('.header .help.info').toggle()
-            $('.header .help.info').click(function (e){
+            $('.header .help.info').click(function (e) {
                 $('.header .help.info').toggle()
             })
         })
@@ -680,8 +765,10 @@
             renderMathInArea(resource_input)
             return function (){}
         })
-        // setup cK-editor
-        CKEDITOR.inline( document.getElementById( 'resource_input' ) )
+        // setup cK-editor (if not already present)
+        if (!CKEDITOR.instances.hasOwnProperty('resource_input')) {
+            CKEDITOR.inline( document.getElementById( 'resource_input' ) )
+        }
         if (CKEDITOR.instances.hasOwnProperty('resource_input')) {
             // TODO: onclick enter show/hide virtual placeholder text
             _this.ck = CKEDITOR.instances['resource_input']

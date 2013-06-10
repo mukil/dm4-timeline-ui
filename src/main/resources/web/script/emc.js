@@ -163,8 +163,13 @@ function EMC (dmc, model) {
     this.logout = function () {
         var loggedOut = false
         if (_this.username != undefined || _this.username != "") {
-            loggedOut = dmc.request("POST", "/accesscontrol/logout", undefined, undefined, "text")
-            _this.username = undefined
+            try {
+                var logoutRequest = dmc.request("POST", "/accesscontrol/logout", undefined, undefined, "text")
+                if (logoutRequest === "") loggedOut = true
+                _this.username = undefined
+            } catch (e) {
+                throw new Error("Sorry, we could not invalidate your session.")
+            }
         }
         return loggedOut
     }

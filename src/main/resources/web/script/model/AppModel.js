@@ -95,7 +95,7 @@ function AppModel() {
                 var filterURI = ""
                 for (var i=0; i < tagFilter.length; i++) {
                     var tag = tagFilter[i]
-                    if (i > 0) filterURI += "1%2B"
+                    if (i > 0) filterURI += "+"
                     filterURI += tag.value
                 }
                 return filterURI

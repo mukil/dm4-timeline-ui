@@ -73,6 +73,7 @@
     padding-top: 9px;
     border: 1px solid #a9a9a9;
     border-top: 0px solid transparent;
+    background-color: #fff;
 }
 
 .eduzen.note .username,
@@ -85,6 +86,7 @@
     border: 1px solid #a9a9a9;
     border-top: 0px solid transparent;
     color: #a9a9a9;
+    background-color: #fff;
 }
 
 .eduzen span.meta {
@@ -112,6 +114,7 @@
     margin-left: 45px;
 }
 
+.eduzen.notes.guest .timeline.unrendered a#new,
 .eduzen .timeline.rendered a#new {
     display: none;
     padding-right: 10px;
@@ -135,7 +138,7 @@
     border: 1px solid #f1f1f1;
     border-top: 1px solid #fff;
     padding-top: 9px;
-    text-decoration: none;
+    text-decoration: underline;
     position: absolute; right: 300px; top: 0px;
     background-color: #fff;
 }
@@ -211,12 +214,21 @@
 
 .eduzen span.tag-filter-info {
     display: inline-block;
+    z-index: 1;
+}
+
+.eduzen .timeline.rendered span.tag-filter-info {
+    margin-top: 10px;
+}
+
+.eduzen.guest .timeline.unrendered span.tag-filter-info {
+    left: 58px;
 }
 
 .eduzen .timeline.unrendered span.tag-filter-info {
     background-color: #fff;
     position: relative;
-    top: 0px; left: 25px;
+    top: 0px; left: 20px;
     min-height: 30px;
 }
 
@@ -241,7 +253,7 @@
     color: #fff;
     font-weight: bold;
     position: relative;
-    left: 6px;
+    left: 7px;
 }
 
 .eduzen a.btn.tag.selected:hover .close,
@@ -251,15 +263,7 @@
 }
 
 /** 1px design fix */
-@-moz-document url-prefix() {
-    .eduzen a.btn.tag.selected .close {
-        left: 5px;
-    }
-
-    .eduzen .unrendered a.btn.tag.selected .close {
-        padding-bottom: 3px;
-    }
-}
+@-moz-document url-prefix() {  }
 
 .eduzen .options {
     color: #a9a9a9;
@@ -341,6 +345,11 @@ textarea#math-input-dialog {
     line-height: 1.2em;
 }
 
+.eduzen.info .content-area li a {
+    text-decoration: underline;
+    color: #0782C1;
+}
+
 .eduzen.info quote.big{
     font-size: 1.4em;
     line-height: 1.2em;
@@ -415,6 +424,91 @@ textarea#math-input-dialog {
     display: inline-block;
 }
 
+.eduzen .timeline .login-menu-button {
+    position: absolute;
+    top: 0px;
+    padding: 7px;
+    padding-top: 9px;
+    color: #a9a9a9;
+    border: 1px solid #f1f1f1;
+    border-top: 1px solid transparent;
+    text-decoration: none;
+    background-color: #fff;
+}
+
+.eduzen .timeline .login-menu-button:hover,
+.eduzen .timeline .login-menu-button:focus {
+    border: 1px solid #0782C1;
+    border-top: 1px solid transparent;
+}
+
+.eduzen .timeline .login-menu-button.pressed:hover,
+.eduzen .timeline .login-menu-button.pressed:focus,
+.eduzen .timeline .login-menu-button.pressed {
+    background-color: #ffc700;
+    border: 1px solid #f1f1f1;
+    border-top: 1px solid transparent;
+    color: #fff;
+}
+
+.eduzen.guest .timeline.rendered div.about-login {
+    display: inline-block;
+    position: absolute;
+    top: 11px;
+    left: 120px;
+}
+
+.eduzen .timeline.rendered div.about-login,
+.eduzen .timeline.unrendered div.about-login {
+    display: none;
+}
+
+.eduzen .login-menu .message a,
+.eduzen div.about-login a {
+    background-color: transparent;
+    padding: 0px;
+}
+
+.eduzen .login-menu .message {
+    color: #a9a9a9;
+    margin-left: 5px;
+}
+
+.eduzen .login-menu .message.failed {
+    color: #ff0000;
+    font-weight: 900;
+}
+
+.eduzen .login-menu {
+    display: none;
+    position: absolute;
+    top: 1px;
+    left: 115px;
+    background: #fff;
+    z-index: 99;
+}
+
+.eduzen .timeline.unrendered .login-menu {
+    left: 95px;
+}
+
+.eduzen .login-menu input {
+    margin-left: 4px;
+}
+
+.eduzen #resource_input input.secret,
+.eduzen #resource_input input.username-input {
+    background-color: #fff;
+    margin-top: 10px;
+    margin-left: 20px;
+}
+
+.eduzen input.btn.login {
+    padding: 4px;
+}
+
+.eduzen input.secret,
+.eduzen input.username-input,
 .eduzen input.new-tag,
 .eduzen input.tag {
     padding-left: 7px;
@@ -658,7 +752,11 @@ input.cke_dialog_ui_input_text:focus {
     border-top: 1px solid #fff;
 }
 
-.eduzen .toolbar .btn.edit-item,
+/** .eduzen .btn.edit-item:hover  */
+.eduzen .toolbar .btn.edit-item {
+    text-decoration: underline;
+}
+
 .eduzen .toolbar .btn.add-tag {
     margin-left: 4px;
     border: 1px solid #f5f5f5;
@@ -666,7 +764,6 @@ input.cke_dialog_ui_input_text:focus {
 }
 
 .eduzen .btn.add-tag.selected,
-.eduzen .btn.edit-item:hover,
 .eduzen .btn.add-tag:hover,
 .eduzen .btn.vote:hover {
     background-color: #FFC700;
