@@ -81,7 +81,6 @@
         } else {
             setupGuestPage()
         }
-        setupCKEditor()
         showUserInfo()
         // render loaded resources in timeline
         showResultsetView()
@@ -99,6 +98,7 @@
         $('div.login-menu').hide()
         $('a.login-menu-button').hide()
         $('.eduzen .content-area input.submit.btn').bind('click', doSubmitResource)
+        setupCKEditor()
         showUserInfo()
     }
 
@@ -769,10 +769,8 @@
         if (!CKEDITOR.instances.hasOwnProperty('resource_input')) {
             CKEDITOR.inline( document.getElementById( 'resource_input' ) )
         }
-        if (CKEDITOR.instances.hasOwnProperty('resource_input')) {
-            // TODO: onclick enter show/hide virtual placeholder text
-            _this.ck = CKEDITOR.instances['resource_input']
-        } else {
+        // check if initialization was successfull
+        if (!CKEDITOR.instances.hasOwnProperty('resource_input')) {
             _this.renderNotification("Hinweis: Wir haben in diesem Web-Browser seit neuestem das Problem dir einen "
                 + " Rich-Text-Editor  zur Verfügung stellen. Wir arbeiten bereits an einer Lösung.   ",
                 500, UNDER_THE_TOP, "", 3000, undefined)

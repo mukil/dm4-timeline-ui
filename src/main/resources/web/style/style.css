@@ -348,6 +348,8 @@ textarea#math-input-dialog {
 .eduzen.info .content-area li a {
     text-decoration: underline;
     color: #0782C1;
+    border: 0px solid transparent;
+    padding: 0px;
 }
 
 .eduzen.info quote.big{
@@ -426,7 +428,7 @@ textarea#math-input-dialog {
 
 .eduzen .timeline .login-menu-button {
     position: absolute;
-    top: 0px;
+    top: 0px; left: 60px;
     padding: 7px;
     padding-top: 9px;
     color: #a9a9a9;
