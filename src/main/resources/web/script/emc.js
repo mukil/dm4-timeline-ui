@@ -123,7 +123,6 @@ function EMC (dmc, model) {
                 "role_1":{"topic_id":topic.id, "role_type_uri":"dm4.core.parent"},
                 "role_2":{"topic_id":userTopic.id, "role_type_uri":"dm4.core.child"}
             }
-            console.log("associated authorship for " + userTopic.value)
             var association = dmc.create_association(assocModel)
             if (association == undefined) throw new Error("Something mad happened.")
         } else {

@@ -98,6 +98,11 @@
     margin-top: 35px;
 }
 
+.eduzen div.math-output {
+    border: 1px solid #ffffff;
+    padding-left: 5px; padding-right: 5px;
+}
+
 .eduzen div.tag-list {
     margin-left: 0px;
     margin-top: 6px;
@@ -241,25 +246,32 @@
     background-color: #0782C1;
     color: #fff;
     /** border: 2px solid #a9a9a9; **/
-    margin-left: 5px;
-    /** border: 1px solid #343434; */
+    border: 1px solid #a9a9a9;
+    margin-right: -1px;
+    padding-left: 8px;
 }
 
 .eduzen a.btn.tag.selected .close {
     /** #0067c7 #2272AD; **/
-    /** padding: 4px;
-    border: 1px solid #a9a9a9; **/
-    background-color: #fff;
-    color: #fff;
+    /** padding: 4px; **/
+    border: 1px solid transparent;
+    background-color: transparent;
+    color: transparent;
     font-weight: bold;
-    position: relative;
-    left: 7px;
+    position: relative; left: 10px;
+    padding-left: 3px;
+    padding-right: 3px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    margin-right: 11px;
+    /** border-radius: 8px; */
 }
 
 .eduzen a.btn.tag.selected:hover .close,
 .eduzen a.btn.tag.selected .close:hover {
     /** background-color: transparent; */
-    color: #a9a9a9;
+    background-color: #fff;
+    color: #0782C1;
 }
 
 /** 1px design fix */
@@ -424,6 +436,10 @@ textarea#math-input-dialog {
     padding-top: 3px;
     padding-bottom: 3px;
     display: inline-block;
+}
+
+.eduzen .timeline.unrendered .login-menu-button {
+    left: 40px;
 }
 
 .eduzen .timeline .login-menu-button {

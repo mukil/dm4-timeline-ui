@@ -76,6 +76,7 @@
         setupMathJaxRenderer()
         setupTagFieldControls('input.tag')
         var status = checkLoggedInUser()
+        setDefaultWorkspaceCookie()
         if (status !== null) {
             setupUserPage()
         } else {
@@ -229,11 +230,14 @@
         var loggedIn = emc.getCurrentUser()
         if (loggedIn !== "") {
             _this.getLoggedInUserTopic(loggedIn)
-            var workspaceTopic = dmc.get_topic_by_value("uri", "de.workspaces.deepamehta")
-            js.set_cookie("dm4_workspace_id", workspaceTopic.id)
             return loggedIn
         }
         return null
+    }
+
+    this.setDefaultWorkspaceCookie = function () {
+        var workspaceTopic = dmc.get_topic_by_value("uri", "de.workspaces.deepamehta")
+        js.set_cookie("dm4_workspace_id", workspaceTopic.id)
     }
 
     this.getLoggedInUserTopic = function (username) {
@@ -337,8 +341,10 @@
             $('#resource_input').html(sourceData)
         }
         // tags are already setup for this resource
-        renderMathInArea("resource_input")
         quickfixPDFImageRendering() // hacketi hack
+        setTimeout(function() {
+            renderMathInArea('resource_input')
+        }, 100)
     }
 
     this.showDetailsView = function () {
@@ -762,7 +768,7 @@
         $input = $('#resource_input')
         $input.attr('contenteditable', true)
         $input.keyup(function (e) {
-            renderMathInArea(resource_input)
+            renderMathInArea('resource_input')
             return function (){}
         })
         // setup cK-editor (if not already present)
@@ -782,7 +788,7 @@
         MathJax.Hub.Config({
             "extensions": ["tex2jax.js", "mml2jax.js", "MathEvents.js", "MathZoom.js", "MathMenu.js", "toMathML.js",
             "TeX/noErrors.js","TeX/noUndefined.js","TeX/AMSmath.js","TeX/AMSsymbols.js", "FontWarnings.js"],
-            "jax": ["input/TeX", "output/SVG"], // "input/MathML", "output/HTML-CSS", "output/NativeMML"
+            "jax": ["input/TeX", "output/HTML-CSS"], // "input/MathML", , "output/NativeMML", "output/SVG"
             "tex2jax": {"inlineMath": [["$","$"],["\\(","\\)"]]},
             "menuSettings": {
                 "mpContext": true, "mpMouse": true, "zscale": "200%", "texHints": true
@@ -791,8 +797,8 @@
                 "message": ["[Math Error]"]
             },
             "displayAlign": "left",
-            "HTML-CSS": {"scale": 120},
-            "SVG": {"blacker": 8, "scale": 110},
+            "HTML-CSS": {"scale": 110},
+            // "SVG": {"blacker": 8, "scale": 110},
             "v1.0-compatible": false,
             "skipStartupTypeset": false,
             "elements": ["resource_input, math-live-preview, resources"]
@@ -806,6 +812,18 @@
     this.renderMathInArea = function (identifier) {
         // typeset all elements containing TeX to SVG or HTML in designated area
         MathJax.Hub.Queue(["Typeset", MathJax.Hub, identifier]);
+    }
+
+    this.updateFormulas = function () {
+        var formulas = MathJax.Hub.getAllJax()
+        console.log(formulas)
+        for (var els in formulas) {
+            var formula = formulas[els]
+            formula.needsUpdate()
+            formula.Rerender()
+            formula.needsUpdate()
+            console.log(formula)
+        }
     }
 
 
@@ -921,39 +939,35 @@
      *  to save math-formulas as source data in our database and not as rendered-html
      */
     this.getTeXAndHTMLSource = function (body) {
+
         var objects = $('.math-output', body)
+        var data = ""
         for (var i=0; i < objects.length; i++) {
             var div = objects[i]
             var containerId = div.id
-            var mathjaxId = $('script', div).attr('id')
-            // console.log("containerId: " + containerId + " mathjaxId: " + mathjaxId)
-            // var math = getInputSourceById(MathJax.Hub.getAllJax("MathDiv"), mathjaxId)
-            var math = $("#" + mathjaxId, body).text()
-            if ( math ) {
+            var source = div.getAttribute("data-tex")
+            if ( source ) {
                 // put latexSource into div-preview container before saving this data
-                $('#'+ containerId, body).html('<span class=\"math-preview\">$$ '+ math + ' $$</span>')
+                $('#'+ containerId, body).html('<div class=\"math-preview\">$$ '+ source + ' $$</div>')
             } else {
-                console.log("Not found.. ")
-                // ### prevent dialog from opening up
+                console.log("ERROR: MathJaxSourceNotFound for container => " + containerId + " and " + containerId)
+                // throw new Error ("MathJaxSourceNotFound for container => " + containerId)
             }
         }
         // var data = CKEDITOR.instances.resource_input.getData();
         // var data = $("" + body.innerHTML + "") // copy raw-data of ck-editor
-        // console.log(data)
+        data = body.innerHTML
         MathJax.Hub.Typeset() // typeset ck-editor again
-        return body.innerHTML
-
-            // duplicate helperfunction in mathjax/dialogs/mathjax.js
-            function getInputSourceById(id, body) {
-                return $("#" + id, body).value
-                /** for (obj in elements) {
-                    var element = elements[obj]
-                    console.log("element.inputID: " + element.inputID + " == " + id)
-                    if (element.inputID === id) return element
-                }**/
-                // return undefined
-            }
-
+        return data
+            /** duplicate helperfunction in mathjax/dialogs/mathjax.js
+            function getInputSourceById(id) {
+                var allJax = MathJax.Hub.getAllJax()
+                for (var obj in allJax) {
+                    var jaxElement = allJax[obj]
+                    if (jaxElement.inputID === id) return jaxElement.originalText
+                }
+                return null
+            } */
     }
 
     this.doSubmitResource = function () {
