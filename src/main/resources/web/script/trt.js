@@ -148,6 +148,32 @@
             var user = checkUserAuthorization() // login button handler
             if (user != null) setupUserPage()
         }
+
+        function checkUserAuthorization (id, secret) {
+            if (id === undefined && secret === undefined) {
+                id = $('input.username-input').val()
+                secret = $('input.secret').val()
+            }
+            try {
+                var authorization = authorization()
+                if (authorization === undefined) return null
+                // throws 401 if login fails
+                dmc.request("POST", "/accesscontrol/login", undefined, {"Authorization": authorization})
+                // _this.renderNotification("Session started. Have fun thinking and be nice!", OK, TIMELINE)
+                return _this.checkLoggedInUser()
+            } catch (e) {
+                $('div.login-menu .message').addClass("failed")
+                $('div.login-menu .message').text('Nutzername oder Passwort ist falsch.')
+                // _this.renderNotification("The application could not initiate a working session for you.", 403, TIMELINE)
+                // throw new Error("401 - Sorry, the application ccould not establish a user session.")
+                return null
+            }
+
+            /** Returns value for the "Authorization" header. */
+            function authorization() {
+                return "Basic " + btoa(id + ":" + secret)   // ### FIXME: btoa() might not work in IE
+            }
+        }
     }
 
     this.setupDetailView = function () {
@@ -162,22 +188,37 @@
             $editButton.show()
             $editButton.unbind('click')
             $editButton.val('Inhalt ändern')
-            $editButton.click(_this.setupEditDetailView) // edit button handler
+            $editButton.click(setupEditDetailView) // edit button handler
         } else {
             $('input.submit.btn').hide()
         }
         showUserInfo()
         showDetailsView()
-    }
 
-    this.setupEditDetailView = function () {
-        setupCKEditor()
-        showEditDetailsView()
-        // todo: add "cancel" button
-        var $save = $('input.submit.btn') // save button handler
-            $save.unbind('click')
-            $save.val("Änderungen speichern")
-            $save.click(_this.doSaveResource)
+        function setupEditDetailView () {
+            setupCKEditor()
+            showEditDetailsView()
+            // todo: add "cancel" button
+            var $save = $('input.submit.btn') // save button handler
+                $save.unbind('click')
+                $save.val("Änderungen speichern")
+                $save.click(_this.doSaveResource)
+        }
+
+        function showEditDetailsView () {
+            var sourceData = getTeXAndHTMLSource(document.getElementById("resource_input"))
+            // var data = _this.model.getCurrentResource().composite[NOTE_CONTENT_URI].value
+            // set content of resource
+            $('#resource_input').attr("contenteditable", true)
+            if (CKEDITOR.instances.hasOwnProperty('resource_input')) {
+                CKEDITOR.instances['resource_input'].setData(sourceData)
+            } else {
+                $('#resource_input').html(sourceData)
+            }
+            // tags are already setup for this resource
+            quickfixPDFImageRendering() // hacketi hack
+            setTimeout(function() { renderMathInArea('resource_input') }, 200)
+        }
     }
 
     this.setupTaggedTimeline = function () {
@@ -194,34 +235,6 @@
             // load all resources, could not identify any tag given
             loadAllResources()
         }
-    }
-
-    this.checkUserAuthorization = function(id, secret) {
-
-        if (id === undefined && secret === undefined) {
-            id = $('input.username-input').val()
-            secret = $('input.secret').val()
-        }
-        try {
-            var authorization = authorization()
-            if (authorization === undefined) return null
-            // throws 401 if login fails
-            dmc.request("POST", "/accesscontrol/login", undefined, {"Authorization": authorization})
-            // _this.renderNotification("Session started. Have fun thinking and be nice!", OK, TIMELINE)
-            return _this.checkLoggedInUser()
-        } catch (e) {
-            $('div.login-menu .message').addClass("failed")
-            $('div.login-menu .message').text('Nutzername oder Passwort ist falsch.')
-            // _this.renderNotification("The application could not initiate a working session for you.", 403, TIMELINE)
-            // throw new Error("401 - Sorry, the application ccould not establish a user session.")
-            return null
-        }
-
-        /** Returns value for the "Authorization" header. */
-        function authorization() {
-            return "Basic " + btoa(id + ":" + secret)   // ### FIXME: btoa() might not work in IE
-        }
-
     }
 
     this.checkLoggedInUser = function () {
@@ -328,23 +341,6 @@
             // update gui
             showResultsetView()
         })
-    }
-
-    this.showEditDetailsView = function () {
-        var sourceData = getTeXAndHTMLSource(document.getElementById("resource_input"))
-        // var data = _this.model.getCurrentResource().composite[NOTE_CONTENT_URI].value
-        // set content of resource
-        $('#resource_input').attr("contenteditable", true)
-        if (CKEDITOR.instances.hasOwnProperty('resource_input')) {
-            CKEDITOR.instances['resource_input'].setData(sourceData)
-        } else {
-            $('#resource_input').html(sourceData)
-        }
-        // tags are already setup for this resource
-        quickfixPDFImageRendering() // hacketi hack
-        setTimeout(function() {
-            renderMathInArea('resource_input')
-        }, 100)
     }
 
     this.showDetailsView = function () {
