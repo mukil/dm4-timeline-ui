@@ -101,6 +101,13 @@
 .eduzen div.math-output {
     border: 1px solid #ffffff;
     padding-left: 5px; padding-right: 5px;
+    cursor: hand;
+}
+
+.eduzen div.math-output:focus {
+    border: 2px solid #fff;
+    background-color: #12b4d7;
+    color: #fff;
 }
 
 .eduzen div.tag-list {
@@ -241,6 +248,10 @@
     margin-left: 5px;
 }
 
+.eduzen .buttons a.btn.tag.selected {
+    cursor: default;
+}
+
 .eduzen a.btn.tag.selected,
 #nav a.btn.sort.selected {
     background-color: #0782C1;
@@ -265,6 +276,7 @@
     padding-bottom: 1px;
     margin-right: 11px;
     /** border-radius: 8px; */
+    cursor: pointer;
 }
 
 .eduzen a.btn.tag.selected:hover .close,

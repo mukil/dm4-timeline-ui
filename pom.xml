@@ -12,9 +12,9 @@
 
     <parent>
         <groupId>de.deepamehta</groupId>
-        <artifactId>deepamehta-parent</artifactId>
-        <version>5</version>
-        <relativePath>../deepamehta/modules/dm4-parent/pom.xml</relativePath>
+        <artifactId>deepamehta-plugin-parent</artifactId>
+        <version>4.1.1-SNAPSHOT</version>
+        <relativePath>../deepamehta/modules/dm4-plugin-parent/pom.xml</relativePath>
     </parent>
 
 

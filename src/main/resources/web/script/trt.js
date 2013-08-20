@@ -13,8 +13,12 @@
     var NOTES_URI = "org.deepamehta.resources.resource" // fixme: doublings
     var NOTE_CONTENT_URI = "org.deepamehta.resources.content" // fixme: doublings
     var OK = 200
+    // Notification Areas
     var UNDER_THE_TOP = "message-top"
-    var TIMELINE = "message-timeline"
+    var TIMELINE_AREA = "message-timeline"
+    // Timeline Views Identifier
+    var FILTERED_TIMELINE = "filtered-timeline"
+    var FULL_TIMELINE = "timeline"
 
     /**
      *  Fixmes: adding Tag to resource which has none (no display update), adding tag to resource which has one adds
@@ -43,7 +47,6 @@
 
             // route to filtered timeline view
             var tags = attributes[3]
-                console.log(tags)
                 tags = (tags.indexOf('+') != -1) ? tags.split("+") : tags.split("%2B")
             // load all available tags into client-side first
             loadAllTags()
@@ -215,9 +218,20 @@
             } else {
                 $('#resource_input').html(sourceData)
             }
-            // tags are already setup for this resource
+            //
+            /** var $container = $('#resource_input .math-output')
+            $.each($container, function (e, item) {
+                //
+                console.log("registering click handler on item ... ")
+                item.click(function(e) {
+                    console.log(e)
+                    console.log(this)
+                    this.focus()
+                })
+            }) **/
+            // skip tags, they are already setup for this resource
             quickfixPDFImageRendering() // hacketi hack
-            setTimeout(function() { renderMathInArea('resource_input') }, 200)
+            setTimeout(function() {renderMathInArea('resource_input')}, 200)
         }
     }
 
@@ -579,7 +593,8 @@
                 showTagView()
                 // render tag specific timeline
                 showResultsetView()
-                _this.pushHistory("filteredTimeline", "Tagged Timeline", "/notes/tagged/" + _this.model.getTagFilterURI())
+                var view_state = { "name": FILTERED_TIMELINE, "data": _this.model.getTagFilter()}
+                _this.pushHistory(view_state, "Tagged Timeline", "/notes/tagged/" + _this.model.getTagFilterURI())
             })
             $parent.append($tag)
         }
@@ -645,7 +660,7 @@
         var $filterMeta = $('<span class="meta">'+ filterMessage +'</span>')
         var $filterButtons = $('<span class="buttons"></span>')
         for (var i=0; i < tags.length; i++) {
-            var $closeButton = $('<a id="' +tags[i].id+ '" class="close" title="Tag aus dem Filter nehmen">x</a>')
+            var $closeButton = $('<a id="' +tags[i].id+ '" class="close" title="Tag aus dem Filter entfernen">x</a>')
                 $closeButton.click(function (e) {
                     var tagId = parseInt(e.target.id)
                     var tag = _this.model.getTagById(tagId)
@@ -655,16 +670,31 @@
                     showTagView()
                     showResultsetView()
                     // move this
+                    var view_state = {}
                     if (_this.model.getTagFilter().length > 0) {
-                        _this.pushHistory("filteredTimeline", "Tagged Timeline", "/notes/tagged/" + _this.model.getTagFilterURI())
+                        view_state = { "name": FILTERED_TIMELINE, "data": _this.model.getTagFilter()}
+                        _this.pushHistory(view_state, "Tagged Timeline", "/notes/tagged/" + _this.model.getTagFilterURI())
                     } else {
-                        _this.pushHistory("timeline", "Research Notizen Timeline", "/notes/")
+                        view_state = { "name": FULL_TIMELINE, "data": []}
+                        _this.pushHistory(view_state, "Research Notizen Timeline", "/notes/")
                     }
                 })
             var $tagButton = $('<a class="btn tag selected">' +tags[i].value+ '</a>')
                 $tagButton.append($closeButton)
             $filterButtons.append($tagButton)
         }
+        $clearButton = $('<a class="btn" title="Alle Tags aus dem Filter entfernen">').html('Filter zur&uuml;cksetzen')
+        $clearButton.click(function(e) {
+            _this.model.setTagFilter([])
+            //
+            setupTaggedTimeline()
+            showTagfilterInfo()
+            showTagView()
+            showResultsetView()
+            var view_state = { "name": FULL_TIMELINE, "data": []}
+            _this.pushHistory(view_state, "Research Notizen Timeline", "/notes/")
+        })
+        $filterButtons.append($clearButton)
         $('.tag-filter-info').html($filterMeta).append($filterButtons)
 
         return null
@@ -827,16 +857,55 @@
     /** HTML5 History API utility methods **/
 
     this.registerHistoryStates = function () {
-        if (window.history && history.popState) window.addEventListener('popstate', _this.popHistory)
-        if (window.history && history.pushState) window.addEventListener('pushstate', _this.pushHistory)
+        if (window.history) window.addEventListener('popstate', _this.popHistory)
+        // if (window.history && window.history.pushState) window.addEventListener('pushstate', _this.pushHistory)
     }
 
-    this.popHistory = function (state) {
-        if (!window.history) return
-        // do handle pop events
-        console.log(state)
+    /** PopState Event Handler */
+    this.popHistory = function (pop) {
+
+        if (pop.state == null) {
+            // this event pops initially up in chromium-browsers
+            // the next 3 lines are therefore necessary to maintain-deep-linkin functionality for such browser
+            if (_this.model.getTagFilter()) {
+                // do not reset app model set during URL-initialization phase
+            } else {
+                // reset app-model
+                _this.model.setTagFilter([])
+            }
+            // render view
+            setupTaggedTimeline()
+            showTagfilterInfo()
+            showTagView()
+            showResultsetView()
+
+        } else if (pop.state.name == FILTERED_TIMELINE) {
+
+            // update app-model
+            _this.model.setTagFilter(pop.state.data)
+            // render view
+            setupTaggedTimeline()
+            showTagfilterInfo()
+            showTagView()
+            showResultsetView()
+
+        } else if (pop.state.name == FULL_TIMELINE) {
+
+            // update app-model
+            _this.model.setTagFilter([])
+            // render view
+            setupTaggedTimeline()
+            showTagfilterInfo()
+            showTagView()
+            showResultsetView()
+
+        } else {
+            console.log("unknown view.. ")
+            console.log(pop)
+        }
     }
 
+    /** Internal helper method to push view_state to the browser, if supported. */
     this.pushHistory = function (state, name, link) {
         if (!window.history) return
         var history_entry = {state: state, name: name, url: link}
@@ -940,11 +1009,11 @@
         var data = ""
         for (var i=0; i < objects.length; i++) {
             var div = objects[i]
-            var containerId = div.id
             var source = div.getAttribute("data-tex")
             if ( source ) {
                 // put latexSource into div-preview container before saving this data
-                $('#'+ containerId, body).html('<div class=\"math-preview\">$$ '+ source + ' $$</div>')
+                div.innerHTML = '<div class=\"math-preview\">$$ '+ source + ' $$</div>'
+                // $('#'+ containerId, body).html('<div class=\"math-preview\">$$ '+ source + ' $$</div>')
             } else {
                 console.log("ERROR: MathJaxSourceNotFound for container => " + containerId + " and " + containerId)
                 // throw new Error ("MathJaxSourceNotFound for container => " + containerId)
@@ -1002,7 +1071,7 @@
             }
         } else {
             _this.renderNotification("Wir werden nur unfreiwillig inhaltsfreie Beitr&auml;ge speichern.",
-                400, TIMELINE, '', 'slow')
+                400, TIMELINE_AREA, '', 'slow')
         }
         // unnecessary, just inserBefore the createResourceTopic at the top of our list
         // or better implement observables, a _this.model the ui can "bind" to
