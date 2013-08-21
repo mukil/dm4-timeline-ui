@@ -199,6 +199,7 @@
         showDetailsView()
 
         function setupEditDetailView () {
+            //
             setupCKEditor()
             showEditDetailsView()
             // todo: add "cancel" button
@@ -206,33 +207,35 @@
                 $save.unbind('click')
                 $save.val("Änderungen speichern")
                 $save.click(_this.doSaveResource)
+            //
+            function showEditDetailsView () {
+                var sourceData = getTeXAndHTMLSource(document.getElementById("resource_input"))
+                // var data = _this.model.getCurrentResource().composite[NOTE_CONTENT_URI].value
+                // set content of resource
+                $('#resource_input').attr("contenteditable", true)
+                if (CKEDITOR.instances.hasOwnProperty('resource_input')) {
+                    CKEDITOR.instances['resource_input'].setData(sourceData)
+                } else {
+                    $('#resource_input').html(sourceData)
+                }
+                //
+                /** var $container = $('#resource_input .math-output')
+                $.each($container, function (e, item) {
+                    //
+                    console.log("registering click handler on item ... ")
+                    item.click(function(e) {
+                        console.log(e)
+                        console.log(this)
+                        this.focus()
+                    })
+                }) **/
+                // skip tags, they are already setup for this resource
+                quickfixPDFImageRendering() // hacketi hack
+                // formula needs to be rendered to be edited..
+                setTimeout(function() {renderMathInArea('resource_input')}, 500)
+            }
         }
 
-        function showEditDetailsView () {
-            var sourceData = getTeXAndHTMLSource(document.getElementById("resource_input"))
-            // var data = _this.model.getCurrentResource().composite[NOTE_CONTENT_URI].value
-            // set content of resource
-            $('#resource_input').attr("contenteditable", true)
-            if (CKEDITOR.instances.hasOwnProperty('resource_input')) {
-                CKEDITOR.instances['resource_input'].setData(sourceData)
-            } else {
-                $('#resource_input').html(sourceData)
-            }
-            //
-            /** var $container = $('#resource_input .math-output')
-            $.each($container, function (e, item) {
-                //
-                console.log("registering click handler on item ... ")
-                item.click(function(e) {
-                    console.log(e)
-                    console.log(this)
-                    this.focus()
-                })
-            }) **/
-            // skip tags, they are already setup for this resource
-            quickfixPDFImageRendering() // hacketi hack
-            setTimeout(function() {renderMathInArea('resource_input')}, 200)
-        }
     }
 
     this.setupTaggedTimeline = function () {
@@ -793,10 +796,10 @@
         // mathjax preview handling
         $input = $('#resource_input')
         $input.attr('contenteditable', true)
-        $input.keyup(function (e) {
+        /** $input.keyup(function (e) {
             renderMathInArea('resource_input')
             return function (){}
-        })
+        })**/
         // setup cK-editor (if not already present)
         if (!CKEDITOR.instances.hasOwnProperty('resource_input')) {
             CKEDITOR.inline( document.getElementById( 'resource_input' ) )
@@ -865,9 +868,9 @@
     this.popHistory = function (pop) {
 
         if (pop.state == null) {
-            // this event pops initially up in chromium-browsers
+            // this event pops initially up in chromium-browsers and on returning to full timeline (after one click)
             // the next 3 lines are therefore necessary to maintain-deep-linkin functionality for such browser
-            if (_this.model.getTagFilter()) {
+            if (_this.model.getTagFilter() != undefined) {
                 // do not reset app model set during URL-initialization phase
             } else {
                 // reset app-model
