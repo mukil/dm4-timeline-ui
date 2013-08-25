@@ -1,9 +1,80 @@
 function EMC (dmc, model) {
 
-
     var _this = this
+        _this.model = model
+
+    var TAG_URI = "dm4.tags.tag" // fixme: doublings
+    var NOTES_URI = "org.deepamehta.resources.resource" // fixme: doublings
 
     /** RESTful utility methods for the trt-views **/
+
+    this.loadAllResources = function (limit) { // lazy, unsorted, possibly limited
+        //
+        var all_resources = dmc.get_topics(NOTES_URI, true, true, limit).items
+        if (all_resources.length > 0) {
+            _this.model.setAvailableResources(all_resources)
+        } else {
+            _this.model.setAvailableResources([])
+        }
+    }
+
+    this.loadAllContributions = function (userId) { // lazy, unsorted, possibly limited
+        //
+        var all_contributions = dmc.request("GET", "/notes/fetch/contributions/" + userId).items
+        if (all_contributions.length > 0) {
+            console.log("loaded " +all_contributions.length+ " personal contributions")
+            _this.model.setAvailableResources(all_contributions)
+        } else {
+            _this.model.setAvailableResources([])
+        }
+    }
+
+    this.loadResourceById = function (id) { // lazy, unsorted, possibly limited
+        //
+        var resource = dmc.get_topic_by_id(id, true)
+        if (resource != undefined) {
+            _this.model.setCurrentResource(resource)
+        } else {
+            throw new Error("Something mad happend while loading resource.")
+        }
+    }
+
+    this.loadAllResourcesByTagId = function (tagId) { // lazy, unsorted, possibly limited
+        //
+        var all_tagged_resources = dmc.request("GET", "/tag/" +tagId+ "/" +NOTES_URI+ "/").items
+        if (all_tagged_resources.length > 0) {
+            // overriding previously set resultlist
+            _this.model.setAvailableResources(all_tagged_resources)
+        } else {
+            _this.model.setAvailableResources([])
+        }
+    }
+
+    this.loadAllResourcesByTags = function (tagList) { // lazy, unsorted, possibly limited
+        //
+        var all_tagged_resources = dmc.request("POST",
+            "/tag/by_many/org.deepamehta.resources.resource", tagList).items
+        if (all_tagged_resources != undefined) {
+            if (all_tagged_resources.length > 0) {
+                // overriding previously set resultlist
+                _this.model.setAvailableResources(all_tagged_resources)
+            } else {
+                _this.model.setAvailableResources([])
+            }
+        } else {
+            console.log(all_tagged_resources)
+        }
+    }
+
+    this.loadAllTags = function (limit) { // lazy, unsorted, possibly limited
+        //
+        var all_tags = dmc.get_topics(TAG_URI, false, false, limit).items
+        if (all_tags.length > 0) {
+            _this.model.setAvailableTags(all_tags)
+        } else {
+            _this.model.setAvailableTags([])
+        }
+    }
 
     this.createResourceTopic = function(value, tagsToCreate) {
 
@@ -140,6 +211,15 @@ function EMC (dmc, model) {
             var association = dmc.create_association(assocModel)
             if (association == undefined) throw new Error("Something mad happened.")
         }
+    }
+
+    this.getFirstRelatedCreator= function(topicId) {
+        var filter = {
+            "assoc_type_uri" : "org.deepamehta.resources.creator_edge",
+            "others_topic_type_uri" : "dm4.accesscontrol.user_account"
+        }
+        var creator = dmc.get_topic_related_topics(topicId, filter)
+        return (creator.items.length > 0) ? creator.items[0] : null
     }
 
     this.getCurrentUserTopic = function () {

@@ -17,6 +17,7 @@
     var UNDER_THE_TOP = "message-top"
     var TIMELINE_AREA = "message-timeline"
     // Timeline Views Identifier
+    var PERSONAL_TIMELINE = "personal-timeline"
     var FILTERED_TIMELINE = "filtered-timeline"
     var FULL_TIMELINE = "timeline"
 
@@ -34,14 +35,19 @@
         var attributes = pathname.split('/')
         var noteId = attributes[2]
         // route to distinct views
+        var view_state = undefined
+        //
         if (noteId === undefined || noteId === "") {
 
             // load all available tags
-            loadAllTags()
+            emc.loadAllTags()
             // and resources
-            loadAllResources()
+            emc.loadAllResources()
             // route to main/ timeline view
             setupView()
+            //
+            view_state = {"name": FULL_TIMELINE, "data": {"tags": [], "userid": 0}}
+            _this.pushHistory(view_state, "Research Notizen Timeline", "/notes/")
 
         } else if (noteId === "tagged") {
 
@@ -49,7 +55,7 @@
             var tags = attributes[3]
                 tags = (tags.indexOf('+') != -1) ? tags.split("+") : tags.split("%2B")
             // load all available tags into client-side first
-            loadAllTags()
+            emc.loadAllTags()
             // get tag id/s on client-side first
             var selectedTag = undefined
             for (var i=0; i < tags.length; i++) {
@@ -57,13 +63,30 @@
                 selectedTag = _this.model.getTagByName(label)
                 if (selectedTag != undefined) _this.model.addTagToFilter(selectedTag)
             }
-            setupTaggedTimeline()
+            setupTimeline()
             setupView()
+            view_state = {"name": FILTERED_TIMELINE, "data": {"tags": _this.model.getTagFilter(), "userid": 0}}
+            _this.pushHistory(view_state, "Tagged Timeline", "/notes/tagged/" + _this.model.getTagFilterURI())
+
+        } else if (noteId === "user") {
+
+            // fixme: probably we need to load all available tags now for proper app-boot into the client-side model
+            emc.loadAllTags()
+            // now route to user timeline
+            var userId = attributes[3]
+            var user = dmc.get_topic_by_id(userId, true)
+            // load all resources for this user
+            emc.loadAllContributions(userId)
+            //
+            setupView(user)
+            //
+            view_state = {"name": PERSONAL_TIMELINE, "data": {"tags": [], "userid": userId}}
+            _this.pushHistory(view_state, "Personal Timeline", "/notes/user/" + userId)
 
         } else {
 
             // initialize page-view model
-            loadResourceById(noteId)
+            emc.loadResourceById(noteId)
             // route to detail view
             setupDetailView()
             // fixme: historyApi // _this.pushHistory("detailView", "Note Info: " + noteId, "/notes/" + noteId)
@@ -73,13 +96,14 @@
 
     /** Initializing our interactive page. */
 
-    this.setupView = function () {
+    this.setupView = function (user) {
         skrollr.init({forceHeight: false})
         registerHistoryStates()
         setupMathJaxRenderer()
         setupTagFieldControls('input.tag')
         var status = checkLoggedInUser()
         setDefaultWorkspaceCookie()
+        //
         if (status !== null) {
             setupUserPage()
         } else {
@@ -88,12 +112,52 @@
         showUserInfo()
         // render loaded resources in timeline
         showResultsetView()
-        // render tag specific filter-info header
-        showTagfilterInfo()
-        // render avaialble tag-filter buttons
-        showTagView()
+        if (user) {
+            // console.log("we should render the personal timeline of ... " + user.value)
+            setupFrontpageButton()
+            // instead of / into span.tag-filter-info area
+            // and hideTagView() resp. .eduzen .rendered #nav.info completeyl.
+            // overrideTagViewLabel("Timeline von ... ")
+            showTagfilterInfo() // to clear tag-filter-info view (if this is called after from a filtered-timeline)
+            $('.eduzen .rendered #nav.info').hide()
+            $('.eduzen.notes').addClass('personal')
+            // fixme: showHomeButton()
+        } else {
+            hideFrontpageButton()
+            $('.eduzen.notes').removeClass('personal')
+            // $('.eduzen .rendered #nav.info').show()
+            // render tag specific filter-info header
+            showTagfilterInfo()
+            // render avaialble tag-filter buttons
+            showTagView()
+        }
         // setup page-controls
         setupPageControls()
+
+    }
+
+    this.setupFrontpageButton = function () {
+        var $homeButton = $('<a class="home-menu-button btn" title="Go to shared main timeline">Timeline</a>')
+            $homeButton.click(function (e) {
+                // fixme: make some internal gui foo
+                hideFrontpageButton()
+                $('.eduzen.notes').removeClass('personal')
+                // prepare model
+                _this.model.setTagFilter([])
+                // init model again, fixme: we should build upon existing, if not modified)
+                setupTimeline()
+                showTagfilterInfo()
+                showTagView()
+                showResultsetView()
+                //
+                var view_state = {"name": FULL_TIMELINE, "data": {"tags": [], "userid": 0}}
+                _this.pushHistory(view_state, "Research Notizen Timeline", "/notes/")
+            })
+            $homeButton.insertBefore('a.login-menu-button')
+    }
+
+    this.hideFrontpageButton = function () {
+        $('#menu .home-menu-button').remove()
     }
 
     this.setupUserPage = function() {
@@ -142,6 +206,7 @@
                 + '<a href="http://www.eduzen.tu-berlin.de/zur-notizen-webanwendung#account">Account?</a>'
                 + '</span>')
         $($menuToggle).insertBefore('a#info')
+        // fixme: perform existing check here.. getting added on and on and on..
         $('<div class="about-login">Um Beitr&auml;ge zu verfassen musst du eingeloggt sein. Einen Account bekommst du '
             + '<a href="http://www.eduzen.tu-berlin.de/zur-notizen-webanwendung#account">hier</a>.</div>')
         .insertAfter('a.login-menu-button')
@@ -196,7 +261,7 @@
             $('input.submit.btn').hide()
         }
         showUserInfo()
-        showDetailsView()
+        showDetailView()
 
         function setupEditDetailView () {
             //
@@ -238,19 +303,19 @@
 
     }
 
-    this.setupTaggedTimeline = function () {
+    this.setupTimeline = function () {
         // finally request resources (by tagIds) for a tag-specific timeline
         if (_this.model.getTagFilter().length > 1) {
             // for more than 1 tag
             var parameter = {tags: _this.model.getTagFilter()}
-            loadAllResourcesByTags(parameter)
+            emc.loadAllResourcesByTags(parameter)
         } else if (_this.model.getTagFilter().length == 1) {
             // for exactly 1 tag
             var selectedTag = _this.model.getTagFilter()[0]
-            loadAllResourcesByTagId(selectedTag.id)
+            emc.loadAllResourcesByTagId(selectedTag.id)
         } else {
             // load all resources, could not identify any tag given
-            loadAllResources()
+            emc.loadAllResources()
         }
     }
 
@@ -282,12 +347,15 @@
         if (name === undefined) {
             $username.text('Willkommen')
         } else {
-            $username.text('Willkommen ' + name)
-            var $logout = $('<a class="btn logout">(Logout)</a>')
+            var user = _this.model.getCurrentUserTopic()
+            $username.html('Willkommen <a class="btn my" href="/notes/user/'+user.id+'" title="Meine Timeline">' + name+ '</a>')
+            var $logout = $('<a class="btn logout" title="Session beenden">(Logout)</a>')
             $logout.click(function (e) {
 
                 try {
                     var loggedOut = emc.logout()
+                    // fixme: normally, a catch is a sucessfull logout, isnt it? double check, cant remember
+                    // hint: when does this happen?
                     if ($('body.eduzen.note').length > 0) {
                         console.log("in detail view, routing back to timeline..")
                         if (loggedOut) window.location.href = "/notes/"
@@ -295,6 +363,9 @@
                         if (loggedOut) setupGuestPage()
                     }
                 } catch (e) {
+                     // fixme: normally, a catch is a sucessfull logout.
+                    _this.model.setCurrentUserTopic(undefined)
+                    _this.model.setCurrentUsername(undefined)
                     $("body").text("You're logged out now.")
                 }
 
@@ -360,18 +431,25 @@
         })
     }
 
-    this.showDetailsView = function () {
+    this.showDetailView = function () {
 
         $('#resource_input').attr("contenteditable", false)
         // set content of resource
         // fixme: catch notes without content
         $('#resource_input').html(_this.model.getCurrentResource().composite[NOTE_CONTENT_URI].value)
+        var creator = emc.getFirstRelatedCreator(_this.model.getCurrentResource().id)
+        var creator_name = (creator == null) ? "Anonymous" : creator.value
+        var creator_link = '<a title="Besuche '+creator_name+'s Timeline" href="/notes/user/' +creator.id+ '">'+creator_name+'</a>'
+        //
         var created_at = new Date(_this.model.getCurrentResource().composite[CREATED_AT_URI].value)
         var last_modified_at  = new Date(_this.model.getCurrentResource().composite[LAST_MODIFIED_URI].value)
         if (created_at) {
             $('b.header-title').text(
                 created_at.getDate() + "." + dict.monthNames[created_at.getMonth()] +" "+ created_at.getFullYear()
             )
+        }
+        if (creator_link) {
+            $('.content-area .creator').html(creator_link)
         }
         if (last_modified_at) {
             $('b.header-title').append(', <b class="label">zuletzt bearbeitet am</b> ' +
@@ -398,6 +476,7 @@
         // a) load the latest 30 resources b) load the 30 most popular resources
         // c) load all resources with _one_ given tag d) load all resources with _two_ given tags
         // e) load all resources with _three_ given tags
+        console.log("rendering new resultset-view with " + _this.model.getAvailableResources().length + " items")
 
         $('div.results').html('<br/><br/><b class="label">Calculating results</b>')
         if (_this.model.getAvailableResources().length > 0) {
@@ -422,7 +501,7 @@
         //
         var $resultlist = $('<ul class="list">')
         $.each(results, function (e, item) {
-            $topic = setupResultListItem(item)
+            var $topic = setupResultListItem(item)
             $resultlist.append($topic)
         })
         $('div.results').html($resultlist)
@@ -456,15 +535,32 @@
         var $topic = $("li#" + item.id) // we have an id triple in this "component"
         if ($topic.length <= 0) $topic = $('<li id="' +item.id+ '">') // create the new gui-"component"
 
-        var headline = 'Dieser Beitrag wurde eingereicht am  ' + title.getDate() + '.'
+        var creator = emc.getFirstRelatedCreator(item.id)
+        var creator_name = (creator == null) ? "Anonymous" : creator.value
+        var $creator_link = $('<a id="user-' +creator.id+ '" title="Zeige '+creator_name+'s Timeline" class="profile btn"></a>')
+            $creator_link.text(creator_name)
+            $creator_link.click(function(e) {
+                // console.log("creatorId => " + creator.id)
+                // var userId = e.target.id.substr(5)
+                var userId = creator.id
+                _this.model.setTagFilter([])
+                emc.loadAllContributions(userId)
+                // showResultsetView()
+                // showTagView()
+                var view_state = {"name": PERSONAL_TIMELINE, "data": {"tags": _this.model.getTagFilter(), "userid": userId}}
+                _this.pushHistory(view_state, "Personal Timeline", "/notes/user/" + userId)
+                setupView(creator) // fixme: setup without tag-filter-dialog
+            })
+
+        var headline = 'Bewertung: <span class="score-info">' + score + '</span><span class="creation-date">Erstellt am ' + title.getDate() + '.'
                 + dict.monthNames[title.getMonth()] + ' ' + title.getFullYear() + ' um ' + title.getHours() + ':'
-                + title.getMinutes() + ' Uhr, hat eine Bewertung von <span class="score-info">' + score + '</span> '
+                + title.getMinutes() + ' Uhr</span>'
 
         var $body = $('<div class="item-content">' + content + '</div>');
         // bottom area, tag and score info area
         var $toolbar = $('<div class="toolbar"></div>')
         // tag info area
-        var $tagInfo = $('<span>und folgende Tags: </span>')
+        var $tagInfo = $('<span>Tags: </span>')
             renderTagInfo($tagInfo, tags)
         // create edit and add buttons per result-list item
         var $addDialog = $('<div class="add-tag-dialog"></div>')
@@ -501,7 +597,7 @@
                         // fixme: update just the edited item in result-set
                         showTagView()
                         setupResultListItem(item)
-                        renderMathInArea(item.id)
+                        // renderMathInArea(item.id)
                         // showResultsetView()
                         // update gui, remove dialog
                         $addDialog.remove()
@@ -519,7 +615,7 @@
                 setupTagFieldControls('li#' +clickedListItem+ ' .toolbar div.add-tag-dialog input.new-tag')
                 $addDialog.show("slow")
             })
-        var $edit = $('<a class="edit-item btn" href="/notes/'+item.id+'">zur Detailansicht dieses Beitrags.</a>')
+        var $edit = $('<a class="edit-item btn" href="/notes/'+item.id+'">zur Detailansicht dieses Beitrags</a>.')
         // score info area
         var $votes = $('<div class="votes">Bewerte diesen Inhalt </div>')
         var $upvote = $('<a id="' +item.id+ '" class="btn vote">+</a>') // we have an id triple in this "component"
@@ -534,7 +630,7 @@
                     _this.model.setAvailableResources(getHighestResources())
                 }
                 setupResultListItem(updatedTopic)
-                renderMathInArea(item.id)
+                // renderMathInArea(item.id)
                 // showResultsetView()
             })
         var $downvote = $('oder <a id="' +item.id+ '" class="btn vote">-</a>') // id triple in this "component"
@@ -549,7 +645,7 @@
                     _this.model.setAvailableResources(getHighestResources())
                 }
                 setupResultListItem(updatedTopic)
-                renderMathInArea(item.id)
+                // renderMathInArea(item.id)
                 // showResultsetView()
             })
 
@@ -559,9 +655,9 @@
         $toolbar.append($edit)
         // $toolbar.append($tagInfo)
 
-        $topic.html(headline).append($body).append($votes).append($toolbar)
+        $topic.html($votes).append($toolbar).append($body).append('Autor: ').append($creator_link).append(headline)
         // out tag listing before body
-        if (tags.length > 0) $tagInfo.insertBefore($body)
+        if (tags.length > 0) $tagInfo.insertAfter($creator_link)
         return $topic
 
         function renderTagInfo($tagInfoArea, givenTags) {
@@ -570,7 +666,7 @@
                 // use tag icon..
                 $tagInfoArea.append('<i class="tag">' +givenTags[ri].value+ '</i>')
                 commaCounter++
-                if (commaCounter < givenTags.length) $tagInfoArea.append(', ')
+                (commaCounter < givenTags.length) ? $tagInfoArea.append(', ') : $tagInfoArea.append('&nbsp;&nbsp;&nbsp;')
             }
         }
     }
@@ -589,14 +685,14 @@
                 // add topic for clicked tag-button to our client side filter _this.model
                 var selectedTag = _this.model.getTagById(tagId)
                 _this.model.addTagToFilter(selectedTag)
-                setupTaggedTimeline()
-                // render tag specific filter-info header
+                setupTimeline()
+                // update filter-info view to be filter-specific
                 showTagfilterInfo()
-                // render filter specific tag-view
+                // update tag-view to be filter-specific
                 showTagView()
                 // render tag specific timeline
                 showResultsetView()
-                var view_state = { "name": FILTERED_TIMELINE, "data": _this.model.getTagFilter()}
+                var view_state = {"name": FILTERED_TIMELINE, "data": {"tags": _this.model.getTagFilter(), "userid": 0}}
                 _this.pushHistory(view_state, "Tagged Timeline", "/notes/tagged/" + _this.model.getTagFilterURI())
             })
             $parent.append($tag)
@@ -616,7 +712,8 @@
             tagsToShow = getAllTagsInCurrentResults()
             tagsToShow = sliceAboutFilteredTags(tagsToShow)
         }
-
+        // in any case, show tag-view area
+        $('.eduzen .rendered #nav.info').show()
         // render ui/dialog
         if (tagsToShow.length > 0) {
 
@@ -628,6 +725,7 @@
                 $('div.timeline .info').append($tagview)
             } else {
                 // clean up ui/dialog
+                // $('div.timeline .info').empty()
                 $('div.timeline .info div.tag-list a').remove()
                 $tagview = $('div.timeline .info div.tag-list')
             }
@@ -642,6 +740,18 @@
             $('div.timeline .info div.tag-list').hide()
         }
 
+    }
+
+    /** this.overrideTagViewLabel = function (html) {
+        $('div.timeline .info div.tag-list span.label').html(html)
+    }
+
+    this.hideTagView = function () {
+        $('div.timeline .info div.tag-list a').hide()
+    } **/
+
+    this.emptyTagfilterInfo = function () {
+        $('.tag-filter-info').empty()
     }
 
     this.showTagfilterInfo = function () {
@@ -668,17 +778,17 @@
                     var tagId = parseInt(e.target.id)
                     var tag = _this.model.getTagById(tagId)
                     _this.model.removeTagFromFilter(tag)
-                    setupTaggedTimeline()
+                    setupTimeline()
                     showTagfilterInfo()
                     showTagView()
                     showResultsetView()
                     // move this
                     var view_state = {}
                     if (_this.model.getTagFilter().length > 0) {
-                        view_state = { "name": FILTERED_TIMELINE, "data": _this.model.getTagFilter()}
+                        view_state = {"name": FILTERED_TIMELINE, "data": {"tags": _this.model.getTagFilter(), "userid": 0}}
                         _this.pushHistory(view_state, "Tagged Timeline", "/notes/tagged/" + _this.model.getTagFilterURI())
                     } else {
-                        view_state = { "name": FULL_TIMELINE, "data": []}
+                        view_state = {"name": FULL_TIMELINE, "data": {"tags": [], "userid": 0}}
                         _this.pushHistory(view_state, "Research Notizen Timeline", "/notes/")
                     }
                 })
@@ -686,17 +796,18 @@
                 $tagButton.append($closeButton)
             $filterButtons.append($tagButton)
         }
-        $clearButton = $('<a class="btn" title="Alle Tags aus dem Filter entfernen">').html('Filter zur&uuml;cksetzen')
-        $clearButton.click(function(e) {
-            _this.model.setTagFilter([])
-            //
-            setupTaggedTimeline()
-            showTagfilterInfo()
-            showTagView()
-            showResultsetView()
-            var view_state = { "name": FULL_TIMELINE, "data": []}
-            _this.pushHistory(view_state, "Research Notizen Timeline", "/notes/")
-        })
+        var $clearButton = $('<a class="btn" title="Alle Tags aus dem Filter entfernen">').html('Filter zur&uuml;cksetzen')
+            $clearButton.click(function(e) {
+                // prepare model
+                _this.model.setTagFilter([])
+                // init model again, fixme: we should build upon existing, if not modified)
+                setupTimeline()
+                showTagfilterInfo()
+                showTagView()
+                showResultsetView()
+                var view_state = {"name": FULL_TIMELINE, "data": {"tags": [], "userid": 0}}
+                _this.pushHistory(view_state, "Research Notizen Timeline", "/notes/")
+            })
         $filterButtons.append($clearButton)
         $('.tag-filter-info').html($filterMeta).append($filterButtons)
 
@@ -868,26 +979,18 @@
     this.popHistory = function (pop) {
 
         if (pop.state == null) {
+            // fixme:
             // this event pops initially up in chromium-browsers and on returning to full timeline (after one click)
             // the next 3 lines are therefore necessary to maintain-deep-linkin functionality for such browser
-            if (_this.model.getTagFilter() != undefined) {
-                // do not reset app model set during URL-initialization phase
-            } else {
-                // reset app-model
-                _this.model.setTagFilter([])
-            }
-            // render view
-            setupTaggedTimeline()
-            showTagfilterInfo()
-            showTagView()
-            showResultsetView()
+            // these 2 cases can just be distinct by current url
+            // if "/notes/tagged/" is set its a deep link else its a (resetting) back
 
         } else if (pop.state.name == FILTERED_TIMELINE) {
 
             // update app-model
-            _this.model.setTagFilter(pop.state.data)
+            _this.model.setTagFilter(pop.state.data.tags)
             // render view
-            setupTaggedTimeline()
+            setupTimeline()
             showTagfilterInfo()
             showTagView()
             showResultsetView()
@@ -897,10 +1000,21 @@
             // update app-model
             _this.model.setTagFilter([])
             // render view
-            setupTaggedTimeline()
+            setupTimeline()
             showTagfilterInfo()
             showTagView()
             showResultsetView()
+
+        } else if (pop.state.name == PERSONAL_TIMELINE) {
+
+            var userId = pop.state.data.userid
+            // fixme: re-set tagfilter..
+            _this.model.setTagFilter([])
+            showTagfilterInfo() // renders it empty
+            // render personal timeline-view
+            emc.loadAllContributions(userId)
+            var user = dmc.get_topic_by_id(userId, true)
+            setupView(user)
 
         } else {
             console.log("unknown view.. ")
@@ -1078,8 +1192,8 @@
         }
         // unnecessary, just inserBefore the createResourceTopic at the top of our list
         // or better implement observables, a _this.model the ui can "bind" to
-        loadAllResources()
-        loadAllTags()
+        emc.loadAllResources()
+        emc.loadAllTags()
         showResultsetView()
         showTagView()
     }
@@ -1113,65 +1227,6 @@
         } else {
             _this.renderNotification("Wir werden nur unfreiwillig inhaltsfreie Postings speichern.",
                 400, UNDER_THE_TOP, '', 'slow')
-        }
-    }
-
-    this.loadAllTags = function (limit) { // lazy, unsorted, possibly limited
-        //
-        var all_tags = dmc.get_topics(TAG_URI, false, false, limit).items
-        if (all_tags.length > 0) {
-            _this.model.setAvailableTags(all_tags)
-        } else {
-            _this.model.setAvailableTags([])
-        }
-    }
-
-    /** Some methods to load resources from the server-side. */
-
-    this.loadAllResources = function (limit) { // lazy, unsorted, possibly limited
-        //
-        var all_resources = dmc.get_topics(NOTES_URI, true, true, limit).items
-        if (all_resources.length > 0) {
-            _this.model.setAvailableResources(all_resources)
-        } else {
-            _this.model.setAvailableResources([])
-        }
-    }
-
-    this.loadResourceById = function (id) { // lazy, unsorted, possibly limited
-        //
-        var resource = dmc.get_topic_by_id(id, true)
-        if (resource != undefined) {
-            _this.model.setCurrentResource(resource)
-        } else {
-            throw new Error("Something mad happend while loading resource.")
-        }
-    }
-
-    this.loadAllResourcesByTagId = function (tagId) { // lazy, unsorted, possibly limited
-        //
-        var all_tagged_resources = dmc.request("GET", "/tag/" +tagId+ "/org.deepamehta.resources.resource/").items
-        if (all_tagged_resources.length > 0) {
-            // overriding previously set resultlist
-            _this.model.setAvailableResources(all_tagged_resources)
-        } else {
-            _this.model.setAvailableResources([])
-        }
-    }
-
-    this.loadAllResourcesByTags = function (tagList) { // lazy, unsorted, possibly limited
-        //
-        var all_tagged_resources = dmc.request("POST",
-            "/tag/by_many/org.deepamehta.resources.resource", tagList).items
-        if (all_tagged_resources != undefined) {
-            if (all_tagged_resources.length > 0) {
-                // overriding previously set resultlist
-                _this.model.setAvailableResources(all_tagged_resources)
-            } else {
-                _this.model.setAvailableResources([])
-            }
-        } else {
-            console.log(all_tagged_resources)
         }
     }
 

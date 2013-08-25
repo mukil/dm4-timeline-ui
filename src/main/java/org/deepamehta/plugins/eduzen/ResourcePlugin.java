@@ -45,6 +45,13 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     private final static String RESOURCE_LICENSE_UNKNOWN_URI = "org.deepamehta.licenses.unknown";
     private final static String RESOURCE_LICENSE_AREA_URI = "org.deepamehta.resources.license_jurisdiction";
 
+    private final static String CREATOR_EDGE_URI = "org.deepamehta.resources.creator_edge";
+    private final static String CONTRIBUTOR_EDGE_URI = "org.deepamehta.resources.contributor_edge";
+    private final static String CHILD_TYPE_URI = "dm4.core.child";
+    private final static String PARENT_TYPE_URI = "dm4.core.parent";
+    private final static String DEFAULT_ROLE_TYPE_URI = "dm4.core.default";
+    private final static String ACCOUNT_TYPE_URI = "dm4.accesscontrol.user_account";
+
     @Override
     public void init() {
         setupRenderContext();
@@ -128,18 +135,60 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
      */
 
     @GET
-    @Path("/fetch/20/{from}")
+    @Path("/fetch/{count}/{offset}")
     @Produces("application/json")
     @Override
-    public ResultSet<RelatedTopic> getAllResources(@PathParam("from") long from, @HeaderParam("Cookie") ClientState clientState) {
+    public ResultSet<RelatedTopic> getResources(@PathParam("count") long size, @PathParam("offset") long from,
+            @HeaderParam("Cookie") ClientState clientState) {
+        //
         ResultSet<RelatedTopic> all_results = new ResultSet<RelatedTopic>();
         try {
             all_results = dms.getTopics(RESOURCE_URI, true, 0, clientState);
-            log.info("tag has " +all_results.getSize()+ " resources..");
+            log.info("fetching " +all_results.getSize()+ " resources..");
+            // fixme: we cannot just enrich the model of a topic before it goes over the wire (at least not this way)
+            /** for (RelatedTopic result : all_results) {
+                //
+                log.info("Trying to enrich resource-model on the fly about creator information.. ");
+                Topic creator = fetchCreator(result);
+                result.getCompositeValue().getModel().put("org.deepamehta.resources.creator", creator.getModel());
+
+            } **/
             return all_results;
         } catch (Exception e) {
             throw new WebApplicationException(new RuntimeException("something went wrong", e));
         }
+    }
+
+    @GET
+    @Path("/fetch/contributions/{userId}")
+    @Produces("application/json")
+    public ResultSet<RelatedTopic> getContributedResources(@PathParam("userId") long userId,
+            @HeaderParam("Cookie") ClientState clientState) {
+        //
+        try {
+            Topic user  = dms.getTopic(userId, true, clientState);
+            ResultSet<RelatedTopic> all_results = fetchAllContributionsByUser(user);
+            log.info("fetching " +all_results.getSize()+ " contributions by user " + user.getSimpleValue());
+            return all_results;
+        } catch (Exception e) {
+            throw new WebApplicationException(new RuntimeException("something went wrong", e));
+        }
+    }
+
+    private Topic fetchCreator(Topic resource) {
+        //
+        return resource.getRelatedTopic(CREATOR_EDGE_URI, PARENT_TYPE_URI,
+                CHILD_TYPE_URI, ACCOUNT_TYPE_URI, true, false, null);
+    }
+
+    private ResultSet<RelatedTopic> fetchAllContributionsByUser(Topic user) {
+        //
+        ResultSet<RelatedTopic> all_resources = null;
+        all_resources = user.getRelatedTopics(CREATOR_EDGE_URI, CHILD_TYPE_URI,
+                PARENT_TYPE_URI, RESOURCE_URI, true, false, 0, null);
+        all_resources.addAll(user.getRelatedTopics(CONTRIBUTOR_EDGE_URI, CHILD_TYPE_URI,
+                PARENT_TYPE_URI, RESOURCE_URI, true, false, 0, null));
+        return all_resources;
     }
 
     @GET
@@ -161,7 +210,17 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Produces("text/html")
     public Viewable getFilteredeTimelineView(@PathParam("tags") String tagFilter,
         @HeaderParam("Cookie") ClientState clientState) {
-        context.setVariable("tags", tagFilter);
+        // context.setVariable("tags", tagFilter);
+        // context.setVariable("posterText", "<p>Hallo Welt this is fat, sick and clickable yo!</p>");
+        return view("index");
+    }
+
+    @GET
+    @Path("/user/{userId}")
+    @Produces("text/html")
+    public Viewable getPersonalTimelineView(@PathParam("userId") long userId,
+        @HeaderParam("Cookie") ClientState clientState) {
+        // context.setVariable("tags", tagFilter);
         // context.setVariable("posterText", "<p>Hallo Welt this is fat, sick and clickable yo!</p>");
         return view("index");
     }
