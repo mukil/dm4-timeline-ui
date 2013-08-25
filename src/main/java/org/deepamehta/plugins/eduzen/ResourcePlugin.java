@@ -26,6 +26,8 @@ import de.deepamehta.plugins.webactivator.WebActivatorPlugin;
 import org.deepamehta.plugins.eduzen.service.ResourceService;
 
 import com.sun.jersey.api.view.Viewable;
+import java.util.ArrayList;
+import org.codehaus.jettison.json.JSONArray;
 
 
 @Path("/notes")
@@ -138,22 +140,28 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Path("/fetch/{count}/{offset}")
     @Produces("application/json")
     @Override
-    public ResultSet<RelatedTopic> getResources(@PathParam("count") long size, @PathParam("offset") long from,
+    public String getResources(@PathParam("count") long size, @PathParam("offset") long from,
             @HeaderParam("Cookie") ClientState clientState) {
         //
-        ResultSet<RelatedTopic> all_results = new ResultSet<RelatedTopic>();
+        JSONArray results = new JSONArray();
         try {
-            all_results = dms.getTopics(RESOURCE_URI, true, 0, clientState);
-            log.info("fetching " +all_results.getSize()+ " resources..");
-            // fixme: we cannot just enrich the model of a topic before it goes over the wire (at least not this way)
-            /** for (RelatedTopic result : all_results) {
-                //
-                log.info("Trying to enrich resource-model on the fly about creator information.. ");
-                Topic creator = fetchCreator(result);
-                result.getCompositeValue().getModel().put("org.deepamehta.resources.creator", creator.getModel());
-
-            } **/
-            return all_results;
+            ResultSet<RelatedTopic> all_results = dms.getTopics(RESOURCE_URI, true, 0, clientState);
+            log.info("> fetching " +all_results.getSize()+ " resources.. for getting " + from + " to " + (from + size) );
+            // build up sortable collection of all result-items (warning: in-memory copy of _all_ published soundposter)
+            ArrayList<RelatedTopic> in_memory = getResultSetSortedByCreationTime(all_results, clientState);
+            // throw error if page is unexpected high or NaN
+            int count = 0;
+            for (RelatedTopic item : in_memory) {
+                // start of preparing page results
+                if (count >= from) {
+                    //
+                    results.put(item.toJSON());
+                    if (results.length() == size) break;
+                }
+                count++;
+                // finished preparing page results
+            }
+            return results.toString();
         } catch (Exception e) {
             throw new WebApplicationException(new RuntimeException("something went wrong", e));
         }
@@ -210,8 +218,6 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Produces("text/html")
     public Viewable getFilteredeTimelineView(@PathParam("tags") String tagFilter,
         @HeaderParam("Cookie") ClientState clientState) {
-        // context.setVariable("tags", tagFilter);
-        // context.setVariable("posterText", "<p>Hallo Welt this is fat, sick and clickable yo!</p>");
         return view("index");
     }
 
@@ -220,8 +226,6 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Produces("text/html")
     public Viewable getPersonalTimelineView(@PathParam("userId") long userId,
         @HeaderParam("Cookie") ClientState clientState) {
-        // context.setVariable("tags", tagFilter);
-        // context.setVariable("posterText", "<p>Hallo Welt this is fat, sick and clickable yo!</p>");
         return view("index");
     }
 
@@ -234,6 +238,25 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         context.setVariable("resourceName", name);
         context.setVariable("resourceId", resource.getId());
         return view("resource");
+    }
+
+    private ArrayList<RelatedTopic> getResultSetSortedByCreationTime (ResultSet<RelatedTopic> all, ClientState clientState) {
+        // build up sortable collection of all result-items
+        ArrayList<RelatedTopic> in_memory = new ArrayList<RelatedTopic>();
+        for (RelatedTopic obj : all) {
+            in_memory.add(obj);
+        }
+        // sort all result-items
+        Collections.sort(in_memory, new Comparator<RelatedTopic>() {
+            public int compare(RelatedTopic t1, RelatedTopic t2) {
+                long one = t1.getCompositeValue().getLong(RESOURCE_CREATED_AT_URI, 0);
+                long two = t2.getCompositeValue().getLong(RESOURCE_CREATED_AT_URI, 0);
+                if ( one < two ) return 1;
+                if ( one > two ) return -1;
+                return 0;
+            }
+        });
+        return in_memory;
     }
 
 }

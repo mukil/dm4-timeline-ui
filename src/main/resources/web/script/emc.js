@@ -8,9 +8,9 @@ function EMC (dmc, model) {
 
     /** RESTful utility methods for the trt-views **/
 
-    this.loadAllResources = function (limit) { // lazy, unsorted, possibly limited
+    this.loadAllResources = function () { // lazy, unsorted, possibly limited
         //
-        var all_resources = dmc.get_topics(NOTES_URI, true, true, limit).items
+        var all_resources = dmc.get_topics(NOTES_URI, true, true, 0).items
         if (all_resources.length > 0) {
             _this.model.setAvailableResources(all_resources)
         } else {
@@ -18,11 +18,28 @@ function EMC (dmc, model) {
         }
     }
 
+    this.loadSomeResources = function (size, offset, append) { // lazy, unsorted, possibly limited
+        //
+        // var all_resources = dmc.get_topics(NOTES_URI, true, true, limit).items
+        var some_resources = dmc.request('GET', '/notes/fetch/' + size + '/' + offset)
+        if (some_resources.length > 0) {
+            if (append) {
+                for (var resource in some_resources) {
+                    _this.model.addToAvailableResources(some_resources[resource])
+                }
+            } else {
+                _this.model.setAvailableResources(some_resources)
+            }
+        } else {
+            _this.model.setAvailableResources([])
+        }
+        return some_resources
+    }
+
     this.loadAllContributions = function (userId) { // lazy, unsorted, possibly limited
         //
         var all_contributions = dmc.request("GET", "/notes/fetch/contributions/" + userId).items
         if (all_contributions.length > 0) {
-            console.log("loaded " +all_contributions.length+ " personal contributions")
             _this.model.setAvailableResources(all_contributions)
         } else {
             _this.model.setAvailableResources([])
@@ -195,6 +212,7 @@ function EMC (dmc, model) {
                 "role_2":{"topic_id":userTopic.id, "role_type_uri":"dm4.core.child"}
             }
             var association = dmc.create_association(assocModel)
+            console.log("assigned authorship... ")
             if (association == undefined) throw new Error("Something mad happened.")
         } else {
             console.log("authorship-edge already exists for " + userTopic.value)

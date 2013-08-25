@@ -19,6 +19,6 @@ public interface ResourceService extends PluginService {
 
   Topic updateResource(TopicModel topic, ClientState clientState);
 
-  ResultSet<RelatedTopic> getResources(long count, long offset, ClientState clientState);
+  String getResources(long count, long offset, ClientState clientState);
 
 }

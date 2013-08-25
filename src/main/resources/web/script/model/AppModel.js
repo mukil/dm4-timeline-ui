@@ -63,6 +63,8 @@ function AppModel() {
                     var oldItem = availableResources[i]
                     if (oldItem.id == resourceId) {
                         var resource = availableResources[i]
+                        console.log("associating tag with the following resource ... ")
+                        console.log(resource)
                         var existingTags = resource.composite[instance.TAGS_URI]
                         if (existingTags == undefined) {
                             resource.composite[instance.TAGS_URI] = [tag]
@@ -126,7 +128,8 @@ function AppModel() {
             TAG_LABEL_URI: "dm4.tags.label",
             TAG_DEFINITION_URI: "dm4.tags.definition",
             REVIEW_SCORE_URI: "org.deepamehta.reviews.score",
-            isSortedByScore: false
+            isSortedByScore: false,
+            page_nr: 0
         };
     })();
 
