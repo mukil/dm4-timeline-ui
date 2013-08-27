@@ -116,17 +116,22 @@
 
     this.renderView = function (user) {
 
+        // auth-check (potential doublette if setupPageControls was already called)
+        var status = checkLoggedInUser()
+        renderUserInfo()
+
         // fixme: render upper menu for either personal or ordinary timeline
         if (user) {
-            // console.log("we should render the personal timeline of ... " + user.value)
             setupFrontpageButton()
             showTagfilterInfo() // this to clear tag-filter-info view (if this is called after from a filtered-timeline)
             $('.eduzen .options .tag-filter-info').html('<span class="meta">Alle Beitr&auml;ge von <b>' + user.value + '</b></span>')
             $('.eduzen .rendered #nav.info').hide()
             $('.eduzen.notes').addClass('personal')
+            $('.eduzen #menu .username a.btn.my').addClass('pressed')
             hideTagView()
         } else {
             removeFrontpageButton()
+            $('.eduzen #menu .username a.btn.my').removeClass('pressed')
             $('.eduzen.notes').removeClass('personal')
             // $('.eduzen .rendered #nav.info').show()
             // render tag specific filter-info header
@@ -135,9 +140,6 @@
             renderTagView()
         }
 
-        // auth-check (potential doublette if setupPageControls was already called)
-        var status = checkLoggedInUser()
-        renderUserInfo()
         //
         if (status !== null) {
             setupUserPage()
@@ -150,7 +152,7 @@
             showResultsetView(true)
         }
         //
-        _this.skroller.refresh()
+        // _this.skroller.refresh()
     }
 
     this.renderLoadMoreButton = function () {
@@ -395,7 +397,7 @@
                 })
             $username.html('Hi').append($my)
 
-            var $logout = $('<a class="btn logout" title="Session beenden">(Logout)</a>')
+            var $logout = $('<a class="btn logout" title="Session beenden">Logout</a>')
                 $logout.click(function (e) {
                     if (emc.logout()) {
                         _this.model.setCurrentUserTopic(undefined)
@@ -553,7 +555,7 @@
         // render math in the whole page
         renderMathInArea("resources")
         quickfixPDFImageRendering() // hacketi hack
-        _this.skroller.refresh()
+        // _this.skroller.refresh()
 
     }
 
@@ -565,7 +567,7 @@
         })
         renderMathInArea("resources")
         quickfixPDFImageRendering() // hacketi hack
-        _this.skroller.refresh()
+        // _this.skroller.refresh()
 
     }
 

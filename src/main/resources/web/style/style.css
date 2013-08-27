@@ -63,28 +63,51 @@
     color: #383838;
 }
 
-.eduzen .timeline.rendered .username {
-    position: absolute;
-    right: 380px;
-    top: 0px;
+.eduzen.guest .username,
+.eduzen.note .username {
     padding: 7px;
     padding-top: 9px;
-    border: 1px solid #a9a9a9;
-    border-top: 0px solid transparent;
-    background-color: #fff;
 }
 
 .eduzen.note .username,
+.eduzen .timeline.rendered .username,
 .eduzen .timeline.unrendered .username {
     position: absolute;
     right: 380px;
     top: 0px;
-    padding: 7px;
-    padding-top: 9px;
+    padding-left: 7px;
     border: 1px solid #a9a9a9;
     border-top: 0px solid transparent;
     color: #a9a9a9;
     background-color: #fff;
+}
+
+/* .eduzen .timeline .username:hover {
+    border: 1px solid #0782C1;
+    border-top: 0px solid transparent;
+} **/
+
+.eduzen #menu .username a.btn.my {
+    margin-left: 3px;
+    padding: 7px;
+    margin-right: 0px;
+    padding-right: 5px;
+    padding-left: 5px;
+}
+
+.eduzen #menu .username a.btn.logout {
+    padding: 7px;
+    margin-right: 0px;
+    padding-left: 4px;
+    padding-right: 5px;
+}
+
+.eduzen #menu .username a.btn.my.pressed,
+.eduzen #menu .username a.btn.my:hover,
+.eduzen #menu .username a.logout:hover {
+    background-color: #FFC700;
+    border: 1px solid #FFC700;
+    color: #fff;
 }
 
 .eduzen span.meta {
