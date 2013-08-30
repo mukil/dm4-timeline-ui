@@ -28,7 +28,7 @@
 
         <!-- Note: We are proudly build on free and open source tools, namely jQuery, Piwik and DeepaMehta 4. -->
 
-        <!-- Piwik
+        <!-- Piwik -->
         <script type="text/javascript">
             var pkBaseURL = (("https:" == document.location.protocol) ? "https://research.eduzen.tu-berlin.de/analytics/" : "http://research.eduzen.tu-berlin.de/analytics/");
             document.write(unescape("%3Cscript src='" + pkBaseURL + "piwik.js' type='text/javascript'%3E%3C/script%3E"));
@@ -39,7 +39,7 @@
                 piwikTracker.enableLinkTracking();
             } catch( err ) {}
         </script>
-        End Piwik Tracking Code -->
+        <!-- End Piwik Tracking Code -->
 
         <script type="text/javascript" th:inline="javascript">
             /*<![CDATA[*/
@@ -73,6 +73,8 @@
                 <span class="contributor"></span>
                 <br/>
                 <br/>
+                <label for="is-locked" class="lock">F&uuml;r &Auml;nderungen sperren</label>
+                <input name="is-locked" class="lock" type="checkbox" th:checked="${isLocked}"></input>
                 <b class="label">Inhalt:</b>
                 <div id="resource_input" contenteditable="false"></div> <!--  -->
                 <input type="button" value="Inhalt &auml;ndern" class="submit btn"></input>
@@ -81,8 +83,8 @@
                 <b class="label">Tags:</b>
                 <div id="tags"></div>
                 <!--
-                <b class="label">Weitere Tags hinzuf&uuml;gen:</b>
-                <input type="text" placeholder="Name des Tags" size="50" class="tag"></input>
+                    <b class="label">Weitere Tags hinzuf&uuml;gen:</b>
+                    <input type="text" placeholder="Name des Tags" size="50" class="tag"></input>
                 -->
             </div>
             <br/><br/>

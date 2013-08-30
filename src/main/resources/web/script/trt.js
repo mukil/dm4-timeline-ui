@@ -14,15 +14,17 @@
     var LAST_MODIFIED_URI = "org.deepamehta.resources.last_modified_at" // fixme: doublings
     var NOTES_URI = "org.deepamehta.resources.resource" // fixme: doublings
     var NOTE_CONTENT_URI = "org.deepamehta.resources.content" // fixme: doublings
+    var NOTE_LOCKED_URI = "org.deepamehta.resources.blocked_for_edits" // fixme: doublings
     var NOTES_LIMIT = 15
     var OK = 200
     // Notification Areas
     var UNDER_THE_TOP = "message-top"
     var TIMELINE_AREA = "message-timeline"
-    // Timeline Views Identifier
+    // Views Identifier
     var PERSONAL_TIMELINE = "personal-timeline"
     var FILTERED_TIMELINE = "filtered-timeline"
     var FULL_TIMELINE = "timeline"
+    var DETAIL_VIEW= "detail-view"
 
     /**
      *  Fixmes: adding Tag to resource which has none (no display update), adding tag to resource which has one adds
@@ -79,6 +81,7 @@
 
         } else {
 
+            current_view = DETAIL_VIEW
             emc.loadResourceById(noteId) // initialize page-view detail model
             setupDetailView() // route to detail view
             // fixme: historyApi // _this.pushHistory("detailView", "Note Info: " + noteId, "/notes/" + noteId)
@@ -286,19 +289,39 @@
     this.setupDetailView = function () {
         // set page-data
         // setupCKEditor()
+        var creator = emc.getFirstRelatedCreator(_this.model.getCurrentResource().id)
+        var creator_name = (creator == null) ? "Anonymous" : creator.value
+        var isLocked = false
+        if (_this.model.getCurrentResource().composite.hasOwnProperty(NOTE_LOCKED_URI)) {
+            isLocked = _this.model.getCurrentResource().composite[NOTE_LOCKED_URI].value
+        } else {
+            // is most probably an old resource and in any case not locked
+            isLocked = false
+        }
         // initalize add tags field
         // setupTagFieldControls('input.tag')
         setupMathJaxRenderer()
         var status = checkLoggedInUser()
+        var $editButton = $('input.submit.btn')
         if (status !== null) {
-            var $editButton = $('input.submit.btn')
+            var is_author = (creator_name === status) ? true : false
+            if (is_author || !isLocked) {
                 $editButton.show()
                 $editButton.unbind('click')
                 $editButton.val('Inhalt ändern')
                 $editButton.click(setupEditDetailView) // edit button handler
+            } else {
+                // fixme: show notification
+                console.log("Warning: You cannot edit this resource because it was set to be not editable by its creator")
+                $editButton.hide()
+            }
         } else {
-            $('input.submit.btn').hide()
+            $editButton.hide()
         }
+        // just got traction when coming from edit view
+        $('input.lock').hide()
+        $('label.lock').hide()
+        //
         renderUserInfo()
         renderDetailView()
 
@@ -322,6 +345,13 @@
                 } else {
                     $('#resource_input').html(sourceData)
                 }
+                if (creator_name === emc.getCurrentUser()) {
+                    var $check = $('input.lock')
+                        $check.attr("checked", isLocked)
+                        $check.show()
+                    $('label.lock').show()
+                }
+
                 //
                 /** var $container = $('#resource_input .math-output')
                 $.each($container, function (e, item) {
@@ -396,11 +426,17 @@
             $username.text('Willkommen')
         } else {
             var user = _this.model.getCurrentUserTopic()
+            // fixme: we have currently 2 different buttons, depending on the current view
             var $my = $('<a class="btn my" title="Meine Beitr&auml;ge">' + name+ '</a>')
+            if (current_view === DETAIL_VIEW ){
+                $my.attr("href", "/notes/user/" + user.id)
+            } else {
                 $my.click(function (e) {
                     _this.goToPersonalTimeline(user)
                     _this.pushPersonalViewState(user)
                 })
+            }
+            //
             $username.html('Hi').append($my)
 
             var $logout = $('<a class="btn logout" title="Session beenden">Logout</a>')
@@ -494,16 +530,17 @@
         $('#resource_input').html(_this.model.getCurrentResource().composite[NOTE_CONTENT_URI].value)
         var creator = emc.getFirstRelatedCreator(_this.model.getCurrentResource().id)
         var creator_name = (creator == null) ? "Anonymous" : creator.value
-        var creator_link = '<a title="Besuche '+creator_name+'s Timeline" href="/notes/user/' +creator.id+ '">'+creator_name+'</a>'
+        var creator_link = '<a title="Gehze zur Timeline von  ' +creator_name+ '" href="/notes/user/' +creator.id+ '">'+creator_name+'</a>'
 
         var contributor = emc.getAllContributor(_this.model.getCurrentResource().id)
         if (contributor != null) {
             $('b.contributor.label').text("Mitwirkende:")
-            console.log(contributor)
+            var $contribs = $('span.contributor')
+                $contribs.empty()
             for (var key in contributor) {
                 var user = contributor[key]
                 var contributor_link = '<a title="Besuche '+user.value+'s Timeline" href="/notes/user/' +user.id+ '">'+user.value+'</a>'
-                $('span.contributor').append(contributor_link)
+                $contribs.append(contributor_link)
             }
         }
         //
@@ -1264,9 +1301,11 @@
 
     this.doSaveResource = function () {
         var valueToSubmit = getTeXAndHTMLSource(document.getElementById("resource_input"))
+        var isLocked = ( $('input.lock').attr('checked') === "checked") ? true : false
         if (valueToSubmit.match(/\S/) != null && valueToSubmit !== "<p><br></p>") { // no empty strings
             var resource = _this.model.getCurrentResource()
                 resource.composite[NOTE_CONTENT_URI].value = valueToSubmit
+                resource.composite[NOTE_LOCKED_URI] = {"value": isLocked , "type_uri": NOTE_LOCKED_URI, "uri": ""}
             // var updated = dmc.update_topic(resource)
             var updated = emc.updateResourceTopic(resource)
             if (updated != undefined) {
@@ -1275,7 +1314,7 @@
                 // rendering notifications
                 // _this.renderNotification("Note updated.", OK, UNDER_THE_TOP, "", 'fast', function() {
                     // track "edited resource" goal
-                    if (piwikTracker != undefined) piwikTracker.trackGoal(1)
+                    if (piwikTracker !== undefined) piwikTracker.trackGoal(1)
                     // _this.pushHistory("timelineView", "Notes Timeline", "/notes")
                 // })
                 _this.model.updateAvailableResource(resource)

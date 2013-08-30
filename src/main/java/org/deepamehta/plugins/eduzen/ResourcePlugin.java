@@ -44,6 +44,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     private final static String RESOURCE_CREATED_AT_URI = "org.deepamehta.resources.created_at";
     private final static String RESOURCE_LAST_MODIFIED_URI = "org.deepamehta.resources.last_modified_at";
     private final static String RESOURCE_PUBLISHED_URI = "org.deepamehta.resources.is_published";
+    private final static String RESOURCE_LOCKED_URI = "org.deepamehta.resources.blocked_for_edits";
     private final static String RESOURCE_LICENSE_URI = "org.deepamehta.resources.license";
     private final static String RESOURCE_LICENSE_UNSPECIFIED_URI = "org.deepamehta.licenses.unspecified";
     private final static String RESOURCE_LICENSE_UNKNOWN_URI = "org.deepamehta.licenses.unknown";
@@ -83,6 +84,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             topicModel.getCompositeValueModel().put(RESOURCE_CREATED_AT_URI, createdAt);
             topicModel.getCompositeValueModel().put(RESOURCE_LAST_MODIFIED_URI, createdAt);
             topicModel.getCompositeValueModel().put(RESOURCE_PUBLISHED_URI, true);
+            topicModel.getCompositeValueModel().put(RESOURCE_LOCKED_URI, false);
             topicModel.getCompositeValueModel().putRef(RESOURCE_LICENSE_URI, RESOURCE_LICENSE_UNSPECIFIED_URI);
             topicModel.getCompositeValueModel().putRef(RESOURCE_LICENSE_AREA_URI, RESOURCE_LICENSE_UNKNOWN_URI);
             // topicModel.getCompositeValueModel().putRef(RESOURCE_AUTHOR_NAME_URI, RESOURCE_AUTHOR_ANONYMOUS_URI);
@@ -114,6 +116,8 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             String value = topic.getCompositeValueModel().getString(RESOURCE_CONTENT_URI);
             // updated last_modified timestamp
             long modifiedAt = new Date().getTime();
+            // is locked?
+            boolean isLocked = topic.getCompositeValueModel().getBoolean(RESOURCE_LOCKED_URI);
             // update resource topic
             resource = dms.getTopic(topic.getId(), true, clientState);
             // Directives updateDirective = dms.updateTopic(topic, clientState);
@@ -122,6 +126,8 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             resource.setCompositeValue(new CompositeValueModel().put(RESOURCE_CONTENT_URI, value),
                     clientState, new Directives()); // why new Directives on an AttachedObject
             resource.setCompositeValue(new CompositeValueModel().put(RESOURCE_LAST_MODIFIED_URI, modifiedAt),
+                    clientState, new Directives());
+            resource.setCompositeValue(new CompositeValueModel().put(RESOURCE_LOCKED_URI, isLocked),
                     clientState, new Directives());
             tx.success();
             return resource;
@@ -238,6 +244,8 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         Topic resource = dms.getTopic(resourceId, true, clientState);
         String name = "" + resource.getId();
         context.setVariable("resourceName", name);
+        // boolean isLocked = resource.getModel().getCompositeValueModel().getBoolean(RESOURCE_LOCKED_URI);
+        // context.setVariable("isLocked", isLocked);
         context.setVariable("resourceId", resource.getId());
         return view("resource");
     }

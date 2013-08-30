@@ -23,7 +23,6 @@ public class Migration5 extends Migration {
         // 1) assign type of "org.deepamehta-reviews"-plugin to default workspace "DeepaMehta"
         TopicType reviewScore = dms.getTopicType(REVIEW_SCORE, null);
         assignWorkspace(reviewScore);
-        // 2) assign more types of "org.deepamehta-tagging-resources"-plugin to default workspace "DeepaMehta"?
 
     }
 

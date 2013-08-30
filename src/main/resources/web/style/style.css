@@ -936,6 +936,18 @@ input.cke_dialog_ui_input_text:focus {
     padding-right: 0px;
 }
 
+.eduzen.note input.lock,
+.eduzen.note label.lock {
+    display: none;
+    color: #a9a9a9;
+    float: right;
+}
+
+.eduzen.note label.lock {
+    margin-right: 60px;
+    padding-top: 2px;
+}
+
 .eduzen .note .contributor a {
     text-decoration: none;
 }
