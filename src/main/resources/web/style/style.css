@@ -932,6 +932,14 @@ input.cke_dialog_ui_input_text:focus {
     text-decoration: none;
 }
 
+.eduzen.note .label {
+    padding-right: 0px;
+}
+
+.eduzen .note .contributor a {
+    text-decoration: none;
+}
+
 .eduzen .btn.profile {
     margin-left: 0px;
     color: #0782C1;

@@ -231,13 +231,22 @@ function EMC (dmc, model) {
         }
     }
 
-    this.getFirstRelatedCreator= function(topicId) {
+    this.getFirstRelatedCreator = function(topicId) {
         var filter = {
             "assoc_type_uri" : "org.deepamehta.resources.creator_edge",
             "others_topic_type_uri" : "dm4.accesscontrol.user_account"
         }
         var creator = dmc.get_topic_related_topics(topicId, filter)
         return (creator.items.length > 0) ? creator.items[0] : null
+    }
+
+    this.getAllContributor = function (topicId) {
+        var filter = {
+            "assoc_type_uri" : "org.deepamehta.resources.contributor_edge",
+            "others_topic_type_uri" : "dm4.accesscontrol.user_account"
+        }
+        var contributor = dmc.get_topic_related_topics(topicId, filter)
+        return (contributor.items.length > 0) ? contributor.items : null
     }
 
     this.getCurrentUserTopic = function () {

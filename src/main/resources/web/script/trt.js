@@ -42,7 +42,7 @@
         _this.skroller = skrollr.init( {forceHeight: false, render: function (info) {
             if (current_view == FULL_TIMELINE) {
                 if (info.maxTop == 0) return
-                if (info.curTop > (info.maxTop - 100)) _this.renderLoadMoreButton()
+                if (info.curTop > (info.maxTop - 200)) _this.renderLoadMoreButton()
             }
         }})
 
@@ -57,7 +57,7 @@
         // route to distinct views
         if (noteId === undefined || noteId === "") {
 
-            _this.go_to_timeline() // load timeline with no filter set
+            _this.goToTimeline() // load timeline with no filter set
 
         } else if (noteId === "tagged") {
 
@@ -69,13 +69,13 @@
                 selectedTag = _this.model.getTagByName(label)
                 if (selectedTag != undefined) _this.model.addTagToFilter(selectedTag)
             }
-            _this.go_to_timeline() // call timeline after filter was set.
+            _this.goToTimeline() // call timeline after filter was set.
 
         } else if (noteId === "user") {
 
             var userId = attributes[3]
             var user = dmc.get_topic_by_id(userId, true)
-            _this.go_to_personal_timeline(user)
+            _this.goToPersonalTimeline(user)
 
         } else {
 
@@ -87,7 +87,7 @@
 
     }
 
-    this.go_to_timeline = function () {
+    this.goToTimeline = function () {
 
         // prepare page model (according to filter)
         _this.loadResources() // optimize: maybe we dont need to load it again
@@ -96,7 +96,7 @@
 
     }
 
-    this.go_to_personal_timeline = function (creator) {
+    this.goToPersonalTimeline = function (creator) {
 
         // prepare page model
         _this.model.setTagFilter([])
@@ -104,14 +104,14 @@
         renderTagView()
         // load all the stuff according to user
         emc.loadAllContributions(creator.id)
-        sortCurrentResultset()
+        sortCurrentResources()
         // render page view
         renderView(creator) // fixme: setup without tag-filter-dialog
         current_view = PERSONAL_TIMELINE
 
     }
 
-    this.sortCurrentResultset = function () {
+    this.sortCurrentResources = function () {
         // initially load and sort
         if (_this.model.isSortedByScore) {
             _this.model.getAvailableResources().sort(_this.score_sort_asc)
@@ -138,13 +138,10 @@
             $('.eduzen .rendered #nav.info').hide()
             $('.eduzen.notes').addClass('personal')
             if (user.value === emc.getCurrentUser()) $('.eduzen #menu .username a.btn.my').addClass('pressed')
-
             hideTagView()
         } else {
             removeFrontpageButton()
-
-            if (user.value === emc.getCurrentUser()) $('.eduzen #menu .username a.btn.my').removeClass('pressed')
-
+            $('.eduzen #menu .username a.btn.my').removeClass('pressed')
             $('.eduzen.notes').removeClass('personal')
             // $('.eduzen .rendered #nav.info').show()
             // render tag specific filter-info header
@@ -194,7 +191,7 @@
                 // prepare model
                 _this.model.setTagFilter([])
                 // go to
-                _this.go_to_timeline()
+                _this.goToTimeline()
                 _this.pushTaggedViewState()
             })
             $('#menu').append($homeButton)
@@ -365,7 +362,7 @@
             current_view = FULL_TIMELINE
         }
         //
-        sort_current_results()
+        sortCurrentResources()
     }
 
     this.checkLoggedInUser = function () {
@@ -401,7 +398,7 @@
             var user = _this.model.getCurrentUserTopic()
             var $my = $('<a class="btn my" title="Meine Beitr&auml;ge">' + name+ '</a>')
                 $my.click(function (e) {
-                    _this.go_to_personal_timeline(user)
+                    _this.goToPersonalTimeline(user)
                     _this.pushPersonalViewState(user)
                 })
             $username.html('Hi').append($my)
@@ -498,6 +495,17 @@
         var creator = emc.getFirstRelatedCreator(_this.model.getCurrentResource().id)
         var creator_name = (creator == null) ? "Anonymous" : creator.value
         var creator_link = '<a title="Besuche '+creator_name+'s Timeline" href="/notes/user/' +creator.id+ '">'+creator_name+'</a>'
+
+        var contributor = emc.getAllContributor(_this.model.getCurrentResource().id)
+        if (contributor != null) {
+            $('b.contributor.label').text("Mitwirkende:")
+            console.log(contributor)
+            for (var key in contributor) {
+                var user = contributor[key]
+                var contributor_link = '<a title="Besuche '+user.value+'s Timeline" href="/notes/user/' +user.id+ '">'+user.value+'</a>'
+                $('span.contributor').append(contributor_link)
+            }
+        }
         //
         var created_at = new Date(_this.model.getCurrentResource().composite[CREATED_AT_URI].value)
         var last_modified_at  = new Date(_this.model.getCurrentResource().composite[LAST_MODIFIED_URI].value)
@@ -564,7 +572,7 @@
         // render math in the whole page
         renderMathInArea("resources")
         quickfixPDFImageRendering() // hacketi hack
-        // _this.skroller.refresh()
+        _this.skroller.refresh()
 
     }
 
@@ -635,7 +643,7 @@
         var $creator_link = $('<a id="user-' +creator.id+ '" title="Zeige '+creator_name+'s Timeline" class="profile btn"></a>')
             $creator_link.text(creator_name)
             $creator_link.click(function(e) {
-                _this.go_to_personal_timeline(creator)
+                _this.goToPersonalTimeline(creator)
                 _this.pushPersonalViewState(creator)
             })
 
@@ -758,7 +766,7 @@
                 var selectedTag = _this.model.getTagById(tagId)
                 _this.model.addTagToFilter(selectedTag)
                 // go to updated view
-                _this.go_to_timeline()
+                _this.goToTimeline()
                 // fixme: formerly here were just (optimal) view updates
                 _this.pushTaggedViewState()
 
@@ -843,7 +851,7 @@
                     var tagId = parseInt(e.target.id)
                     var tag = _this.model.getTagById(tagId)
                     _this.model.removeTagFromFilter(tag)
-                    _this.go_to_timeline()
+                    _this.goToTimeline()
                     _this.pushTaggedViewState()
                 })
             var $tagButton = $('<a class="btn tag selected">' +tags[i].value+ '</a>')
@@ -855,7 +863,7 @@
                 // prepare model
                 _this.model.setTagFilter([])
                 // go to new view
-                _this.go_to_timeline()
+                _this.goToTimeline()
                 _this.pushTaggedViewState()
             })
         $filterButtons.append($clearButton)
@@ -1002,6 +1010,7 @@
         MathJax.Hub.Queue(["Typeset", MathJax.Hub, identifier]);
     }
 
+    /** to be removed: never used **/
     this.updateFormulas = function () {
         var formulas = MathJax.Hub.getAllJax()
         console.log(formulas)
@@ -1037,13 +1046,13 @@
 
             // update app-model
             _this.model.setTagFilter(pop.state.data.tags)
-            _this.go_to_timeline()
+            _this.goToTimeline()
 
         } else if (pop.state.name == FULL_TIMELINE) {
 
             // update app-model
             _this.model.setTagFilter([])
-            _this.go_to_timeline()
+            _this.goToTimeline()
 
         } else if (pop.state.name == PERSONAL_TIMELINE) {
 
@@ -1051,7 +1060,7 @@
             var user = dmc.get_topic_by_id(userId, true)
             // fixme: re-set tagfilter..
             _this.model.setTagFilter([])
-            _this.go_to_personal_timeline(user)
+            _this.goToPersonalTimeline(user)
 
         } else {
             console.log("unknown view.. ")
@@ -1250,7 +1259,7 @@
         }
         // unnecessary, just inserBefore the createResourceTopic at the top of our list
         // or better implement observables, a _this.model the ui can "bind" to
-        _this.go_to_timeline() // todo: maybe we're currently on our personal timeline?
+        _this.goToTimeline() // todo: maybe we're currently on our personal timeline?
     }
 
     this.doSaveResource = function () {
