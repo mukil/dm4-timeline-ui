@@ -104,10 +104,20 @@
         renderTagView()
         // load all the stuff according to user
         emc.loadAllContributions(creator.id)
+        sortCurrentResultset()
         // render page view
         renderView(creator) // fixme: setup without tag-filter-dialog
         current_view = PERSONAL_TIMELINE
 
+    }
+
+    this.sortCurrentResultset = function () {
+        // initially load and sort
+        if (_this.model.isSortedByScore) {
+            _this.model.getAvailableResources().sort(_this.score_sort_asc)
+        } else {
+            _this.model.getAvailableResources().sort(_this.created_at_sort_asc)
+        }
     }
 
     /**
@@ -127,11 +137,14 @@
             $('.eduzen .options .tag-filter-info').html('<span class="meta">Alle Beitr&auml;ge von <b>' + user.value + '</b></span>')
             $('.eduzen .rendered #nav.info').hide()
             $('.eduzen.notes').addClass('personal')
-            $('.eduzen #menu .username a.btn.my').addClass('pressed')
+            if (user.value === emc.getCurrentUser()) $('.eduzen #menu .username a.btn.my').addClass('pressed')
+
             hideTagView()
         } else {
             removeFrontpageButton()
-            $('.eduzen #menu .username a.btn.my').removeClass('pressed')
+
+            if (user.value === emc.getCurrentUser()) $('.eduzen #menu .username a.btn.my').removeClass('pressed')
+
             $('.eduzen.notes').removeClass('personal')
             // $('.eduzen .rendered #nav.info').show()
             // render tag specific filter-info header
@@ -351,12 +364,8 @@
             emc.loadSomeResources(NOTES_LIMIT, offset, false)
             current_view = FULL_TIMELINE
         }
-        // initially load and sort
-        if (_this.model.isSortedByScore) {
-            _this.model.getAvailableResources().sort(_this.score_sort_asc)
-        } else {
-            _this.model.getAvailableResources().sort(_this.created_at_sort_asc)
-        }
+        //
+        sort_current_results()
     }
 
     this.checkLoggedInUser = function () {
