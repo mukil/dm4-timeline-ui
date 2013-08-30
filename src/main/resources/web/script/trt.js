@@ -670,7 +670,7 @@
                         emc.createResourceTagAssociations(item, tagsToAssociate)
                         emc.createNewTagsForResource(item, tagsToCreateAndAssociate)
                         // track "added tag"-goal
-                        // piwikTracker.trackGoal(4)
+                        if (piwikTracker != undefined) piwikTracker.trackGoal(4)
                         // re-render both views
                         renderTagView()
                         setupResultListItem(item)
@@ -698,7 +698,7 @@
                 var updatedTopic = dmc.request("GET", "/review/upvote/" + e.target.id)
                 _this.model.updateAvailableResource(updatedTopic)
                 // track "voted resource" goal
-                // piwikTracker.trackGoal(3)
+                if (piwikTracker != undefined) piwikTracker.trackGoal(3)
                 // todo: update our result-set view immedieatly after upvoting
                 setupResultListItem(updatedTopic)
             })
@@ -707,7 +707,7 @@
                 var updatedTopic = dmc.request("GET", "/review/downvote/" + e.target.id)
                 _this.model.updateAvailableResource(updatedTopic)
                 // track "voted resource" goal
-                // piwikTracker.trackGoal(3)
+                if (piwikTracker != undefined) piwikTracker.trackGoal(3)
                 // todo: update our result-set view immedieatly after upvoting
                 setupResultListItem(updatedTopic)
             })
@@ -1228,7 +1228,7 @@
                 // assign authorhsip of resource to the current user
                 emc.assignAuthorship(resource, _this.model.getCurrentUserTopic())
                 // track "added resource" goal
-                // piwikTracker.trackGoal(5)
+                if (piwikTracker != undefined) piwikTracker.trackGoal(5)
                 $('#resource_input').html("")
                 $('input.tag').val("")
                 $('div.header').css("opacity", "1")
@@ -1257,7 +1257,7 @@
                 // rendering notifications
                 // _this.renderNotification("Note updated.", OK, UNDER_THE_TOP, "", 'fast', function() {
                     // track "edited resource" goal
-                    // piwikTracker.trackGoal(1)
+                    if (piwikTracker != undefined) piwikTracker.trackGoal(1)
                     // _this.pushHistory("timelineView", "Notes Timeline", "/notes")
                 // })
                 _this.model.updateAvailableResource(resource)
