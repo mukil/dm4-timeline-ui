@@ -539,7 +539,7 @@
                 $contribs.empty()
             for (var key in contributor) {
                 var user = contributor[key]
-                var contributor_link = '<a title="Besuche '+user.value+'s Timeline" href="/notes/user/' +user.id+ '">'+user.value+'</a>'
+                var contributor_link = '<a title="Besuche '+user.value+'s Timeline" href="/notes/user/' +user.id+ '">'+user.value+'</a>&nbsp;'
                 $contribs.append(contributor_link)
             }
         }
