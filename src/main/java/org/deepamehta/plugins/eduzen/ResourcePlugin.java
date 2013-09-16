@@ -242,8 +242,8 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Produces("text/html")
     public Viewable getDetailView(@PathParam("id") long resourceId, @HeaderParam("Cookie") ClientState clientState) {
         Topic resource = dms.getTopic(resourceId, true, clientState);
-        String name = "" + resource.getId();
-        context.setVariable("resourceName", name);
+        long lastModified = resource.getModel().getCompositeValueModel().getLong(RESOURCE_LAST_MODIFIED_URI);
+        context.setVariable("resourceName", "Notiz, zuletzt bearbeitet: " + new Date(lastModified).toString());
         // boolean isLocked = resource.getModel().getCompositeValueModel().getBoolean(RESOURCE_LOCKED_URI);
         // context.setVariable("isLocked", isLocked);
         context.setVariable("resourceId", resource.getId());

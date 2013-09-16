@@ -462,6 +462,11 @@ textarea#math-input-dialog {
     padding: 3px;
 } **/
 
+.eduzen img:hover {
+    filter: none;
+    opacity: 1;
+}
+
 .eduzen #input .toolbar {
     border-top: 1px solid #f5f5f5;
     width: 100%;
@@ -526,6 +531,7 @@ textarea#math-input-dialog {
     background-color: #fff;
     border: 1px solid #f5f5f5;
     border-top: 1px solid transparent;
+    cursor: pointer;
 }
 
 .eduzen.note input.submit {
@@ -537,12 +543,188 @@ textarea#math-input-dialog {
     border-top: 1px solid transparent;
 }
 
+.eduzen.personal #profile .user-settings input.save-edits {
+    margin-top: 15px;
+    cursor: pointer;
+}
+
+.eduzen #picture-upload {
+    color: #999;
+}
+
 .eduzen input.new-tag {
     width: 92px;
     height: 13px;
     padding-top: 3px;
     padding-bottom: 3px;
     display: inline-block;
+}
+
+
+.eduzen.personal #profile {
+    display: block;
+    margin-top: 20px;
+    padding-left: 55px;
+    margin-right: 95px;
+    margin-bottom: 0px;
+    padding: 10px;
+    max-width: 88%;
+    position: relative;
+}
+
+.eduzen.personal #profile .profile {
+    padding-left: 45px;
+}
+
+.eduzen.personal #profile .profile .edit-area {
+    position: absolute;
+    top: 19px; right: 16px;
+    z-index: 14;
+}
+
+.eduzen.personal #profile .user-settings {
+    display: block;
+    padding: 10px;
+    margin-left: 45px;
+    min-height: 300px;
+    position: relative;
+}
+
+.eduzen.personal #profile .user-settings label.picture-label {
+    position: absolute;
+    top: 15px; right: 10px;
+}
+
+.eduzen.personal #profile .profile img.profile-picture {
+    position: absolute;
+    top: 20px; right: 20px;
+    z-index: 0;
+    max-width: 180px;
+    max-height: 180px;
+}
+
+.eduzen.personal #profile .user-settings .picture-label {
+    position: absolute;
+    top: 15px; right: 10px;
+    margin-bottom: 5px;
+}
+
+.eduzen.personal #profile .user-settings .picture-area {
+    position: absolute;
+    top: 10px; right: 10px;
+    z-index: 99;
+    min-width: 180px;
+    max-width: 200px;
+    color: #999;
+}
+
+.eduzen.personal #profile .user-settings img.profile-picture.editable {
+    max-width: 180px;
+    max-height: 180px;
+}
+
+.eduzen.personal #profile .user-settings div.picture-area:hover img.remove {
+    display: inline-block;
+}
+
+.eduzen.personal #profile .user-settings img.remove {
+    display: none;
+}
+
+.eduzen.personal #profile .user-settings img.remove,
+.eduzen.personal #profile .user-settings img.add {
+    cursor: pointer;
+    max-width: 32px;
+    max-height: 32px;
+    position: absolute;
+    top: 25px; left: 5px;
+    z-index: 101;
+}
+
+.eduzen.personal .ui-dialog.ui-widget {
+    top: 30%;
+    left: 10%;
+    width: 80%;
+    height: 100px;
+}
+
+.eduzen.personal .ui-dialog.ui-widget {
+
+}
+
+.eduzen.personal #profile .user-settings label {
+    color: #999999;
+}
+
+.eduzen.personal #profile .user-settings textarea,
+.eduzen.personal #profile .user-settings input {
+    border: 1px solid #2486bb !important;
+    padding: 5px;
+}
+
+.eduzen.personal #profile .user-settings textarea {
+    width: 300px;
+    max-width: 80%;
+    height: 90px;
+}
+
+.eduzen.personal #profile .user-settings label,
+.eduzen.personal #profile .user-settings input {
+    display: block;
+    margin-top: 5px;
+}
+
+.eduzen.personal #profile .display-name .btn.edit-profile {
+    color: #999999;
+    font-size: .8em;
+    font-weight: normal;
+    margin-top: 1px;
+    z-index: 11;
+}
+
+.eduzen.personal #profile .display-name .btn.edit-profile:hover {
+    color: #fff;
+    background-color: #FFC700;
+}
+
+.eduzen.personal.guest #profile {
+    display: block;
+    margin-top: 40px;
+    padding-left: 55px;
+    margin-right: 95px;
+    margin-bottom: 0px;
+    padding: 10px;
+    max-width: 88%;
+}
+
+.eduzen.personal #profile .view .contact-entries .label {
+    color: #999999;
+}
+
+.eduzen.personal #profile .view .subject-of-study,
+.eduzen.personal #profile .view .contact-entries .entry {
+    color: #0782C1;
+}
+
+.eduzen.personal #profile .view .display-name {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.eduzen.personal #profile .view {
+    padding: 10px;
+    background-color: #f1f1f1;
+    color: #2486bb;
+    min-height: 200px;
+}
+
+.eduzen.personal #resources {
+    top: 0px;
+}
+
+.eduzen #profile {
+    display: none;
 }
 
 .eduzen.personal .timeline .home-menu-button {

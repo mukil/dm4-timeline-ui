@@ -127,6 +127,14 @@ function EMC (dmc, model) {
 
     }
 
+    this.updateTopic = function (topic) {
+        return dmc.update_topic(topic)
+    }
+
+    this.getTopicById = function (topicId) {
+        return dmc.get_topic_by_id(topicId, true)
+    }
+
     this.updateResourceTopic = function(resource) {
         var resourceTopic = dmc.request("POST", "/notes/resource/update", resource)
         if (resourceTopic == undefined) throw new Error("Something mad happened.")
@@ -205,6 +213,25 @@ function EMC (dmc, model) {
         return undefined
     }
 
+    this.createProfilePictureAssociation = function (account, pictureId) {
+         if (account != undefined && pictureId != undefined) {
+            if (!_this.associationExists(account.id, pictureId, "org.deepamehta.identity.profile_picture_edge")) {
+                var assocModel = {"type_uri": "org.deepamehta.identity.profile_picture_edge",
+                    "role_1":{"topic_id":account.id, "role_type_uri":"dm4.core.default"},
+                    "role_2":{"topic_id":pictureId, "role_type_uri":"dm4.core.default"}
+                }
+                // console.log("associating resource with tag in dB " + tagTopic.value)
+                var association = dmc.create_association(assocModel)
+                // console.log(association)
+                if (association == undefined) throw new Error("Something mad happened.")
+                return association;
+            } else {
+                console.log("INFO: skipping creation of yet another assocation between tag and resource")
+            }
+        }
+        return undefined
+    }
+
     this.assignAuthorship = function (topic, userTopic) {
         if (!_this.associationExists(topic.id, userTopic.id, "org.deepamehta.resources.creator_edge")) {
             var assocModel = {"type_uri": "org.deepamehta.resources.creator_edge",
@@ -250,13 +277,32 @@ function EMC (dmc, model) {
     }
 
     this.getCurrentUserTopic = function () {
-        _this.userTopic = dmc.get_topic_by_value("dm4.accesscontrol.user_account", _this.username)
-        return _this.userTopic
+        if (typeof _this.getCurrentUser() === 'undefined') throw Error("Not logged in.")
+        var userTopic = dmc.get_topic_by_value("dm4.accesscontrol.user_account", _this.username)
+        return userTopic
     }
 
     this.associationExists = function (topicOne, topicTwo, assocType) {
         var assocs = dmc.get_associations(topicOne, topicTwo, assocType)
         return (assocs.length == 0) ? false :  true
+    }
+
+    this.getFirstAssociation = function (topicOne, topicTwo, assocType) {
+        var assocs = dmc.get_associations(topicOne, topicTwo, assocType)
+        return (assocs.length == 0) ? false : assocs[0]
+    }
+
+    this.getFirstRelatedTopic = function (id, edge_type, topic_type) {
+        var filter = {
+            "assoc_type_uri" : edge_type,
+            "others_topic_type_uri" : topic_type
+        }
+        var related = dmc.get_topic_related_topics(id, filter)
+        return (related.items.length > 0) ? related.items[0] : null
+    }
+
+    this.deleteAssociation = function (associationId) {
+        return dmc.delete_association(associationId)
     }
 
     this.getCurrentUser = function () {

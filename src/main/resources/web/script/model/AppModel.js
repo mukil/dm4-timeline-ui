@@ -1,4 +1,4 @@
-function AppModel() {
+function AppModel () {
 
     var instance = (function() {
 

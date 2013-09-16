@@ -32,6 +32,10 @@ The simple black resource icon in use by this plugin is licensed under a Creativ
 
 The colorful resource icon in use by this plugin () is licensed under the [LGPL](http://www.gnu.org/licenses/lgpl.html) license and was designed by [Everaldo Coelho](http://www.everaldo.com/).
 
+The "Add item"-icon was published under [Attribution-Non-Commercial 3.0 Netherlands](http://creativecommons.org/licenses/by-nc/3.0/nl/deed.en_GB) and was designed by [Tango](http://tango.freedesktop.org/).
+
+The "Remove item"-icon was published "free for commercial use" and was designed by [Icojam](http://www.icojam.com).
+
 # Changelog
 
 0.2, May, 2013

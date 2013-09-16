@@ -1,12 +1,13 @@
 (function (CKEDITOR, MathJax, $, console, dmc) {
 
     var _this = this
+        _this.skroller = undefined
 
     _this.model = AppModel()
-    _this.emc = new EMC(dmc, _this.model)
-    _this.skroller = undefined
-
-    var dict = new eduzenDictionary("DE")
+    var emc = new EMC(dmc, _this.model)
+    var profile = undefined
+    var dict = new EduzenDictionary("DE")
+    //
     var current_view = "" // fixme: remove this helper
     var TAG_URI = "dm4.tags.tag" // fixme: doublings
     var REVIEW_SCORE_URI = "org.deepamehta.reviews.score" // fixme: doublings
@@ -99,18 +100,37 @@
 
     }
 
-    this.goToPersonalTimeline = function (creator) {
+    this.goToPersonalTimeline = function (account) {
 
         // prepare page model
         _this.model.setTagFilter([])
         // render update before we load all the stuff
         renderTagView()
-        // load all the stuff according to user
-        emc.loadAllContributions(creator.id)
+        // enforce (re-)loading of full composite user topic in preparation for personal-timeline rendering
+        var user_account = emc.getTopicById(account.id)
+        // render profile-header first
+        profile = new User(_this, dict, emc, user_account)
+        profile.setupView($('#profile'))
+        // then load all the stuff according to user
+        emc.loadAllContributions(user_account.id)
         sortCurrentResources()
         // render page view
-        renderView(creator) // fixme: setup without tag-filter-dialog
+        renderView(user_account) // fixme: setup without tag-filter-dialog
+        //
         current_view = PERSONAL_TIMELINE
+
+    }
+
+    this.goToProfileEditorView = function (account) {
+
+        // enforce (re-)loading of full composite user topic in preparation for personal-timeline rendering
+        var user_account = emc.getTopicById(account.id)
+        profile = new User(_this, dict, emc, user_account)
+        profile.setupView($('#profile'))
+        // clean up timeline-gui, where we've definitely coming from (here)
+        $('#resources .list').empty()
+        //
+        profile.renderUserEditor($('#profile'))
 
     }
 
@@ -195,7 +215,7 @@
                 _this.model.setTagFilter([])
                 // go to
                 _this.goToTimeline()
-                _this.pushTaggedViewState()
+                _this.pushTimelineViewState()
             })
             $('#menu').append($homeButton)
     }
@@ -256,7 +276,10 @@
 
         function doLogin() {
             var user = checkUserAuthorization() // login button handler
-            if (user != null) renderView() // render ordinary timeline
+            if (user != null) {
+                _this.goToTimeline()
+                _this.pushTimelineViewState()
+            }
         }
 
         function checkUserAuthorization (id, secret) {
@@ -312,7 +335,7 @@
                 $editButton.click(setupEditDetailView) // edit button handler
             } else {
                 // fixme: show notification
-                console.log("Warning: You cannot edit this resource because it was set to be not editable by its creator")
+                console.warn("You cannot edit this resource because it was set to be not editable by its creator")
                 $editButton.hide()
             }
         } else {
@@ -805,7 +828,7 @@
                 // go to updated view
                 _this.goToTimeline()
                 // fixme: formerly here were just (optimal) view updates
-                _this.pushTaggedViewState()
+                _this.pushTimelineViewState()
 
             })
             $parent.append($tag)
@@ -889,19 +912,20 @@
                     var tag = _this.model.getTagById(tagId)
                     _this.model.removeTagFromFilter(tag)
                     _this.goToTimeline()
-                    _this.pushTaggedViewState()
+                    _this.pushTimelineViewState()
                 })
             var $tagButton = $('<a class="btn tag selected">' +tags[i].value+ '</a>')
                 $tagButton.append($closeButton)
             $filterButtons.append($tagButton)
         }
-        var $clearButton = $('<a class="btn" title="Alle Tags aus dem Filter entfernen">').html('Filter zur&uuml;cksetzen')
+        var $clearButton = $('<a class="btn" title="Alle Tags aus dem Filter entfernen">')
+            .html('Filter zur&uuml;cksetzen')
             $clearButton.click(function(e) {
                 // prepare model
                 _this.model.setTagFilter([])
                 // go to new view
                 _this.goToTimeline()
-                _this.pushTaggedViewState()
+                _this.pushTimelineViewState()
             })
         $filterButtons.append($clearButton)
         $('.tag-filter-info').html($filterMeta).append($filterButtons)
@@ -1105,7 +1129,7 @@
         }
     }
 
-    this.pushTaggedViewState = function () {
+    this.pushTimelineViewState = function () {
 
         //  say where we're we are now, resp. what we've visited yet'
         var view_state = undefined
@@ -1277,7 +1301,7 @@
                 for (var k=0; k < tagsToReference.length; k++) {
                     if (tagsToReference[k] != undefined) {
                         var newAssoc = emc.createResourceTagAssociation(resource, tagsToReference[k])
-                        if (!newAssoc) console.log("WARNING: not created a resource tag association ..")
+                        if (!newAssoc) console.warn("We could not create a Resource <-> Tag association ..")
                     }
                 }
                 // assign authorhsip of resource to the current user

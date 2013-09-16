@@ -1,4 +1,4 @@
-function eduzenDictionary(lang) {
+function EduzenDictionary (lang) {
 
   this.typeName = function (type_uri) {
     if (lang === "DE") {
