@@ -312,8 +312,13 @@
     this.setupDetailView = function () {
         // set page-data
         // setupCKEditor()
-        var creator = emc.getFirstRelatedCreator(_this.model.getCurrentResource().id)
-        var creator_name = (creator == null) ? "Anonymous" : creator.value
+        var creator = _this.getRelatedUserAccount(_this.model.getCurrentResource().id)
+        var display_name = creator.value
+        //
+        if (creator.composite.hasOwnProperty('org.deepamehta.identity.display_name')) {
+            display_name = creator.composite['org.deepamehta.identity.display_name'].value
+        }
+        var creator_name = (creator == null) ? "Anonymous" : display_name
         var isLocked = false
         if (_this.model.getCurrentResource().composite.hasOwnProperty(NOTE_LOCKED_URI)) {
             isLocked = _this.model.getCurrentResource().composite[NOTE_LOCKED_URI].value
@@ -551,8 +556,14 @@
         // set content of resource
         // fixme: catch notes without content
         $('#resource_input').html(_this.model.getCurrentResource().composite[NOTE_CONTENT_URI].value)
-        var creator = emc.getFirstRelatedCreator(_this.model.getCurrentResource().id)
-        var creator_name = (creator == null) ? "Anonymous" : creator.value
+        var creator = _this.getRelatedUserAccount(_this.model.getCurrentResource().id)
+        console.log(creator)
+        var display_name = creator.value
+        //
+        if (creator.composite.hasOwnProperty('org.deepamehta.identity.display_name')) {
+            display_name = creator.composite['org.deepamehta.identity.display_name'].value
+        }
+        var creator_name = (creator == null) ? "Anonymous" : display_name
         var creator_link = '<a title="Gehze zur Timeline von  ' +creator_name+ '" href="/notes/user/' +creator.id+ '">'+creator_name+'</a>'
 
         var contributor = emc.getAllContributor(_this.model.getCurrentResource().id)
@@ -697,9 +708,14 @@
 
         var $topic = $("li#" + item.id) // we have an id triple in this "component"
         if ($topic.length <= 0) $topic = $('<li id="' +item.id+ '">') // create the new gui-"component"
-
-        var creator = emc.getFirstRelatedCreator(item.id)
-        var creator_name = (creator == null) ? "Anonymous" : creator.value
+        //
+        var creator = _this.getRelatedUserAccount(item.id)
+        var display_name = creator.value
+        //
+        if (creator.composite.hasOwnProperty('org.deepamehta.identity.display_name')) {
+            display_name = creator.composite['org.deepamehta.identity.display_name'].value
+        }
+        var creator_name = (creator == null) ? "Anonymous" : display_name
         var $creator_link = $('<a id="user-' +creator.id+ '" title="Zeige '+creator_name+'s Timeline" class="profile btn"></a>')
             $creator_link.text(creator_name)
             $creator_link.click(function(e) {
@@ -1187,6 +1203,12 @@
         if (scoreA < scoreB)
           return 1
         return 0 //default return value (no sorting)
+    }
+
+    this.getRelatedUserAccount = function (topicId) {
+        var creator = emc.getFirstRelatedCreator(topicId)
+            creator = emc.getTopicById(creator.id)
+        return creator
     }
 
     this.getTagsSubmitted = function (fieldIdentifier) {

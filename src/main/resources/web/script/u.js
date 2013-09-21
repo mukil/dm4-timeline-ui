@@ -102,28 +102,26 @@ function User (controler, dict, emc, account) {
         var object = _user.account.composite
         var name = (object.hasOwnProperty('org.deepamehta.identity.display_name')) ? object['org.deepamehta.identity.display_name'].value : _user.account.value
         var subject_of_study = (object.hasOwnProperty('org.deepamehta.identity.subject_of_study')) ? object['org.deepamehta.identity.subject_of_study'].value : ""
-        // var info = (object.hasOwnProperty('org.deepamehta.identity.infos')) ? object['org.deepamehta.identity.infos'].value : ""
-        // var contact_label = (object.hasOwnProperty('org.deepamehta.identity.contact')) ? object['org.deepamehta.identity.contact'][0].composite['org.deepamehta.identity.contact_label'].value : ""
-        // var contact_entry = (object.hasOwnProperty('org.deepamehta.identity.contact')) ? object['org.deepamehta.identity.contact'][0].composite['org.deepamehta.identity.contact_entry'].value : ""
+        // var mailbox = (object.hasOwnProperty('dm4.contacts.email_address')) ? object['dm4.contacts.email_address'].value : ""
+        var contact_label = (object.hasOwnProperty('org.deepamehta.identity.contact')) ? object['org.deepamehta.identity.contact'][0].composite['org.deepamehta.identity.contact_label'] : { "id": -1, "value": "Skype" }
+        var contact_entry = (object.hasOwnProperty('org.deepamehta.identity.contact')) ? object['org.deepamehta.identity.contact'][0].composite['org.deepamehta.identity.contact_entry'].value : ""
+        var contact_id = (object.hasOwnProperty('org.deepamehta.identity.contact')) ? object['org.deepamehta.identity.contact'][0].id : "-1"
         // add settings-form to profile-view
         var $settings = $('<div class="user-settings">')
             $settings.append('<label for="display_name">Display Name</label>')
             $settings.append('<input type="text" name="display_name" value="' +name+ '"></input>')
             $settings.append('<label for="display_name">Studienfach</label>')
             $settings.append('<input type="text" name="subject_of_study" value="' +subject_of_study+ '"></input>')
+            $settings.append('<label for="contact_label">Kontaktm&ouml;glichkeit</label>')
+            $settings.append('<input id="' +contact_label.id+ '" type="select" name="contact_label" value="'+contact_label.value+'"></input>')
+            $settings.append('<input id="' +contact_id+ '" type="text" name="contact_entry" value="' +contact_entry+ '"></input>')
         var $save_edits = $('<input type="button" class="save-edits" value="Änderungen speichern">')
             $save_edits.click(function(e) {
-                _this.doSaveUserSettings()
+                _this.doSaveUserProfile()
                 // update gui
                 controler.goToPersonalTimeline(_user.account)
             })
             $settings.append($save_edits)
-            /**
-            $settings.append('<label for="contact_label">Kontaktm&ouml;glichkeit</label>')
-            $settings.append('<input type="text" name="contact_label" value="' +contact_label+ '"></input>')
-            $settings.append('<input type="text" name="contact_entry" value="' +contact_entry+ '"></input>')
-            $settings.append('<label for="infos">Weitere Infos</label>')
-            $settings.append('<textarea name="infos" value="' +info+ '"></textarea>') **/
         // query for profile picture
         var profile_picture = emc.getFirstRelatedTopic(_user.account.id, PICTURE_EDGE_TYPE_URI, "dm4.files.file")
         // either add or remove profile-picture
@@ -158,18 +156,33 @@ function User (controler, dict, emc, account) {
 
     }
 
-    this.doSaveUserSettings = function () {
+    this.doSaveUserProfile = function () {
         var display_name = $('[name=display_name]').val()
         var subject_of_study = $('[name=subject_of_study]').val()
+        var contact_id = $('[name=contact_entry]').attr('id')
+        var contact_label = $('[name=contact_label]').val()
+        // var contact_label_id = $('[name=contact_label]').attr('id')
+        var contact_entry = $('[name=contact_entry]').val()
+        // console.log("updating contact entry with id => " + contact_id)
+        // update contact topic (todo: reference existing labels)
+        emc.updateTopic({
+            "id": contact_id,
+            "composite": {
+                "org.deepamehta.identity.contact_label": contact_label,
+                "org.deepamehta.identity.contact_entry": contact_entry
+            }
+        })
+        // update user-account topic (without updating contact-items)
         var model = {
             "id": _user.account.id,
             "composite": {
                 "org.deepamehta.identity.display_name": display_name,
-                "org.deepamehta.identity.subject_of_study": subject_of_study
+                "org.deepamehta.identity.subject_of_study": subject_of_study,
+                "org.deepamehta.identity.contact": [],
+                "org.deepamehta.identity.infos": ""
             }
         }
-        var updated = emc.updateTopic(model)
-        console.log(updated) // fixme: throw error if update failed (otherwise than with http status code)
+        emc.updateTopic(model)
     }
 
     /**

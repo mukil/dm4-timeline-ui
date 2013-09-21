@@ -6,10 +6,11 @@ A custom, timeline based AJAX user interface introducing a `Resource`-Type, enab
 
 To be able to install this module you first have to have install the following DeepaMehta 4 Plugins.
 
-* `eduzen-reviews-0.2`-Bundle - [Source Code](https://github.com/mukil/org.deepamehta-reviews), [Nightly Build](http://download.deepamehta.de/nightly/)
-* `deepamehta-tags-1.1`-Bundle - [Source Code](https://github.com/mukil/dm4.tags), [Nightly Build](http://download.deepamehta.de/nightly/)
+* `eduzen-reviews-0.2.0 | >`-Bundle - [Source Code](https://github.com/mukil/org.deepamehta-reviews), [Nightly Build](http://download.deepamehta.de/nightly/)
+* `deepamehta-tags-1.2.0`-Bundle - [Source Code](https://github.com/mukil/dm4.tags), [Nightly Build](http://download.deepamehta.de/nightly/)
 * `deepamehta-webactivator-0.3.1`-Bundle - [Source Code](https://github.com/jri/dm4-webactivator), [Nightly Build](http://download.deepamehta.de/nightly/)
-* `mathjax-renderer-0.1.0`-Bundle - [Source Code](https://github.com/mukil/dm4-mathjax-renderer), [Nightly Build](http://download.deepamehta.de/nightly/)
+* `mathjax-renderer-1.0.0`-Bundle - [Source Code](https://github.com/mukil/dm4-mathjax-renderer), [Nightly Build](http://download.deepamehta.de/nightly/)
+* `identity-1.0.0`-Bundle - [Source Code](https://github.com/mukil/org.deepamehta-identity), [Nightly Build](http://download.deepamehta.de/nightly/)
 
 # Install org.deepamehta-eduzen Module
 
@@ -17,7 +18,7 @@ To try the latest `eduzen-notes`-Bundle, which is to be considered _unstable_ an
 
 To download the latest _stable_ version of the `eduzen-notes`-Bundle, download it from [here, our list of stable builds](http://download.deepamehta.de/).
 
-Place the downloaded file `eduzen-notes0.X.jar` in the `bundles` folder of your deepamehta installation and restart DeepaMehta.
+Place the downloaded file `eduzen-notes-0.X.jar` in the `bundles` folder of your deepamehta installation and restart DeepaMehta.
 
 Now you can browse to `your-host:your-port/notes` with your browser and start using the custom user interface, e.g. under `http:localhost:8080/notes`.
 
@@ -37,6 +38,10 @@ The "Add item"-icon was published under [Attribution-Non-Commercial 3.0 Netherla
 The "Remove item"-icon was published "free for commercial use" and was designed by [Icojam](http://www.icojam.com).
 
 # Changelog
+
+0.2.1-SNAPSHOT, 2013
+
+- Personal timelines and user profiles
 
 0.2, May, 2013
 
