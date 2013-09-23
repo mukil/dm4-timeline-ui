@@ -244,6 +244,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         Topic resource = dms.getTopic(resourceId, true, clientState);
         long lastModified = resource.getModel().getCompositeValueModel().getLong(RESOURCE_LAST_MODIFIED_URI);
         context.setVariable("resourceName", "Notiz, zuletzt bearbeitet: " + new Date(lastModified).toString());
+        context.setVariable("url", "/notes/" + resource.getId());
         // boolean isLocked = resource.getModel().getCompositeValueModel().getBoolean(RESOURCE_LOCKED_URI);
         // context.setVariable("isLocked", isLocked);
         context.setVariable("resourceId", resource.getId());
