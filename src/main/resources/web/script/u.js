@@ -168,21 +168,33 @@ function User (controler, dict, emc, account) {
         var contact_entry = $('[name=contact_entry]').val()
         var infos = $('[name=infos]').val()
         // console.log("updating contact entry with id => " + contact_id)
-        // update contact topic (todo: reference existing labels)
-        emc.updateTopic({
-            "id": contact_id,
-            "composite": {
-                "org.deepamehta.identity.contact_label": contact_label,
-                "org.deepamehta.identity.contact_entry": contact_entry
+        var contact_data = []
+        if (contact_id != -1) {
+            // update contact topic (todo: reference existing labels)
+            emc.updateTopic({
+                "id": contact_id,
+                "composite": {
+                    "org.deepamehta.identity.contact_label": contact_label,
+                    "org.deepamehta.identity.contact_entry": contact_entry
+                }
+            })
+
+        } else {
+            if (contact_entry !== "") {
+                // create new contact-data
+                contact_data = [{
+                    "org.deepamehta.identity.contact_label": contact_label,
+                    "org.deepamehta.identity.contact_entry": contact_entry
+                }]
             }
-        })
+        }
         // update user-account topic (without updating contact-items)
         var model = {
             "id": _user.account.id,
             "composite": {
                 "org.deepamehta.identity.display_name": display_name,
                 "org.deepamehta.identity.subject_of_study": subject_of_study,
-                "org.deepamehta.identity.contact": [],
+                "org.deepamehta.identity.contact": contact_data,
                 "org.deepamehta.identity.infos": infos
             }
         }
