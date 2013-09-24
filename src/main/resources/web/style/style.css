@@ -663,7 +663,6 @@ textarea#math-input-dialog {
 }
 
 .eduzen.personal #profile .user-settings textarea {
-    width: 300px;
     max-width: 80%;
     height: 90px;
 }
@@ -704,6 +703,10 @@ textarea#math-input-dialog {
 .eduzen.personal #profile .view .subject-of-study,
 .eduzen.personal #profile .view .contact-entries .entry {
     color: #0782C1;
+}
+
+.eduzen.personal #profile .view .infos {
+    margin-top: 5px;
 }
 
 .eduzen.personal #profile .view .display-name {

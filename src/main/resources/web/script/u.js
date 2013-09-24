@@ -89,7 +89,7 @@ function User (controler, dict, emc, account) {
         // additional info
         var info = (object.hasOwnProperty('org.deepamehta.identity.infos')) ? object['org.deepamehta.identity.infos'].value : ""
         var $info = $('<div class="infos">')
-            $info.append(info)
+            $info.text(info)
         //
         $parent.append($info)
     }
@@ -106,6 +106,7 @@ function User (controler, dict, emc, account) {
         var contact_label = (object.hasOwnProperty('org.deepamehta.identity.contact')) ? object['org.deepamehta.identity.contact'][0].composite['org.deepamehta.identity.contact_label'] : { "id": -1, "value": "Skype" }
         var contact_entry = (object.hasOwnProperty('org.deepamehta.identity.contact')) ? object['org.deepamehta.identity.contact'][0].composite['org.deepamehta.identity.contact_entry'].value : ""
         var contact_id = (object.hasOwnProperty('org.deepamehta.identity.contact')) ? object['org.deepamehta.identity.contact'][0].id : "-1"
+        var infos = (object.hasOwnProperty('org.deepamehta.identity.infos')) ? object['org.deepamehta.identity.infos'].value : ""
         // add settings-form to profile-view
         var $settings = $('<div class="user-settings">')
             $settings.append('<label for="display_name">Display Name</label>')
@@ -115,6 +116,8 @@ function User (controler, dict, emc, account) {
             $settings.append('<label for="contact_label">Kontaktm&ouml;glichkeit</label>')
             $settings.append('<input id="' +contact_label.id+ '" type="select" name="contact_label" value="'+contact_label.value+'"></input>')
             $settings.append('<input id="' +contact_id+ '" type="text" name="contact_entry" value="' +contact_entry+ '"></input>')
+            $settings.append('<label for="infos">Allgemeine Infos</label>')
+            $settings.append('<textarea name="infos" value="' +infos+ '">'+infos+'</textarea>')
         var $save_edits = $('<input type="button" class="save-edits" value="Änderungen speichern">')
             $save_edits.click(function(e) {
                 _this.doSaveUserProfile()
@@ -163,6 +166,7 @@ function User (controler, dict, emc, account) {
         var contact_label = $('[name=contact_label]').val()
         // var contact_label_id = $('[name=contact_label]').attr('id')
         var contact_entry = $('[name=contact_entry]').val()
+        var infos = $('[name=infos]').val()
         // console.log("updating contact entry with id => " + contact_id)
         // update contact topic (todo: reference existing labels)
         emc.updateTopic({
@@ -179,7 +183,7 @@ function User (controler, dict, emc, account) {
                 "org.deepamehta.identity.display_name": display_name,
                 "org.deepamehta.identity.subject_of_study": subject_of_study,
                 "org.deepamehta.identity.contact": [],
-                "org.deepamehta.identity.infos": ""
+                "org.deepamehta.identity.infos": infos
             }
         }
         emc.updateTopic(model)
