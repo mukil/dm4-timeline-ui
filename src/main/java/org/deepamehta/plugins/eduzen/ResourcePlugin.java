@@ -26,16 +26,21 @@ import de.deepamehta.plugins.webactivator.WebActivatorPlugin;
 import org.deepamehta.plugins.eduzen.service.ResourceService;
 
 import com.sun.jersey.api.view.Viewable;
+import de.deepamehta.core.model.SimpleValue;
+import de.deepamehta.core.service.event.PreSendTopicListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.logging.Level;
 import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 
 
 @Path("/notes")
 @Consumes("application/json")
 @Produces("text/html")
-public class ResourcePlugin extends WebActivatorPlugin implements ResourceService {
+public class ResourcePlugin extends WebActivatorPlugin implements ResourceService, PreSendTopicListener  {
 
     private Logger log = Logger.getLogger(getClass().getName());
 
@@ -56,10 +61,19 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     private final static String PARENT_TYPE_URI = "dm4.core.parent";
     private final static String DEFAULT_ROLE_TYPE_URI = "dm4.core.default";
     private final static String ACCOUNT_TYPE_URI = "dm4.accesscontrol.user_account";
+    private final static String IDENTITY_NAME_TYPE_URI = "org.deepamehta.identity.display_name";
 
     @Override
     public void init() {
         setupRenderContext();
+    }
+
+    @Override
+    public void preSendTopic(Topic topic, ClientState clientState) {
+        // enrich a single resource-topic about creator and modifiers
+        if (topic.getTypeUri().equals(RESOURCE_URI)) {
+            enrichTopicModelAboutCreator(topic);
+        }
     }
 
     /**
@@ -162,7 +176,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             for (RelatedTopic item : in_memory) {
                 // start of preparing page results
                 if (count >= from) {
-                    //
+                    enrichTopicModelAboutCreator(item);
                     results.put(item.toJSON());
                     if (results.length() == size) break;
                 }
@@ -178,16 +192,43 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @GET
     @Path("/fetch/contributions/{userId}")
     @Produces("application/json")
-    public ResultSet<RelatedTopic> getContributedResources(@PathParam("userId") long userId,
+    public String getContributedResources(@PathParam("userId") long userId,
             @HeaderParam("Cookie") ClientState clientState) {
         //
+        JSONArray results = new JSONArray();
         try {
             Topic user  = dms.getTopic(userId, true, clientState);
             ResultSet<RelatedTopic> all_results = fetchAllContributionsByUser(user);
             log.info("fetching " +all_results.getSize()+ " contributions by user " + user.getSimpleValue());
-            return all_results;
+            for (RelatedTopic item : all_results) {
+                enrichTopicModelAboutCreator(item);
+                results.put(item.toJSON());
+            }
+            return results.toString();
         } catch (Exception e) {
             throw new WebApplicationException(new RuntimeException("something went wrong", e));
+        }
+    }
+
+    private void enrichTopicModelAboutCreator (Topic resource) {
+        // enriching our sorted resource-results on-the-fly about some minimal user-info
+        CompositeValueModel compositeModel = resource.getCompositeValue().getModel();
+        Topic creator = fetchCreator(resource);
+        String display_name = creator.getSimpleValue().toString();
+        if (creator.getCompositeValue().has(IDENTITY_NAME_TYPE_URI)) {
+            display_name = creator.getCompositeValue().getString(IDENTITY_NAME_TYPE_URI);
+        }
+        TopicModel identity;
+        try {
+            identity = new TopicModel(ACCOUNT_TYPE_URI, new CompositeValueModel(new JSONObject("{ "
+                + "\"" + IDENTITY_NAME_TYPE_URI + "\": \"" + display_name + "\", "
+                + "}")));
+            //
+            identity.setId(creator.getId());
+            identity.setSimpleValue(display_name);
+            compositeModel.put(ACCOUNT_TYPE_URI, identity);
+        } catch (JSONException ex) {
+            Logger.getLogger(ResourcePlugin.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 

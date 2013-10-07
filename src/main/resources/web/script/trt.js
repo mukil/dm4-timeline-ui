@@ -556,8 +556,7 @@
         // set content of resource
         // fixme: catch notes without content
         $('#resource_input').html(_this.model.getCurrentResource().composite[NOTE_CONTENT_URI].value)
-        var creator = _this.getRelatedUserAccount(_this.model.getCurrentResource().id)
-        console.log(creator)
+        var creator = _this.getAccountTopic(_this.model.getCurrentResource())
         var display_name = creator.value
         //
         if (creator.composite.hasOwnProperty('org.deepamehta.identity.display_name')) {
@@ -709,7 +708,8 @@
         var $topic = $("li#" + item.id) // we have an id triple in this "component"
         if ($topic.length <= 0) $topic = $('<li id="' +item.id+ '">') // create the new gui-"component"
         //
-        var creator = _this.getRelatedUserAccount(item.id)
+        // var creator = _this.getRelatedUserAccount(item.id)
+        var creator = _this.getAccountTopic(item)
         var display_name = creator.value
         //
         if (creator.composite.hasOwnProperty('org.deepamehta.identity.display_name')) {
@@ -1085,6 +1085,15 @@
     this.renderMathInArea = function (identifier) {
         // typeset all elements containing TeX to SVG or HTML in designated area
         MathJax.Hub.Queue(["Typeset", MathJax.Hub, identifier]);
+        // try to register click handler on all visible formulas
+        $('div.math-output').click(function(e) {
+            console.log("clicked math-container..")
+            console.log(e.currentTarget)
+            var range = document.createRange()
+                range.setStart(e.currentTarget, 0)
+                range.setEnd(e.currentTarget, 0)
+                // range.selectNode(e.currentTarget)
+        })
     }
 
     /** to be removed: never used **/
@@ -1209,6 +1218,13 @@
         var creator = emc.getFirstRelatedCreator(topicId)
             creator = emc.getTopicById(creator.id)
         return creator
+    }
+
+    this.getAccountTopic = function (topic) {
+        if (topic.composite.hasOwnProperty('dm4.accesscontrol.user_account')) {
+            return topic.composite['dm4.accesscontrol.user_account']
+        }
+        return null
     }
 
     this.getTagsSubmitted = function (fieldIdentifier) {

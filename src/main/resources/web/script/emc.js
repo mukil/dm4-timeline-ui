@@ -38,7 +38,7 @@ function EMC (dmc, model) {
 
     this.loadAllContributions = function (userId) { // lazy, unsorted, possibly limited
         //
-        var all_contributions = dmc.request("GET", "/notes/fetch/contributions/" + userId).items
+        var all_contributions = dmc.request("GET", "/notes/fetch/contributions/" + userId)
         if (all_contributions.length > 0) {
             _this.model.setAvailableResources(all_contributions)
         } else {

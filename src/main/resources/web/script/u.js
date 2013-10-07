@@ -178,7 +178,6 @@ function User (controler, dict, emc, account) {
                     "org.deepamehta.identity.contact_entry": contact_entry
                 }
             })
-
         } else {
             if (contact_entry !== "") {
                 // create new contact-data
