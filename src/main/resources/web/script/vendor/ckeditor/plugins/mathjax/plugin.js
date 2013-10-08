@@ -1,3 +1,4 @@
+
 CKEDITOR.plugins.add('mathjax', {
     init: function( editor ) {
 

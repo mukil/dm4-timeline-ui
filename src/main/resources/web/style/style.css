@@ -125,8 +125,8 @@
     cursor: hand;
 }
 
-.eduzen div.math-output:focus {
-    border: 2px solid #fff;
+.eduzen div.math-output.selected {
+    border: 1px solid #fff;
     background-color: #12b4d7;
     color: #fff;
 }

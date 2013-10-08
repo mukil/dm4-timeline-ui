@@ -7,6 +7,7 @@ function AppModel () {
         var currentResource = undefined
         var currentUser = undefined
         var currentUserTopic = undefined
+        var selectedFormula = undefined
 
         var tagFilter = []
 
@@ -57,6 +58,12 @@ function AppModel () {
                     }
                 }
                 return undefined
+            },
+            setSelectedFormula : function (math_container) {
+                selectedFormula = math_container
+            },
+            getSelectedFormula: function () {
+                return selectedFormula
             },
             associateTagWithAvailableResource: function (tag, resourceId) {
                 for (var i=0; i < availableResources.length; i++) {

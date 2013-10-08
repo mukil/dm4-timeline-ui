@@ -394,7 +394,7 @@
                 // skip tags, they are already setup for this resource
                 quickfixPDFImageRendering() // hacketi hack
                 // formula needs to be rendered to be edited..
-                setTimeout(function() {renderMathInArea('resource_input')}, 500)
+                setTimeout(function() {renderMathInArea('resource_input', true)}, 500)
             }
         }
 
@@ -603,7 +603,7 @@
                 // <img src="/de.deepamehta.tags/images/tag_32.png" width="20"' + 'alt="Tag: '+tag.value+'">'
             }
         }
-        renderMathInArea("resource_input")
+        renderMathInArea("resource_input", false)
         quickfixPDFImageRendering() // hacketi hack
     }
 
@@ -1054,6 +1054,8 @@
                 + " Rich-Text-Editor  zur Verfügung stellen. Wir arbeiten bereits an einer Lösung.   ",
                 500, UNDER_THE_TOP, "", 3000, undefined)
         }
+        // extend/back the global CKEditor instance with a reference to our application model
+        CKEDITOR.app_model = _this.model
     }
 
     this.setupMathJaxRenderer = function () {
@@ -1082,18 +1084,36 @@
         MathJax.Hub.Typeset()
     }
 
-    this.renderMathInArea = function (identifier) {
+    this.renderMathInArea = function (identifier, editable) {
         // typeset all elements containing TeX to SVG or HTML in designated area
         MathJax.Hub.Queue(["Typeset", MathJax.Hub, identifier]);
-        // try to register click handler on all visible formulas
-        $('div.math-output').click(function(e) {
-            console.log("clicked math-container..")
-            console.log(e.currentTarget)
-            var range = document.createRange()
-                range.setStart(e.currentTarget, 0)
-                range.setEnd(e.currentTarget, 0)
-                // range.selectNode(e.currentTarget)
-        })
+        if (editable) {
+            // registering selection-handler on all visible formulas
+            $('div.math-output').click(function(e) {
+
+                var previous = _this.model.getSelectedFormula()
+                if (_this.model.getSelectedFormula() != undefined) {
+                    _this.deselectEditableFormula(previous)
+                }
+                // select new, if not the identical
+                if ($(previous).attr('data-tex') !== $(this).attr('data-tex')) {
+                    _this.selectEditableFormula(this)
+                }
+                //
+                CKEDITOR.instances['resource_input'].selectionChange()
+
+            })
+        }
+    }
+
+    this.deselectEditableFormula = function(element) {
+        $(element).removeClass('selected')
+        _this.model.setSelectedFormula(undefined)
+    }
+
+    this.selectEditableFormula = function(element) {
+        _this.model.setSelectedFormula(element)
+        $(element).addClass('selected')
     }
 
     /** to be removed: never used **/
@@ -1362,6 +1382,12 @@
     }
 
     this.doSaveResource = function () {
+        // ui-workaround/clean-up: we do not want to save our (ui-selection realized as html) as part of our data
+        var previous = _this.model.getSelectedFormula()
+        if (_this.model.getSelectedFormula() != undefined) {
+            _this.deselectEditableFormula(previous)
+        }
+        // get data
         var valueToSubmit = getTeXAndHTMLSource(document.getElementById("resource_input"))
         var isLocked = ( $('input.lock').attr('checked') === "checked") ? true : false
         if (valueToSubmit.match(/\S/) != null && valueToSubmit !== "<p><br></p>") { // no empty strings
