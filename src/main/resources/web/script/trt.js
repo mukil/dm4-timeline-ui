@@ -7,6 +7,7 @@
     var emc = new EMC(dmc, _this.model)
     var profile = undefined
     var dict = new EduzenDictionary("DE")
+    var application_host = document.location.host
     //
     var current_view = "" // fixme: remove this helper
     var TAG_URI = "dm4.tags.tag" // fixme: doublings
@@ -550,20 +551,29 @@
         })
     }
 
+    /** fix: application_host in...
+     *  - meta property="og:url"
+     *  - a.source-info text
+     *  - a.source-info href
+     * */
     this.renderDetailView = function () {
 
-        $('#resource_input').attr("contenteditable", false)
-        // set content of resource
-        // fixme: catch notes without content
-        $('#resource_input').html(_this.model.getCurrentResource().composite[NOTE_CONTENT_URI].value)
+        var $input_area = $('#resource_input')
+            $input_area.attr("contenteditable", false)
+            // set content of resource
+            // fixme: catch notes without content
+            $input_area.html(_this.model.getCurrentResource().composite[NOTE_CONTENT_URI].value)
+        //
+        $('a.print-view').attr('href', '/notes/' + _this.model.getCurrentResource().id + '/print')
         var creator = _this.getAccountTopic(_this.model.getCurrentResource())
         var display_name = creator.value
         //
         if (creator.composite.hasOwnProperty('org.deepamehta.identity.display_name')) {
             display_name = creator.composite['org.deepamehta.identity.display_name'].value
         }
+        // creator-link: now relies on baseUrl (for print-view)
         var creator_name = (creator == null) ? "Anonymous" : display_name
-        var creator_link = '<a title="Gehze zur Timeline von  ' +creator_name+ '" href="/notes/user/' +creator.id+ '">'+creator_name+'</a>'
+        var creator_link = '<a title="Gehe zur Timeline von  ' +creator_name+ '" href="http://' +application_host+ '/notes/user/' +creator.id+ '">'+creator_name+'</a>'
 
         var contributor = emc.getAllContributor(_this.model.getCurrentResource().id)
         if (contributor != null) {
@@ -572,7 +582,8 @@
                 $contribs.empty()
             for (var key in contributor) {
                 var user = contributor[key]
-                var contributor_link = '<a title="Besuche '+user.value+'s Timeline" href="/notes/user/' +user.id+ '">'+user.value+'</a>&nbsp;'
+                // contributor-link: now relies on baseUrl (for print-view)
+                var contributor_link = '<a title="Besuche '+user.value+'s Timeline" href="http://' +application_host+ '/notes/user/' +user.id+ '">'+user.value+'</a>&nbsp;'
                 $contribs.append(contributor_link)
             }
         }
@@ -593,13 +604,14 @@
             )
         }
         // show tags for resource
+        // tag-link: now relies on baseUrl (for print-view)
         var currentTags = _this.model.getCurrentResource().composite[TAG_URI]
         $('#tags').empty()
         if (currentTags != undefined) {
             for (var i=0; i < currentTags.length; i++) {
                 var tag = currentTags[i]
-                $('#tags').append('<a class="btn tag" title="Browse all notes tagged with \"' +tag.value+ '\"" '
-                    + 'href="/notes/tagged/' +tag.value+ '">' +tag.value+ '</a>&nbsp;')
+                $('#tags').append('<a class="btn tag" title="Browse all notes tagged with ' +tag.value+ '" '
+                    + 'href="http://' +application_host+ '/notes/tagged/' +tag.value+ '">' +tag.value+ '</a>&nbsp;')
                 // <img src="/de.deepamehta.tags/images/tag_32.png" width="20"' + 'alt="Tag: '+tag.value+'">'
             }
         }
@@ -697,6 +709,7 @@
         })
     }
 
+    /** fixme: currently handles the case if a resource was posted incomplete (without a creator-relationship)*/
     this.setupResultListItem = function (item) {
 
         var score = (item.composite[REVIEW_SCORE_URI] != undefined) ? item.composite[REVIEW_SCORE_URI].value : 0
@@ -710,19 +723,26 @@
         //
         // var creator = _this.getRelatedUserAccount(item.id)
         var creator = _this.getAccountTopic(item)
-        var display_name = creator.value
-        //
-        if (creator.composite.hasOwnProperty('org.deepamehta.identity.display_name')) {
-            display_name = creator.composite['org.deepamehta.identity.display_name'].value
+        var display_name = ""
+        var creator_id = -1
+        var creator_name = "Anonymous"
+        if (creator != null) {
+            display_name = creator.value
+            creator_id = creator.id
+            //
+            if (creator.composite.hasOwnProperty('org.deepamehta.identity.display_name')) {
+                display_name = creator.composite['org.deepamehta.identity.display_name'].value
+            }
+            //
+            creator_name = display_name
         }
-        var creator_name = (creator == null) ? "Anonymous" : display_name
-        var $creator_link = $('<a id="user-' +creator.id+ '" title="Zeige '+creator_name+'s Timeline" class="profile btn"></a>')
+        var $creator_link = $('<a id="user-' +creator_id+ '" title="Zeige '+creator_name+'s Timeline" class="profile btn"></a>')
             $creator_link.text(creator_name)
             $creator_link.click(function(e) {
                 _this.goToPersonalTimeline(creator)
                 _this.pushPersonalViewState(creator)
             })
-
+        //
         var headline = 'Bewertung: <span class="score-info">' + score + '</span><span class="creation-date">Erstellt am ' + title.getDate() + '.'
                 + dict.monthNames[title.getMonth()] + ' ' + title.getFullYear() + ' um ' + title.getHours() + ':'
                 + title.getMinutes() + ' Uhr</span>'
@@ -1109,11 +1129,13 @@
     this.deselectEditableFormula = function(element) {
         $(element).removeClass('selected')
         _this.model.setSelectedFormula(undefined)
+        console.log("clearing formula selection ...")
     }
 
     this.selectEditableFormula = function(element) {
         _this.model.setSelectedFormula(element)
         $(element).addClass('selected')
+        console.log("setting formula selection ...")
     }
 
     /** to be removed: never used **/

@@ -26,7 +26,6 @@ import de.deepamehta.plugins.webactivator.WebActivatorPlugin;
 import org.deepamehta.plugins.eduzen.service.ResourceService;
 
 import com.sun.jersey.api.view.Viewable;
-import de.deepamehta.core.model.SimpleValue;
 import de.deepamehta.core.service.event.PreSendTopicListener;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -86,6 +85,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Produces("application/json")
     @Override
     public Topic createResource(TopicModel topicModel, @HeaderParam("Cookie") ClientState clientState) {
+        /// ### Wrap creation of the "Creator"-Relationship in this transaction too
         DeepaMehtaTransaction tx = dms.beginTx();
         Topic resource = null;
         try {
@@ -212,10 +212,15 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
 
     private void enrichTopicModelAboutCreator (Topic resource) {
         // enriching our sorted resource-results on-the-fly about some minimal user-info
+        // ### currently this method fails silently if resource has no creator-relationship
         CompositeValueModel compositeModel = resource.getCompositeValue().getModel();
         Topic creator = fetchCreator(resource);
-        String display_name = creator.getSimpleValue().toString();
-        if (creator.getCompositeValue().has(IDENTITY_NAME_TYPE_URI)) {
+        String display_name = "";
+        if (creator == null) {
+            log.warning("Resource ("+resource.getId()+") has no creator set!");
+            return;
+        }
+        if (creator != null && creator.getCompositeValue().has(IDENTITY_NAME_TYPE_URI)) {
             display_name = creator.getCompositeValue().getString(IDENTITY_NAME_TYPE_URI);
         }
         TopicModel identity;
@@ -285,7 +290,23 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         Topic resource = dms.getTopic(resourceId, true, clientState);
         long lastModified = resource.getModel().getCompositeValueModel().getLong(RESOURCE_LAST_MODIFIED_URI);
         context.setVariable("resourceName", "Notiz, zuletzt bearbeitet: " + new Date(lastModified).toString());
-        context.setVariable("url", "/notes/" + resource.getId());
+        context.setVariable("relativePath", "/notes/" + resource.getId());
+        context.setVariable("style", "style.css");
+        // boolean isLocked = resource.getModel().getCompositeValueModel().getBoolean(RESOURCE_LOCKED_URI);
+        // context.setVariable("isLocked", isLocked);
+        context.setVariable("resourceId", resource.getId());
+        return view("resource");
+    }
+
+    @GET
+    @Path("/{id}/print")
+    @Produces("text/html")
+    public Viewable getDetailPrintView(@PathParam("id") long resourceId, @HeaderParam("Cookie") ClientState clientState) {
+        Topic resource = dms.getTopic(resourceId, true, clientState);
+        long lastModified = resource.getModel().getCompositeValueModel().getLong(RESOURCE_LAST_MODIFIED_URI);
+        context.setVariable("resourceName", "Notiz, zuletzt bearbeitet: " + new Date(lastModified).toString());
+        context.setVariable("relativePath", "/notes/" + resource.getId());
+        context.setVariable("style", "detail-print.css");
         // boolean isLocked = resource.getModel().getCompositeValueModel().getBoolean(RESOURCE_LOCKED_URI);
         // context.setVariable("isLocked", isLocked);
         context.setVariable("resourceId", resource.getId());

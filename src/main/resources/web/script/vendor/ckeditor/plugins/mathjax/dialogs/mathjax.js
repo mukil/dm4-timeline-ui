@@ -83,7 +83,7 @@ CKEDITOR.dialog.add( 'mathjaxDialog', function( editor ) {
             // new formula selection mode to find our current math-output/div container
             if (typeof CKEDITOR.app_model.getSelectedFormula() !== 'undefined') {
                 newElement = CKEDITOR.app_model.getSelectedFormula()
-                console.log(newElement.getAttribute('class'))
+                // console.log(newElement.getAttribute('class'))
                 latexSource = newElement.getAttribute("data-tex")
                 this.insertMode = false
             } else {
@@ -157,6 +157,7 @@ CKEDITOR.dialog.add( 'mathjaxDialog', function( editor ) {
             var preview, content = undefined
 
             if (dialog.insertMode) {
+
                 // this element is our mathjax-source container
                 content = editor.document.createElement('div')
                     content.setAttribute('class', 'math-output')
@@ -173,7 +174,7 @@ CKEDITOR.dialog.add( 'mathjaxDialog', function( editor ) {
 
             } else {
 
-                // this element is our mathjax-source container
+                // this element is our mathjax-source container fixme: if not..
                 // update data-tex attr
                 if (newElement.getAttribute('class').indexOf('math-output') != -1) {
                     newElement.setAttribute('data-tex', math)

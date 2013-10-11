@@ -154,10 +154,6 @@
     pointer-events: all;
 }
 
-.eduzen .back-to-front {
-    right: 80px !important;
-}
-
 .eduzen .btn.my,
 .eduzen .btn.logout {
     padding: 0px;
@@ -184,12 +180,21 @@
 /** .eduzen .timeline.unrendered a#info {
 } **/
 
+.eduzen .print-view {
+    position: absolute;
+    right: 80px; top: 0px;
+}
+
+.eduzen .back-to-front {
+    position: absolute;
+    right: 185px; top: 0px;
+}
+
+.eduzen .print-view,
 .eduzen .back-to-front {
     display: inline-block;
     padding: 7px;
     border: 1px solid #f1f1f1;
-    position: absolute;
-    right: 600px; top: 0px;
     border-top: 1px solid #fff;
     padding-top: 9px;
     background-color: #fff;
@@ -212,6 +217,10 @@
 .eduzen.note .tag,
 .eduzen.note .btn.tag {
     text-decoration: none;
+}
+
+.eduzen.note .print-source {
+    display: none;
 }
 
 .eduzen i.tag {

@@ -1,0 +1,39 @@
+
+/** */
+
+body {
+    color: #000;
+}
+
+a.print-view,
+.header .username,
+.header a.back-to-front,
+.header .hello {
+    display: none;
+}
+
+b.label.contributor,
+#resource_input {
+    margin-top: 10px;
+}
+
+#tags {
+    margin-top: 5px;
+}
+
+a.btn.tag {
+    padding: 5px;
+    padding-left: 0px;
+}
+
+.contributor a,
+a.btn.tag,
+.print-source a,
+.header .content-area .creator a {
+    text-decoration: underline;
+    color: #000;
+}
+
+input.submit.btn {
+    display: none !important;
+}
