@@ -709,7 +709,6 @@
         })
     }
 
-    /** fixme: currently handles the case if a resource was posted incomplete (without a creator-relationship)*/
     this.setupResultListItem = function (item) {
 
         var score = (item.composite[REVIEW_SCORE_URI] != undefined) ? item.composite[REVIEW_SCORE_URI].value : 0
@@ -723,25 +722,19 @@
         //
         // var creator = _this.getRelatedUserAccount(item.id)
         var creator = _this.getAccountTopic(item)
-        var display_name = ""
-        var creator_id = -1
-        var creator_name = "Anonymous"
-        if (creator != null) {
-            display_name = creator.value
-            creator_id = creator.id
-            //
-            if (creator.composite.hasOwnProperty('org.deepamehta.identity.display_name')) {
-                display_name = creator.composite['org.deepamehta.identity.display_name'].value
-            }
-            //
-            creator_name = display_name
+        var display_name = creator.value
+        //
+        if (creator.composite.hasOwnProperty('org.deepamehta.identity.display_name')) {
+            display_name = creator.composite['org.deepamehta.identity.display_name'].value
         }
-        var $creator_link = $('<a id="user-' +creator_id+ '" title="Zeige '+creator_name+'s Timeline" class="profile btn"></a>')
+        var creator_name = (creator == null) ? "Anonymous" : display_name
+        var $creator_link = $('<a id="user-' +creator.id+ '" title="Zeige '+creator_name+'s Timeline" class="profile btn"></a>')
             $creator_link.text(creator_name)
             $creator_link.click(function(e) {
                 _this.goToPersonalTimeline(creator)
                 _this.pushPersonalViewState(creator)
             })
+
         //
         var headline = 'Bewertung: <span class="score-info">' + score + '</span><span class="creation-date">Erstellt am ' + title.getDate() + '.'
                 + dict.monthNames[title.getMonth()] + ' ' + title.getFullYear() + ' um ' + title.getHours() + ':'
