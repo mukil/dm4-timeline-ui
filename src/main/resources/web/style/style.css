@@ -219,6 +219,7 @@
     text-decoration: none;
 }
 
+.eduzen.note .print-button, 
 .eduzen.note .print-source {
     display: none;
 }

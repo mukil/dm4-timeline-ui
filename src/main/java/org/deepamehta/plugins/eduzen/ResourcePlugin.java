@@ -215,7 +215,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         // ### currently this method fails silently if resource has no creator-relationship
         CompositeValueModel compositeModel = resource.getCompositeValue().getModel();
         Topic creator = fetchCreator(resource);
-        // if (creator == null) throw new RuntimeException("Resource (" +resource.getId()+ ") has NO CREATOR set!");
+        if (creator == null) throw new RuntimeException("Resource (" +resource.getId()+ ") has NO CREATOR set!");
         String display_name = creator.getSimpleValue().toString();
         if (creator.getCompositeValue().has(IDENTITY_NAME_TYPE_URI) &&
             !creator.getCompositeValue().getString(IDENTITY_NAME_TYPE_URI).equals("")) { // it may be present but empty?

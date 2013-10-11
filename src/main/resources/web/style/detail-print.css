@@ -21,6 +21,15 @@ b.label.contributor,
     margin-top: 5px;
 }
 
+a.print.btn {
+    position: absolute;
+    top: 20px; right: 60px;
+    background-color: #fff;
+    border: 1px solid #f5f5f5;
+    cursor: pointer;
+    padding: 7px;
+}
+
 a.btn.tag {
     padding: 5px;
     padding-left: 0px;
