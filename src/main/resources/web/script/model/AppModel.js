@@ -70,8 +70,6 @@ function AppModel () {
                     var oldItem = availableResources[i]
                     if (oldItem.id == resourceId) {
                         var resource = availableResources[i]
-                        console.log("associating tag with the following resource ... ")
-                        console.log(resource)
                         var existingTags = resource.composite[instance.TAGS_URI]
                         if (existingTags == undefined) {
                             resource.composite[instance.TAGS_URI] = [tag]

@@ -26,8 +26,15 @@ import de.deepamehta.plugins.webactivator.WebActivatorPlugin;
 import org.deepamehta.plugins.eduzen.service.ResourceService;
 
 import com.sun.jersey.api.view.Viewable;
+import de.deepamehta.core.Association;
+import de.deepamehta.core.model.AssociationModel;
+import de.deepamehta.core.model.TopicRoleModel;
+import de.deepamehta.core.service.PluginService;
+import de.deepamehta.core.service.annotation.ConsumesService;
 import de.deepamehta.core.service.event.PreSendTopicListener;
+import de.deepamehta.plugins.accesscontrol.service.AccessControlService;
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.logging.Level;
@@ -59,8 +66,11 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     private final static String CHILD_TYPE_URI = "dm4.core.child";
     private final static String PARENT_TYPE_URI = "dm4.core.parent";
     private final static String DEFAULT_ROLE_TYPE_URI = "dm4.core.default";
+    private final static String COMPOSITION_TYPE_URI = "dm4.core.composition";
     private final static String ACCOUNT_TYPE_URI = "dm4.accesscontrol.user_account";
     private final static String IDENTITY_NAME_TYPE_URI = "org.deepamehta.identity.display_name";
+
+    private AccessControlService acService = null;
 
     @Override
     public void init() {
@@ -72,6 +82,22 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         // enrich a single resource-topic about creator and modifiers
         if (topic.getTypeUri().equals(RESOURCE_URI)) {
             enrichTopicModelAboutCreator(topic);
+        }
+    }
+
+    @Override
+    @ConsumesService("de.deepamehta.plugins.accesscontrol.service.AccessControlService")
+    public void serviceArrived(PluginService service) {
+        if (service instanceof AccessControlService) {
+            acService = (AccessControlService) service;
+        }
+    }
+
+    @Override
+    @ConsumesService("de.deepamehta.plugins.accesscontrol.service.AccessControlService")
+    public void serviceGone(PluginService service) {
+        if (service == acService) {
+            acService = null;
         }
     }
 
@@ -88,6 +114,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         /// ### Wrap creation of the "Creator"-Relationship in this transaction too
         DeepaMehtaTransaction tx = dms.beginTx();
         Topic resource = null;
+        Topic user = getAuthorizedUser();
         try {
             String value = topicModel.getCompositeValueModel().getString(RESOURCE_CONTENT_URI);
             // skipping: check in htmlContent for <script>-tag
@@ -104,6 +131,9 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             // topicModel.getCompositeValueModel().putRef(RESOURCE_AUTHOR_NAME_URI, RESOURCE_AUTHOR_ANONYMOUS_URI);
             // create new topic
             resource = dms.createTopic(topicModel, clientState); // clientstate is for workspace-assignment
+            Association edge = assignAuthorship(resource, user, clientState);
+            if (edge == null) log.warning("Could not relate new resource ("
+                    + resource.getId() + ") to author " + user.getSimpleValue());
             tx.success();
             return resource;
         } catch (Exception e) {
@@ -125,6 +155,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     public Topic updateResource(TopicModel topic, @HeaderParam("Cookie") ClientState clientState) {
         DeepaMehtaTransaction tx = dms.beginTx();
         Topic resource = null;
+        Topic user = getAuthorizedUser();
         try {
             // check htmlContent for <script>-tag
             String value = topic.getCompositeValueModel().getString(RESOURCE_CONTENT_URI);
@@ -143,6 +174,9 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
                     clientState, new Directives());
             resource.setCompositeValue(new CompositeValueModel().put(RESOURCE_LOCKED_URI, isLocked),
                     clientState, new Directives());
+            Association contributor = assignCoAuthorship(resource, user, clientState);
+            if (contributor == null) log.info("Skipped adding co-authorship for resource ("
+                    + resource.getId() + ") to author " + user.getSimpleValue());
             tx.success();
             return resource;
         } catch (Exception e) {
@@ -215,7 +249,8 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         // ### currently this method fails silently if resource has no creator-relationship
         CompositeValueModel compositeModel = resource.getCompositeValue().getModel();
         Topic creator = fetchCreator(resource);
-        if (creator == null) throw new RuntimeException("Resource (" +resource.getId()+ ") has NO CREATOR set!");
+        // if (creator == null) throw new RuntimeException("Resource (" +resource.getId()+ ") has NO CREATOR set!");
+        if (creator == null) return;
         String display_name = creator.getSimpleValue().toString();
         if (creator.getCompositeValue().has(IDENTITY_NAME_TYPE_URI) &&
             !creator.getCompositeValue().getString(IDENTITY_NAME_TYPE_URI).equals("")) { // it may be present but empty?
@@ -239,6 +274,21 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         //
         return resource.getRelatedTopic(CREATOR_EDGE_URI, PARENT_TYPE_URI,
                 CHILD_TYPE_URI, ACCOUNT_TYPE_URI, true, false, null);
+    }
+
+    private Association assignAuthorship(Topic resource, Topic user, ClientState clientState) {
+        if (associationExists(CREATOR_EDGE_URI, resource, user)) return null;
+        return dms.createAssociation(new AssociationModel(CREATOR_EDGE_URI,
+                new TopicRoleModel(resource.getId(), PARENT_TYPE_URI),
+                new TopicRoleModel(user.getId(), CHILD_TYPE_URI)), clientState);
+    }
+
+    private Association assignCoAuthorship(Topic resource, Topic user, ClientState clientState) {
+        if (associationExists(CREATOR_EDGE_URI, resource, user) ||
+            associationExists(CONTRIBUTOR_EDGE_URI, resource, user)) return null;
+        return dms.createAssociation(new AssociationModel(CONTRIBUTOR_EDGE_URI,
+                new TopicRoleModel(resource.getId(), PARENT_TYPE_URI),
+                new TopicRoleModel(user.getId(), CHILD_TYPE_URI)), clientState);
     }
 
     private ResultSet<RelatedTopic> fetchAllContributionsByUser(Topic user) {
@@ -328,6 +378,19 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             }
         });
         return in_memory;
+    }
+
+    private Topic getAuthorizedUser() {
+        String logged_in_user = acService.getUsername();
+        if (logged_in_user.equals("")) throw new WebApplicationException(401);
+        Topic username = acService.getUsername(logged_in_user);
+        return username.getRelatedTopic(COMPOSITION_TYPE_URI, CHILD_TYPE_URI, PARENT_TYPE_URI,
+                ACCOUNT_TYPE_URI, true, false, null);
+    }
+
+    private boolean associationExists(String edge_type, Topic item, Topic user) {
+        Set<Association> results = dms.getAssociations(item.getId(), user.getId(), edge_type);
+        return (results.size() > 0) ? true : false;
     }
 
 }

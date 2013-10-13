@@ -58,6 +58,7 @@
 
         // in any case
         emc.loadAllTags()
+        sortTags()
         // route to distinct views
         if (noteId === undefined || noteId === "") {
 
@@ -142,6 +143,11 @@
         } else {
             _this.model.getAvailableResources().sort(_this.created_at_sort_asc)
         }
+    }
+
+    this.sortTags = function () {
+        // initially load and sort
+        _this.model.getAvailableTags().sort(_this.name_sort_asc)
     }
 
     /**
@@ -1249,6 +1255,18 @@
         return 0 //default return value (no sorting)
     }
 
+    /** sorting asc by item.value */
+    this.name_sort_asc = function (a, b) {
+        var nameA = a.value
+        var nameB = b.value
+        //
+        if (nameA > nameB) // sort string descending
+          return 1
+        if (nameA < nameB)
+          return -1
+        return 0 //default return value (no sorting)
+    }
+
     this.getRelatedUserAccount = function (topicId) {
         var creator = emc.getFirstRelatedCreator(topicId)
             creator = emc.getTopicById(creator.id)
@@ -1367,7 +1385,7 @@
         // creating the new resource, with aggregated new tags
         var resource = undefined
         if (valueToSubmit.match(/\S/) != null && valueToSubmit !== "<p><br></p>") { // no empty strings
-            resource = emc.createResourceTopic(valueToSubmit, tagsToCreate)
+            resource = emc.createResourceTopic(valueToSubmit, tagsToCreate) // ### use catch here
             if (resource != undefined) {
                 // an creating/associtating tags with this resource
                 /* createNewTagsForResource(resource, tagsToCreate) **/
@@ -1377,8 +1395,6 @@
                         if (!newAssoc) console.warn("We could not create a Resource <-> Tag association ..")
                     }
                 }
-                // assign authorhsip of resource to the current user
-                emc.assignAuthorship(resource, _this.model.getCurrentUserTopic())
                 // track "added resource" goal
                 if (typeof piwikTracker !== 'undefined') piwikTracker.trackGoal(5)
                 $('#resource_input').html("")
@@ -1391,6 +1407,7 @@
             _this.renderNotification("Wir werden nur unfreiwillig inhaltsfreie Beitr&auml;ge speichern.",
                 400, TIMELINE_AREA, '', 'slow')
         }
+        // --- End (Transaction) ---
         // unnecessary, just inserBefore the createResourceTopic at the top of our list
         // or better implement observables, a _this.model the ui can "bind" to
         _this.goToTimeline() // todo: maybe we're currently on our personal timeline?
@@ -1412,12 +1429,10 @@
             // var updated = dmc.update_topic(resource)
             var updated = emc.updateResourceTopic(resource)
             if (updated != undefined) {
-                // assign co-authorhsip of resource to the current user
-                emc.assignCoAuthorship(updated, _this.model.getCurrentUserTopic())
                 // rendering notifications
                 // _this.renderNotification("Note updated.", OK, UNDER_THE_TOP, "", 'fast', function() {
                     // track "edited resource" goal
-                    if (typeof piwikTracker !== 'undefined') piwikTracker.trackGoal(1)
+                if (typeof piwikTracker !== 'undefined') piwikTracker.trackGoal(1)
                     // _this.pushHistory("timelineView", "Notes Timeline", "/notes")
                 // })
                 _this.model.updateAvailableResource(resource)

@@ -232,32 +232,6 @@ function EMC (dmc, model) {
         return undefined
     }
 
-    this.assignAuthorship = function (topic, userTopic) {
-        if (!_this.associationExists(topic.id, userTopic.id, "org.deepamehta.resources.creator_edge")) {
-            var assocModel = {"type_uri": "org.deepamehta.resources.creator_edge",
-                "role_1":{"topic_id":topic.id, "role_type_uri":"dm4.core.parent"},
-                "role_2":{"topic_id":userTopic.id, "role_type_uri":"dm4.core.child"}
-            }
-            var association = dmc.create_association(assocModel)
-            console.log("assigned authorship... ")
-            if (association == undefined) throw new Error("Something mad happened.")
-        } else {
-            console.log("authorship-edge already exists for " + userTopic.value)
-        }
-    }
-
-    this.assignCoAuthorship = function (topic, userTopic) {
-        if (!_this.associationExists(topic.id, userTopic.id, "org.deepamehta.resources.contributor_edge") &&
-            !_this.associationExists(topic.id, userTopic.id, "org.deepamehta.resources.creator_edge")) {
-            var assocModel = {"type_uri": "org.deepamehta.resources.contributor_edge",
-                "role_1":{"topic_id":topic.id, "role_type_uri":"dm4.core.parent"},
-                "role_2":{"topic_id":userTopic.id, "role_type_uri":"dm4.core.child"}
-            }
-            var association = dmc.create_association(assocModel)
-            if (association == undefined) throw new Error("Something mad happened.")
-        }
-    }
-
     this.getFirstRelatedCreator = function(topicId) {
         var filter = {
             "assoc_type_uri" : "org.deepamehta.resources.creator_edge",
