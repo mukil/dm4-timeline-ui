@@ -177,6 +177,8 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             Association contributor = assignCoAuthorship(resource, user, clientState);
             if (contributor == null) log.info("Skipped adding co-authorship for resource ("
                     + resource.getId() + ") to author " + user.getSimpleValue());
+            // ### update timestamp of super-topic
+            dms.updateTopic(resource.getModel(), clientState);
             tx.success();
             return resource;
         } catch (Exception e) {

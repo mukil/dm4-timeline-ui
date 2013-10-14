@@ -219,7 +219,7 @@
     text-decoration: none;
 }
 
-.eduzen.note .print-button, 
+.eduzen.note .print-button,
 .eduzen.note .print-source {
     display: none;
 }
@@ -845,6 +845,12 @@ textarea#math-input-dialog {
     background-color: #fff;
     margin-top: 10px;
     margin-left: 20px;
+}
+
+.eduzen #resource_input ul li {
+    border: 0px solid transparent;
+    list-style-type: disc;
+    margin: 0px;
 }
 
 .eduzen input.btn.login {
