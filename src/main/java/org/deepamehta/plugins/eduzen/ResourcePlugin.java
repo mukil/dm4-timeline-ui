@@ -43,7 +43,7 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 
-@Path("/notes")
+@Path("/")
 @Consumes("application/json")
 @Produces("text/html")
 public class ResourcePlugin extends WebActivatorPlugin implements ResourceService, PreSendTopicListener  {
@@ -107,7 +107,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
      */
 
     @POST
-    @Path("/resource/create")
+    @Path("/notes/resource/create")
     @Produces("application/json")
     @Override
     public Topic createResource(TopicModel topicModel, @HeaderParam("Cookie") ClientState clientState) {
@@ -149,7 +149,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
      */
 
     @POST
-    @Path("/resource/update")
+    @Path("/notes/resource/update")
     @Produces("application/json")
     @Override
     public Topic updateResource(TopicModel topic, @HeaderParam("Cookie") ClientState clientState) {
@@ -195,7 +195,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
      */
 
     @GET
-    @Path("/fetch/{count}/{offset}")
+    @Path("/notes/fetch/{count}/{offset}")
     @Produces("application/json")
     @Override
     public String getResources(@PathParam("count") long size, @PathParam("offset") long from,
@@ -226,7 +226,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     }
 
     @GET
-    @Path("/fetch/contributions/{userId}")
+    @Path("/notes/fetch/contributions/{userId}")
     @Produces("application/json")
     public String getContributedResources(@PathParam("userId") long userId,
             @HeaderParam("Cookie") ClientState clientState) {
@@ -304,21 +304,27 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     }
 
     @GET
-    @Path("/")
     @Produces("text/html")
     public Viewable getFrontView() {
         return view("index");
     }
 
     @GET
-    @Path("/info")
+    @Path("/notes")
+    @Produces("text/html")
+    public Viewable getTimelineView() {
+        return view("index");
+    }
+
+    @GET
+    @Path("/notes/info")
     @Produces("text/html")
     public Viewable getInfoView() {
         return view("info");
     }
 
     @GET
-    @Path("/tagged/{tags}")
+    @Path("/notes/tagged/{tags}")
     @Produces("text/html")
     public Viewable getFilteredeTimelineView(@PathParam("tags") String tagFilter,
         @HeaderParam("Cookie") ClientState clientState) {
@@ -326,7 +332,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     }
 
     @GET
-    @Path("/user/{userId}")
+    @Path("/notes/user/{userId}")
     @Produces("text/html")
     public Viewable getPersonalTimelineView(@PathParam("userId") long userId,
         @HeaderParam("Cookie") ClientState clientState) {
@@ -334,7 +340,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     }
 
     @GET
-    @Path("/{id}")
+    @Path("/notes/{id}")
     @Produces("text/html")
     public Viewable getDetailView(@PathParam("id") long resourceId, @HeaderParam("Cookie") ClientState clientState) {
         Topic resource = dms.getTopic(resourceId, true, clientState);
@@ -349,7 +355,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     }
 
     @GET
-    @Path("/{id}/print")
+    @Path("/notes/{id}/print")
     @Produces("text/html")
     public Viewable getDetailPrintView(@PathParam("id") long resourceId, @HeaderParam("Cookie") ClientState clientState) {
         Topic resource = dms.getTopic(resourceId, true, clientState);
