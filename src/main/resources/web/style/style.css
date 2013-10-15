@@ -1065,6 +1065,7 @@ input.cke_dialog_ui_input_text:focus {
 
 .eduzen ul.list li div.item-content a {
     border: 0px solid transparent;
+    padding: 0px;
 }
 
 .eduzen ul.objects li.selected,

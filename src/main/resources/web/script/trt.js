@@ -1260,9 +1260,9 @@
         var nameA = a.value
         var nameB = b.value
         //
-        if (nameA > nameB) // sort string descending
+        if (nameA.toLowerCase() > nameB.toLowerCase()) // sort string descending
           return 1
-        if (nameA < nameB)
+        if (nameA.toLowerCase() < nameB.toLowerCase())
           return -1
         return 0 //default return value (no sorting)
     }
