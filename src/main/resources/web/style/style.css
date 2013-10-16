@@ -1063,6 +1063,21 @@ input.cke_dialog_ui_input_text:focus {
     padding: 0px;
 }
 
+div.moved {
+    position: fixed;
+    background-color: #fff;
+    opacity:.9;
+    width: 40%;
+    height: 20%;
+    left: 30%;
+    top: 25%;
+    color: #0782C1;
+    padding: 40px;
+    border: 1px solid #0782C1;
+    text-align: center;
+    z-index: 1001;
+}
+
 .eduzen ul.list li div.item-content a {
     border: 0px solid transparent;
     padding: 0px;

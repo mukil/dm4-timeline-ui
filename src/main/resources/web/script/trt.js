@@ -59,6 +59,8 @@
         // in any case
         emc.loadAllTags()
         sortTags()
+
+        var new_url = "http://notizen.eduzen.tu-berlin.de"
         // route to distinct views
         if (noteId === undefined || noteId === "") {
 
@@ -75,12 +77,16 @@
                 if (selectedTag != undefined) _this.model.addTagToFilter(selectedTag)
             }
             _this.goToTimeline() // call timeline after filter was set.
+            // we have moved
+            new_url += "/notes/tagged/" + attributes[3]
 
         } else if (noteId === "user") {
 
             var userId = attributes[3]
             var user = dmc.get_topic_by_id(userId, true)
             _this.goToPersonalTimeline(user)
+            // we have moved
+            new_url += "/notes/user/" + attributes[3]
 
         } else {
 
@@ -88,9 +94,20 @@
             emc.loadResourceById(noteId) // initialize page-view detail model
             setupDetailView() // route to detail view
             // fixme: historyApi // _this.pushHistory("detailView", "Note Info: " + noteId, "/notes/" + noteId)
+            // we have moved
+            new_url += "/notes/" + noteId
 
         }
 
+        _this.showMovingMessage(new_url)
+
+    }
+
+    this.showMovingMessage = function(new_url) {
+        $('div.moved').html('<h3>Hinweis:</h3><i>research.eduzen.tu-berlin.de</i> hei&szlig;t jetzt '
+            + '<b>notizen.eduzen.tu-berlin.de</b>'
+            + '<br/><br/>Diese Seite findest Du ab jetzt unter: <br/>'
+            + '<a href="'+new_url+'">'+new_url+'</a><br/><br/><i>Hier bitte keine</i> neuen Notizen mehr ablegen oder vorhandene editieren.')
     }
 
     this.goToTimeline = function () {
