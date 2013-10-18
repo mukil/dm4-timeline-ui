@@ -28,6 +28,8 @@
     var FULL_TIMELINE = "timeline"
     var DETAIL_VIEW= "detail-view"
 
+    var TAGGING_FIELD_SELECTOR = "input.tagging"
+
     /**
      *  Fixmes: adding Tag to resource which has none (no display update), adding tag to resource which has one adds
      *  new tag twice to tag-filter-view
@@ -185,7 +187,7 @@
             setupUserPage()
             showResultsetView(false)
             setupCKEditor() // needs to get called after result-set is initialized because ckeditor is now part of that
-            setupTagFieldControls('input.tag')
+            setupTagFieldControls(TAGGING_FIELD_SELECTOR)
             $('.eduzen #input a.submit.btn').bind('click', _this.doSubmitResource)
         } else {
             setupGuestPage()
@@ -334,7 +336,7 @@
             isLocked = false
         }
         // initalize add tags field
-        // setupTagFieldControls('input.tag')
+        // setupTagFieldControls(TAGGING_FIELD_SELECTOR)
         setupMathJaxRenderer()
         var status = checkLoggedInUser()
         var $editButton = $('input.submit.btn')
@@ -680,7 +682,7 @@
         return ''
         + '<li id="input">'
             + '<div class="header">'
-                + '<span class="header-title">Neuen Beitrag verfassen<a class="help">*</a></span><br/><br/>'
+                + '<span class="header-title label">Neuen Beitrag verfassen<a class="help">*</a></span><br/><br/>'
                 + '<div class="help info">'
                     + 'Du kannst mithilfe unseres Editors Beitr&auml;ge in Form von HTML verfassen. Unser Editor erm&ouml;glicht dir momentan <b>Mathe-Formeln</b>, <b>Bilder</b>, <b>Web-Videos</b> und <b>Web-Sound</b> in HTML einzubetten.<br/>'
                     + 'Hier eine kleine Illustration die euch diese 4 Funktionen im Editor-Bereich zeigt.<br/>'
@@ -692,8 +694,8 @@
                 + '<div class="content-area">'
                     + '<div id="resource_input" contenteditable="false"></div>'
                     + '<br/>'
-                    + '<span class="header-title">Tags hinzuf&uuml;gen</span>'
-                    + '<input type="text" placeholder="..." class="tag"></input>'
+                    + '<span class="header-title label">Tags hinzuf&uuml;gen</span>'
+                    + '<input type="text" placeholder="..." class="tagging"></input>'
                 + '</div>'
                 + '<div class="toolbar">'
                     + '<a class="submit btn">Hinzuf&uuml;gen</a>'
@@ -1375,7 +1377,7 @@
         // TODO: clean up this mixed up method.
         // var pageContent = $('#resource_input').val()
         var valueToSubmit = getTeXAndHTMLSource(document.getElementById("resource_input"))
-        var qualifiedTags = getTagsSubmitted("input.tag")
+        var qualifiedTags = getTagsSubmitted(TAGGING_FIELD_SELECTOR)
         // differentiate in tags to create and existing tags in db (which need to be associated)
         var tagsToReference = getTagTopicsToReference(qualifiedTags)
         var tagsToCreate = getTagTopicsToCreate(qualifiedTags, tagsToReference)
@@ -1398,7 +1400,7 @@
                 // track "added resource" goal
                 if (typeof piwikTracker !== 'undefined') piwikTracker.trackGoal(5)
                 $('#resource_input').html("")
-                $('input.tag').val("")
+                $(TAGGING_FIELD_SELECTOR).val("")
                 $('div.header').css("opacity", "1")
                 // rendering notifications
                 // _this.renderNotification("Note submitted.", OK,  UNDER_THE_TOP, '', 'fast')

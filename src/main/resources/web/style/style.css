@@ -76,7 +76,7 @@
     right: 380px;
     top: 0px;
     padding-left: 7px;
-    border: 1px solid #a9a9a9;
+    border: 1px solid #f5f5f5;
     border-top: 0px solid transparent;
     color: #a9a9a9;
     background-color: #fff;
@@ -122,12 +122,12 @@
 .eduzen div.math-output {
     border: 1px solid #ffffff;
     padding-left: 5px; padding-right: 5px;
-    cursor: hand;
+    cursor: pointer;
 }
 
 .eduzen div.math-output.selected {
-    border: 1px solid #fff;
-    background-color: #12b4d7;
+    border: 1px solid #0782C1;
+    background-color: #0782C1;
     color: #fff;
 }
 
@@ -242,7 +242,7 @@
     /** position: relative;
     top: -2px; **/
     max-height: 15px;
-    border: 1px solid #a9a9a9;
+    border: 1px solid #f5f5f5;
 }
 
 .eduzen .btn.tag:hover {
@@ -268,7 +268,7 @@
     position: relative; top: 0px;
     display: inline-block;
     z-index: 1;
-    left: 62px;
+    left: 75px;
 }
 
 .eduzen.personal .timeline.rendered span.tag-filter-info,
@@ -307,7 +307,7 @@
     background-color: #0782C1;
     color: #fff;
     /** border: 2px solid #a9a9a9; **/
-    border: 1px solid #a9a9a9;
+    border: 1px solid #f5f5f5;
     margin-right: -1px;
     padding-left: 8px;
 }
@@ -370,7 +370,7 @@
     /** border-bottom: 1px solid #FFC700; **/
     position: relative;
     top: 55px;
-    left: 40px;
+    left: 55px;
     margin-right: 40px;
 }
 
@@ -426,7 +426,7 @@ textarea#math-input-dialog {
     color: #383838;
 }
 
-.eduzen .content-area li {
+.eduzen .content-area ul li {
     list-style-type: circle;
 }
 
@@ -483,11 +483,7 @@ textarea#math-input-dialog {
     margin-top: 5px;
 }
 
-.eduzen li#input {
-    border: 1px solid #f5f5f5;
-}
-
-.eduzen input.tag {
+.eduzen input.tagging {
     width: 75%;
     display: block;
 }
@@ -510,12 +506,21 @@ textarea#math-input-dialog {
 
 .eduzen #cke_resource-input { /** This is somewhat surrounding the ck-editor toolbar **/ }
 
-.eduzen #resource_input {
+.eduzen.notes #resource_input,
+.eduzen.notes.note #resource_input.cke_editable{
     background-color: #f1f1f1;
     padding: 10px;
     min-height: 45px;
     min-width: 360px;
-    border: 1px solid #ffc700;
+    border-top: 2px solid #a9a9a9;
+    border-left: 2px solid #a9a9a9;
+    border-right: 2px solid #f3f3f3;
+    border-bottom: 2px solid #f3f3f3;
+    /** border: 1px solid #ffc700; */
+}
+
+.eduzen.notes.note #resource_input {
+    border: 0px solid transparent;
 }
 
 .eduzen.note #resource_input {
@@ -569,7 +574,6 @@ textarea#math-input-dialog {
     padding-bottom: 3px;
     display: inline-block;
 }
-
 
 .eduzen.personal #profile {
     display: block;
@@ -847,9 +851,23 @@ textarea#math-input-dialog {
     margin-left: 20px;
 }
 
+.eduzen ul.list li#input div.content-area ul li {
+    list-style-type: circle;
+    padding-top: 5px;
+    overflow: visible;
+    padding: 0px;
+}
+
+.eduzen ul.list li#input div.content-area ol li {
+    list-style-type: decimal;
+    padding-top: 5px;
+    overflow: visible;
+    padding: 0px;
+    margin-bottom: 10px;
+}
+
 .eduzen #resource_input ul li {
     border: 0px solid transparent;
-    list-style-type: disc;
     margin: 0px;
 }
 
@@ -860,25 +878,27 @@ textarea#math-input-dialog {
 .eduzen input.secret,
 .eduzen input.username-input,
 .eduzen input.new-tag,
-.eduzen input.tag {
+.eduzen input.tagging {
     padding-left: 7px;
     padding-bottom: 5px;
     padding-top: 5px;
-    border: 1px solid #ffc700 !important;
+    /** border: 1px solid #ffc700 !important; **/
     background-color: #f1f1f1;
 }
 
 .eduzen .button:focus,
-.eduzen input.button:focus,
-.eduzen input:focus {
+.eduzen input.button:focus {
     /** color: #fff; **/
     border: 1px solid #2486bb !important;
 }
 
-.eduzen a:focus,
+/* .eduzen #resource_input:focus,
+.eduzen input:focus
 .eduzen input.new-tag:focus,
-.eduzen input.tag:focus,
-.eduzen #resource_input:focus {
+.eduzen input.tagging:focus
+**/
+
+.eduzen a:focus {
     /** color: #fff; **/
     border: 1px solid #2486bb;
 }
@@ -978,13 +998,13 @@ input.cke_dialog_ui_input_text:focus {
 
 .eduzen ul.list .item-content {
     color: #383838;
-    padding: 5px;
+    background-color: #f1f1f1;
+    padding: 15px;
     z-index: 1;
     border: 1px solid #f5f5f5;
     margin-top: 0px;
     margin-left: 0px;
     margin-right: 0px;
-    padding-bottom: 10px;
 }
 
 .eduzen object {
@@ -1010,16 +1030,30 @@ input.cke_dialog_ui_input_text:focus {
 
 .eduzen ul.objects,
 .eduzen ul.list {
-    color: #343434;
     padding-left: 0px;
     list-style-type: none;
     position: relative;
     max-width: 75%;
 }
 
+.eduzen li div.item-content {
+    color: #343434;
+}
+
+.eduzen li,
+.eduzen li div.votes,
+.eduzen li div.toolbar {
+    color: #a9a9a9;
+}
+
+.eduzen div.item-content li,
+.eduzen #resource_input li {
+    color: #000;
+}
+
 .eduzen ul.objects li,
 .eduzen ul.list li {
-    border: 1px solid #ffc700;
+    /** border: 1px solid #ffc700; **/
     padding: 4px; margin-top: 4px;
     padding-top: 10px;
     padding-left: 15px;
