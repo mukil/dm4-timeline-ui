@@ -1122,6 +1122,12 @@
                 CKEDITOR.instances['resource_input'].selectionChange()
 
             })
+
+            $('div.math-output').dblclick(function(e) {
+                CKEDITOR.instances['resource_input'].openDialog('mathjaxDialog')
+                _this.selectEditableFormula(this)
+            })
+
         }
     }
 
