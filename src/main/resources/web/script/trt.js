@@ -188,7 +188,7 @@
             showResultsetView(false)
             setupCKEditor() // needs to get called after result-set is initialized because ckeditor is now part of that
             setupTagFieldControls(TAGGING_FIELD_SELECTOR)
-            $('.eduzen #input a.submit.btn').bind('click', _this.doSubmitResource)
+            $('.eduzen #input input.submit').bind('click', _this.doSubmitResource)
         } else {
             setupGuestPage()
             showResultsetView(true)
@@ -201,7 +201,7 @@
         var $load_more = undefined
         if ($('.list .load-more').length == 0) {
             // create new one
-            $load_more = $('<a class="load-more btn">Load more ...</a><p>&nbsp;</p><p>&nbsp;</p><br/>')
+            $load_more = $('<input type="button" class="load-more" value="Ältere Notizen ..." />')
             $load_more.click(function(e) {
                 _this.model.page_nr = _this.model.page_nr + 1
                 var offset = _this.model.page_nr * NOTES_LIMIT
@@ -694,11 +694,9 @@
                 + '<div class="content-area">'
                     + '<div id="resource_input" contenteditable="false"></div>'
                     + '<br/>'
-                    + '<span class="header-title label">Tags hinzuf&uuml;gen</span>'
-                    + '<input type="text" placeholder="..." class="tagging"></input>'
-                + '</div>'
-                + '<div class="toolbar">'
-                    + '<a class="submit btn">Hinzuf&uuml;gen</a>'
+                    + '<span class="header-title label">Tags hinzuf&uuml;gen</span><br/>'
+                    + '<input type="text" placeholder="..." class="tagging" title="Notiz verschlagworten"></input>'
+                    + '<input type="button" class="submit" value="Hinzuf&uuml;gen" title="Notiz speichern"/>'
                 + '</div>'
             + '</div>'
         + '</li>'
@@ -1387,9 +1385,6 @@
         // differentiate in tags to create and existing tags in db (which need to be associated)
         var tagsToReference = getTagTopicsToReference(qualifiedTags)
         var tagsToCreate = getTagTopicsToCreate(qualifiedTags, tagsToReference)
-        // rendering notifications
-        // _this.renderNotification("Saving...", OK, UNDER_THE_TOP, '', 'fast')
-        // $('div.header').css("opacity", ".6")
         // creating the new resource, with aggregated new tags
         var resource = undefined
         if (valueToSubmit.match(/\S/) != null && valueToSubmit !== "<p><br></p>") { // no empty strings
@@ -1415,10 +1410,8 @@
             _this.renderNotification("Wir werden nur unfreiwillig inhaltsfreie Beitr&auml;ge speichern.",
                 400, TIMELINE_AREA, '', 'slow')
         }
-        // --- End (Transaction) ---
-        // unnecessary, just inserBefore the createResourceTopic at the top of our list
-        // or better implement observables, a _this.model the ui can "bind" to
-        _this.goToTimeline() // todo: maybe we're currently on our personal timeline?
+        // fixme: if we're adding a resource on our personal timeline, we currently return to the global one
+        _this.goToTimeline()
     }
 
     this.doSaveResource = function () {
