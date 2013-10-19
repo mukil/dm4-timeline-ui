@@ -118,6 +118,14 @@ function EMC (dmc, model) {
             var resourceTopic = dmc.request("POST", "/notes/resource/create", topicModel)
             if (resourceTopic == undefined) throw new Error("Something mad happened.")
             var updated = model.addToAvailableResources(resourceTopic)
+            // dont forget to add our new tags to the client-side AppModel
+            var new_tags = resourceTopic.composite['dm4.tags.tag']
+            if (typeof new_tags !== 'undefined') {
+                for (var t=0; t < new_tags.length; t++) {
+                    var new_tag = new_tags[t]
+                    _this.model.addToAvailableTags(new_tag)
+                }
+            }
             if (updated == undefined) {
                 throw new Error("Something mad happened while updating client side application cache.")
             }

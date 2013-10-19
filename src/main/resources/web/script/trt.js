@@ -835,15 +835,15 @@
         if (tags.length > 0) $tagInfo.insertAfter($creator_link)
         return $topic
 
-        function renderTagInfo($tagInfoArea, givenTags) {
-            var commaCounter = 0
-            for (var ri=0; ri < givenTags.length; ri++) {
-                // use tag icon..
-                $tagInfoArea.append('<i class="tag">' +givenTags[ri].value+ '</i>')
-                commaCounter++
-                (commaCounter < givenTags.length) ? $tagInfoArea.append(', ') : $tagInfoArea.append('&nbsp;&nbsp;&nbsp;')
+            function renderTagInfo($tagInfoArea, givenTags) {
+                var commaCounter = 0
+                for (var ri=0; ri < givenTags.length; ri++) {
+                    // use tag icon..
+                    $tagInfoArea.append('<i class="tag">' +givenTags[ri].value+ '</i>')
+                    commaCounter++
+                    (commaCounter < givenTags.length) ? $tagInfoArea.append(', ') : $tagInfoArea.append('&nbsp;&nbsp;&nbsp;')
+                }
             }
-        }
     }
 
     this.showTagButtons = function ($parent, tags) {
@@ -1124,8 +1124,8 @@
             })
 
             $('div.math-output').dblclick(function(e) {
-                CKEDITOR.instances['resource_input'].openDialog('mathjaxDialog')
                 _this.selectEditableFormula(this)
+                CKEDITOR.instances['resource_input'].openDialog('mathjaxDialog')
             })
 
         }
