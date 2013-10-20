@@ -1001,7 +1001,9 @@ input.cke_dialog_ui_input_text:focus {
     background-color: #f1f1f1;
     padding: 15px;
     z-index: 1;
-    border: 1px solid #f5f5f5;
+    border: 1px solid transparent;
+    /** border: 2px solid transparent;
+    border-left: 2px solid #ffc700; **/
     margin-top: 0px;
     margin-left: 0px;
     margin-right: 0px;
@@ -1062,6 +1064,26 @@ input.cke_dialog_ui_input_text:focus {
     overflow: hidden;
     max-width: 75%;
 }
+
+.eduzen ul.list li div.votes,
+.eduzen ul.list li div.toolbar {
+    opacity: 0;
+    -webkit-transition: opacity 0.5s ease-out;
+    -moz-transition: opacity 0.5s ease-out;
+    -o-transition: opacity 0.5s ease-out;
+}
+
+.eduzen ul.list li:hover div.votes,
+.eduzen ul.list li:hover div.toolbar {
+    -webkit-transition: opacity 0.5s ease-out;
+    -moz-transition: opacity 0.5s ease-out;
+    -o-transition: opacity 0.5s ease-out;
+    opacity: 1;
+}
+
+/** .eduzen ul.list li:hover div.item-content {
+    border-top: 2px solid #ffc700;
+} **/
 
 .eduzen.personal ul.list {
     max-width: 90%;
