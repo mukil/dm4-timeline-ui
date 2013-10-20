@@ -499,6 +499,15 @@ textarea#math-input-dialog {
 
 .eduzen #cke_resource-input { /** This is somewhat surrounding the ck-editor toolbar **/ }
 
+.eduzen textarea,
+.eduzen .user-settings input[type=text] {
+    border-top: 2px solid #a9a9a9;
+    border-left: 2px solid #a9a9a9;
+    border-right: 2px solid #f3f3f3;
+    border-bottom: 2px solid #f3f3f3;
+    background-color: #f1f1f1;
+}
+
 .eduzen.notes #resource_input,
 .eduzen.notes.note #resource_input.cke_editable{
     background-color: #f1f1f1;
@@ -556,9 +565,17 @@ textarea#math-input-dialog {
     margin-top: 30px;
 }
 
-.eduzen.personal #profile .user-settings input.save-edits {
+.eduzen.personal #profile .user-settings input.save-edits,
+.eduzen.personal #profile .user-settings input.cancel-pwd,
+.eduzen.personal #profile .user-settings input.edit-pwd,
+.eduzen.personal #profile .user-settings input.save-pwd {
     margin-top: 15px;
     cursor: pointer;
+}
+
+.eduzen.personal #profile .user-settings input.cancel-pwd,
+.eduzen.personal #profile .user-settings input.save-pwd {
+    display: inline-block;
 }
 
 .eduzen #picture-upload {
@@ -602,9 +619,16 @@ textarea#math-input-dialog {
     position: relative;
 }
 
-.eduzen.personal #profile .user-settings label.picture-label {
+.eduzen.personal #profile .user-settings .account-settings {
     position: absolute;
-    top: 15px; right: 10px;
+    left: 34%;
+    top: -20px;
+}
+
+.eduzen.personal #profile .user-settings span.picture.label {
+    position: absolute;
+    top: -5px; left: 0px;
+    width: 180px;
 }
 
 .eduzen.personal #profile .profile img.profile-picture {
@@ -613,12 +637,6 @@ textarea#math-input-dialog {
     z-index: 0;
     max-width: 180px;
     max-height: 180px;
-}
-
-.eduzen.personal #profile .user-settings .picture-label {
-    position: absolute;
-    top: 15px; right: 10px;
-    margin-bottom: 5px;
 }
 
 .eduzen.personal #profile .user-settings .picture-area {
@@ -633,6 +651,8 @@ textarea#math-input-dialog {
 .eduzen.personal #profile .user-settings img.profile-picture.editable {
     max-width: 180px;
     max-height: 180px;
+    top: 40px;
+    position: absolute;
 }
 
 .eduzen.personal #profile .user-settings div.picture-area:hover img.remove {
@@ -649,7 +669,7 @@ textarea#math-input-dialog {
     max-width: 32px;
     max-height: 32px;
     position: absolute;
-    top: 25px; left: 5px;
+    top: 45px; left: 5px;
     z-index: 101;
 }
 
@@ -670,7 +690,7 @@ textarea#math-input-dialog {
 
 .eduzen.personal #profile .user-settings textarea,
 .eduzen.personal #profile .user-settings input {
-    border: 1px solid #2486bb !important;
+    /** border: 1px solid #2486bb !important; **/
     padding: 5px;
 }
 
@@ -808,6 +828,17 @@ textarea#math-input-dialog {
 .eduzen div.about-login a {
     background-color: transparent;
     padding: 0px;
+}
+
+.eduzen .message.ok {
+    position: relative;
+    top: 15px;
+    color: #a9a9a9;
+}
+
+.eduzen .message.failed {
+    color: #ff0000;
+    font-weight: 900;
 }
 
 .eduzen .login-menu .message {

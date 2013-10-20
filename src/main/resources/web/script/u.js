@@ -94,7 +94,7 @@ function User (controler, dict, emc, account) {
         $parent.append($info)
     }
 
-    this.renderUserEditor = function ($parent) {
+    this.renderSettingsEditor = function ($parent) {
         //
         $('#profile .profile').hide()
         $('#profile .user-settings').remove()
@@ -103,19 +103,20 @@ function User (controler, dict, emc, account) {
         var name = (object.hasOwnProperty('org.deepamehta.identity.display_name')) ? object['org.deepamehta.identity.display_name'].value : _user.account.value
         var subject_of_study = (object.hasOwnProperty('org.deepamehta.identity.subject_of_study')) ? object['org.deepamehta.identity.subject_of_study'].value : ""
         // var mailbox = (object.hasOwnProperty('dm4.contacts.email_address')) ? object['dm4.contacts.email_address'].value : ""
-        var contact_label = (object.hasOwnProperty('org.deepamehta.identity.contact')) ? object['org.deepamehta.identity.contact'][0].composite['org.deepamehta.identity.contact_label'] : { "id": -1, "value": "Skype" }
+        var contact_label = (object.hasOwnProperty('org.deepamehta.identity.contact')) ? object['org.deepamehta.identity.contact'][0].composite['org.deepamehta.identity.contact_label'] : {"id": -1, "value": "Skype"}
         var contact_entry = (object.hasOwnProperty('org.deepamehta.identity.contact')) ? object['org.deepamehta.identity.contact'][0].composite['org.deepamehta.identity.contact_entry'].value : ""
         var contact_id = (object.hasOwnProperty('org.deepamehta.identity.contact')) ? object['org.deepamehta.identity.contact'][0].id : "-1"
         var infos = (object.hasOwnProperty('org.deepamehta.identity.infos')) ? object['org.deepamehta.identity.infos'].value : ""
         // add settings-form to profile-view
         var $settings = $('<div class="user-settings">')
+            $settings.append('<span class="label">Deine Profildaten</span><br/>')
             $settings.append('<label for="display_name">Display Name</label>')
             $settings.append('<input type="text" name="display_name" value="' +name+ '"></input>')
             $settings.append('<label for="display_name">Studienfach</label>')
             $settings.append('<input type="text" name="subject_of_study" value="' +subject_of_study+ '"></input>')
             $settings.append('<label for="contact_label">Kontaktm&ouml;glichkeit</label>')
-            $settings.append('<input id="' +contact_label.id+ '" type="select" name="contact_label" value="'+contact_label.value+'"></input>')
-            $settings.append('<input id="' +contact_id+ '" type="text" name="contact_entry" value="' +contact_entry+ '"></input>')
+            $settings.append('<input id="' +contact_label.id+ '" type="text" name="contact_label" value="'+contact_label.value+'" />')
+            $settings.append('<input id="' +contact_id+ '" type="text" name="contact_entry" value="' +contact_entry+ '" />')
             $settings.append('<label for="infos">Allgemeine Infos</label>')
             $settings.append('<textarea name="infos" value="' +infos+ '">'+infos+'</textarea>')
         var $save_edits = $('<input type="button" class="save-edits" value="Änderungen speichern">')
@@ -125,20 +126,19 @@ function User (controler, dict, emc, account) {
                 controler.goToPersonalTimeline(_user.account)
             })
             $settings.append($save_edits)
-        // query for profile picture
         var profile_picture = emc.getFirstRelatedTopic(_user.account.id, PICTURE_EDGE_TYPE_URI, "dm4.files.file")
         // either add or remove profile-picture
         var $picture_area = $('<div class="picture-area">')
         if (profile_picture != null) {
             var imagePath = "/filerepo/profile-pictures/" + profile_picture.value
-                $picture_area.append('<label class"picture-label">Profile picture</label>')
+                $picture_area.append('<span class="picture label">Dein Profilbild</span>')
             var $profile_picture = $('<img src="'+imagePath+'" title="Profile picture" class="profile-picture editable">')
             var $remove_item = $('<img src="/org.deepamehta.eduzen-tagging-notes/images/remove_item.png" title="Remove current profile pricture" class="remove">')
                 $remove_item.click(function(e) {
                     var assoc = emc.getFirstAssociation(_user.account.id, profile_picture.id, PICTURE_EDGE_TYPE_URI)
                     emc.deleteAssociation(assoc.id)
                     // update gui
-                    _this.renderUserEditor($parent)
+                    _this.renderSettingsEditor($parent)
                     var fileResponseHTML = "<br/><br/><br/>Dein Profilbild wurde entfernt."
                     $('div.picture-area').append(fileResponseHTML)
                 })
@@ -157,6 +157,29 @@ function User (controler, dict, emc, account) {
         //
         $settings.slideDown('slow')
 
+    }
+
+    this.renderAccountEditor = function ($parent) {
+        // ### add moodle security-key field (?), add password changer..
+        var username = _user.account.value // ### double check if this is always username
+        var password = _user.account.composite['dm4.accesscontrol.password'].value
+        var html = "<br/><br/><span class=\"label\">Deine Zugangsdaten</span><br/>"
+            + "<form id=\"user-form\" name=\"search\" action=\"javascript:void(0)\">"
+            + "  <label for=\"username\">Username</label>"
+            + "  <input name=\"username\" class=\"username\" type=\"text\" disabled=\"disabled\" title=\"A username cannot be changed\""
+            + "    value=\"" +username+ "\" /><label for=\"pwdfield\">Your password</label>"
+            + "  <input name=\"pwdfield\" class=\"pwdfield\" type=\"password\" disabled=\"disabled\""
+            + "    placeholder=\"New password\" value=\"" +password+ "\"></input>"
+            + "  <input type=\"button\" class=\"edit-pwd\" value=\"Edit\" />"
+            + "  <input class=\"save-pwd\" type=\"button\" value=\"Speichern\" />"
+            + "</form>"
+        var $account_settings = $('<div class="account-settings">')
+            $account_settings.html(html)
+        $('.user-settings', $parent).append($account_settings)
+        // render initial state of this dialog
+        $(".edit-pwd").click(_this.editPasswordHandler)
+        $(".save-pwd").click(_this.submitPasswordHandler)
+        $(".save-pwd").hide()
     }
 
     this.doSaveUserProfile = function () {
@@ -272,9 +295,8 @@ function User (controler, dict, emc, account) {
         } else {
             // create profile_picture edge relation for _user.account.id
             emc.createProfilePictureAssociation(_user.account, response.topic_id)
-            console.log("related new profile picture to user account")
             // update gui
-            _this.renderUserEditor($parent)
+            _this.renderSettingsEditor($parent)
             var fileResponseHTML = "<br/>Dein neues Profilbild \"" + response.file_name + "\" wurde "
                 + "erfolgreich gespeichert."
             $('div.picture-area').append(fileResponseHTML)
@@ -284,92 +306,65 @@ function User (controler, dict, emc, account) {
         }
     }
 
-    this.renderSettings = function () {
-        // this inits just the users profile view
-        _this.renderEditableSettings()
-        _this.renderPasswordField()
-    }
-
-    this.renderEditableSettings = function () {
-        var display_name = _user.account.composite['org.deepamehta.identity.display_name'].value
-
-        var html = "<br/><p class=\"buffer\"><a class=\"btn back\" href=\"javascript:history.back()\">Zur&uuml;ck</a><br/>"
-            + "<br/>Kontoeinstellungen von <span class=\"label\">" + display_name + "</span></a>"
-            + "<br/><br/><span class=\"logout button\">Logout</span><p><br/></p>"
-            + "<form id=\"user-form\" name=\"search\" action=\"javascript:void(0)\"><p class=\"buffer\">"
-            + "  <label for=\"pwdfield\">Your encrypted password</label><span class=\"edit button\">Edit</span>"
-            + "  <input name=\"pwdfield\" class=\"pwdfield\" type=\"password\" disabled=\"disabled\""
-            + "    placeholder=\"Password\"></input><br/><br/>"
-            + "  <span class=\"pwdsave button\">Save</span></p>"
-            + "</form>"
-        $(".profile .settings").html(html)
-        $(".edit.button").click(_this.pwdHandler)
-        $(".logout.button").click(emc.logout)
-        // $(".mailedit.button").click(_this.mailHandler)
-        $(".pwdsave.button").hide()
-    }
-
-    this.renderPasswordField = function() {
-        var password = _user.account.composite['dm4.accesscontrol.password'].value
-        $(".pwdfield").val(password)
-        $(".pwdsave.button").click(_this.submitPassword)
-        /** var html = "<p class=\"buffer\">"
-            + "  <label for=\"mailfield\">Your current mailbox</label><span class=\"mailedit button\">Edit</span>"
-            + "  <input name=\"mailfield\" class=\"mailfield\" type=\"text\" disabled=\"disabled\""
-            + "    placeholder=\"E-Mail\"></input><br/>"
-            + "  <span class=\"emailsave button\">Save</span></p>"
-        $("#user-form").append(html)
-        $(".emailsave.button").hide()**/
-        // ### display console.log(user.account)
-    }
-
-    this.renderHelpLink = function() {
-        var mailto = "<p class=\"buffer\"><b class=\"label\">Ihr braucht Hilfe bei einer &Uuml;bung, habt Anregungen "
-            + "oder Fragen zu dieser Web-Anwendung, schickt uns einfach eine Mail an <a class=\"btn mail\" "
-            + "title=\"Mail an EducationZEN Hilfe\" "
-            + "alt=\"Mail an Team\" href=\"mailto:team@eduzen.tu-berlin.de?subject=Anfrage an das EducationZEN-Team\">"
-            + "team@eduzen.tu-berlin.de</a> - Danke!</b><br/><br/></p>"
-        if ($(".btn.mail")[0] == undefined) {
-            $("#header").append(mailto)
-        }
-    }
-
-    this.pwdHandler = function (e) {
+    this.editPasswordHandler = function (e, message, new_pwd) {
         if ($(".2nd.pwdfield")[0] == undefined) {
-        $(".pwdfield").removeAttr("disabled")
-        $("[for=pwdfield]").html("Enter your new password")
-        $(".pwdsave.button").show()
-        _this.renderAndPasswordField()
+            // if there is no 2nd password-field
+            $(".pwdfield").removeAttr("disabled")
+            $(".pwdfield").val("")
+            $("[for=pwdfield]").html("New password") // changes the inputs label
+            $(".edit-pwd").hide() // show the new save button
+            $(".save-pwd").show() // show the new save button
+            _this.renderAndPasswordField() // renders additional password input field
         } else {
-        $(".pwdfield").attr("disabled", "disabled")
-        $(".2nd.pwdfield").remove()
-        $("[for=2ndpwdfield]").remove()
-        $(".pwdsave.button").hide()
+            // if there already are.. collapse dialog ?
+            $(".pwdfield").attr("disabled", "disabled") // disables original password field
+            $(".pwdfield").attr("value", new_pwd)
+            $(".2nd.pwdfield").remove() // removes the second one
+            $("[for=2ndpwdfield]").remove() // removes label of the second one
+            $(".save-pwd").hide() // hide save-button
+            $(".edit-pwd").show() // show the new save button
+            // ### render message password changed successfully
+            var $message = $('<span class="message ok">'+message+'</span>')
+                $($message).insertAfter('.edit-pwd')
+                // animation
+                setTimeout(function(e) {
+                    $message.remove()
+                }, 2500)
+
         }
         return void(0)
     }
 
     this.renderAndPasswordField = function () {
-        var password = _user.account.composite['dm4.accesscontrol.password'].value
-        var controlField = "<label for=\"2ndpwdfield\">Please retype your new password here</label>"
+        // var password = _user.account.composite['dm4.accesscontrol.password'].value
+        var controlField = "<label for=\"2ndpwdfield\">And again, please.</label>"
             + "<input name=\"2ndpwdfield\" class=\"2nd pwdfield\" type=\"password\" "
-            + "placeholder=\"Password\" value=\"" + password + "\"></input>"
-        $(controlField).insertBefore(".pwdsave.button")
+            + "placeholder=\"New password\" value=\"\"></input>"
+        $(controlField).insertBefore(".save-pwd")
+        var $cancel = $('<input type="button" class="cancel-pwd" value="Abbrechen">')
+            $cancel.click(function(e) {
+                $cancel.remove()
+                _this.editPasswordHandler(undefined, "Your password remains unchanged.")
+            })
+            $($cancel).insertAfter(".save-pwd")
     }
 
-    this.submitPassword = function (e) {
+    this.submitPasswordHandler = function (e) {
         var next = $(".pwdfield").val()
         var and = $(".2nd.pwdfield").val()
         var pwd = undefined
+        var message = ""
+        $('input.cancel-pwd').remove()
         if (next === and) {
             pwd = "-SHA256-" + SHA256(next)
             _user.account.composite['dm4.accesscontrol.password'].value = pwd
-            // emc.update_topic(user.account.composite['dm4.accesscontrol.password'])
+            emc.updateTopic(_user.account.composite['dm4.accesscontrol.password'])
+            message = "Your new password is now set."
         } else {
-            console.log("password update not saved, 2 passwords did not match")
+            message = "Passwords did not match, your password remains unchanged."
         }
         // update gui
-        _this.initView()
+        _this.editPasswordHandler(undefined, message, pwd)
     }
 
 }

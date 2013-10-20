@@ -134,7 +134,9 @@
         // clean up timeline-gui, where we've definitely coming from (here)
         $('#resources .list').empty()
         //
-        profile.renderUserEditor($('#profile'))
+        var $profile_view = $('#profile')
+        profile.renderSettingsEditor($profile_view)
+        profile.renderAccountEditor($profile_view)
 
     }
 
