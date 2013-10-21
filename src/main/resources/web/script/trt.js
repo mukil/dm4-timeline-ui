@@ -196,7 +196,7 @@
             showResultsetView(true)
         }
         //
-        // _this.skroller.refresh()
+        _this.skroller.refresh()
     }
 
     this.renderLoadMoreButton = function () {
@@ -483,7 +483,7 @@
                     if (emc.logout()) {
                         _this.model.setCurrentUserTopic(undefined)
                         _this.model.setCurrentUserName(undefined)
-                        $("body").text("You're logged out now.")
+                        $("body").html("You're logged out now. <br/><br/><a href=\"/\">Reload Application</a>")
                     } else {
                         _this.model.setCurrentUserTopic(undefined)
                         _this.model.setCurrentUserName(undefined)
@@ -637,12 +637,12 @@
 
         $('#list-message').html('<br/><br/><b class="label">Calculating results</b>')
         if (_this.model.getAvailableResources().length > 0) {
-            renderResultList(guest)
             $('#list-message').html("")
         } else {
-            $('#list-message').html('<br/><br/><b class="label">Aint no content found. Please insert coin.</b>')
+            $('#list-message').html('<br/><br/><b class="label">No posts to show.</b>')
             $('.result-text').text('')
         }
+        renderResultList(guest)
     }
 
     this.renderResultList = function (guest) {

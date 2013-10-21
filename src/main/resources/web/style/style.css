@@ -299,7 +299,7 @@
 
 .eduzen.guest .timeline.rendered span.tag-filter-info {
     margin-top: 33px;
-    left: 62px;
+    left: 75px;
 }
 
 /** here no filter can be present in options bar */
@@ -398,6 +398,10 @@
     padding-left: 40px;
     margin-bottom: 60px;
     width: 100%;
+}
+
+.eduzen #resources #list-message {
+    margin-left: 20px;
 }
 
 /** .eduzen #menu {
