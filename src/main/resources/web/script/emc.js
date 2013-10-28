@@ -289,7 +289,8 @@ function EMC (dmc, model) {
 
     this.getCurrentUser = function () {
         if (_this.username == undefined || _this.username == "") {
-            _this.username = dmc.request("GET", "/accesscontrol/user", undefined, undefined, "text")
+            _this.username = dmc.request("GET", "/accesscontrol/user", undefined, undefined, undefined, "text")
+            if (_this.username == null) return ""
         }
         return _this.username
     }
@@ -298,7 +299,7 @@ function EMC (dmc, model) {
         var loggedOut = false
         if (_this.username != undefined || _this.username != "") {
             try {
-                var logoutRequest = dmc.request("POST", "/accesscontrol/logout", undefined, undefined, "text")
+                var logoutRequest = dmc.request("POST", "/accesscontrol/logout", undefined, undefined, undefined, "text")
                 if (logoutRequest === "") loggedOut = true
                 _this.username = undefined
             } catch (e) {

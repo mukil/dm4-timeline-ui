@@ -302,7 +302,7 @@
                 var authorization = authorization()
                 if (authorization === undefined) return null
                 // throws 401 if login fails
-                dmc.request("POST", "/accesscontrol/login", undefined, {"Authorization": authorization})
+                dmc.request("POST", "/accesscontrol/login", undefined, undefined, {"Authorization": authorization})
                 // _this.renderNotification("Session started. Have fun thinking and be nice!", OK, TIMELINE)
                 return _this.checkLoggedInUser()
             } catch (e) {
