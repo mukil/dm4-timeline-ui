@@ -262,6 +262,32 @@
     display: none;
 }
 
+.eduzen #progressbar {
+    position: fixed;
+    top: 39px;
+    margin-left: 50px;
+    margin-right: 60px;
+    height: 22px;
+    width: 525px;
+    z-index: 1009;
+}
+
+/*!
+ * jQuery UI Progressbar '1.8-stable'
+ *
+ * Copyright 2012, AUTHORS.txt (http://jqueryui.com/about)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://jquery.org/license
+ *
+ * http://docs.jquery.com/UI/Progressbar#theming
+ */
+.ui-progressbar { height:2em; text-align: left; overflow: hidden; }
+.ui-progressbar .ui-progressbar-value {margin: -1px; height:100%; }
+
+.ui-progressbar-value.ui-widget-header {
+    background: #ffc700 /*{bgColorHeader} url(images/ui-bg_highlight-soft_75_cccccc_1x100.png)/*{bgImgUrlHeader}*/ 50%/*{bgHeaderXPos}*/ 50%/*{bgHeaderYPos}*/ repeat-x/*{bgHeaderRepeat}*/
+}
+
 .eduzen .timeline span.tag-filter-info {
     background-color: #fff;
     margin-top: 0px;

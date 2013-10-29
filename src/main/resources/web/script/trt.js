@@ -39,6 +39,8 @@
 
     this.initializePageView = function () {
 
+        $(window).on('load', function(event) { _this.hideProgressBar() });
+
         // parse requested location
         var pathname = window.location.pathname
         var attributes = pathname.split('/')
@@ -95,17 +97,20 @@
 
     }
 
-    this.goToTimeline = function () {
+    this.goToTimeline = function (hide_progressbar) {
 
+        _this.renderProgressBar()
         // prepare page model (according to filter)
         _this.loadResources() // optimize: maybe we dont need to load it again
         // render timeline view
         renderView()
+        if (hide_progressbar) _this.hideProgressBar()
 
     }
 
-    this.goToPersonalTimeline = function (account) {
+    this.goToPersonalTimeline = function (account, hide_progressbar) {
 
+        _this.renderProgressBar()
         // prepare page model
         _this.model.setTagFilter([])
         // render update before we load all the stuff
@@ -122,6 +127,7 @@
         renderView(user_account) // fixme: setup without tag-filter-dialog
         //
         current_view = PERSONAL_TIMELINE
+        if (hide_progressbar) _this.hideProgressBar()
 
     }
 
@@ -152,6 +158,19 @@
         _this.model.getAvailableTags().sort(_this.name_sort_asc)
     }
 
+    this.renderProgressBar = function () {
+        var $progressbar = $( "#progressbar" ).progressbar( "widget" );
+            $progressbar.progressbar( "enable" );
+            $progressbar.show()
+            $progressbar.progressbar({value: 10, max: 100});
+    }
+
+    this.hideProgressBar = function () {
+        var $progressbar = $('#progressbar')
+            $progressbar.progressbar( "disable" );
+            $progressbar.hide()
+    }
+
     /**
      * Rendering our interactive page. Either "personal" or "ordinary" and either for "guests" or "authenticated users".
      */
@@ -162,6 +181,7 @@
         var status = checkLoggedInUser()
         renderUserInfo()
 
+        $('#progressbar').progressbar({value: 30});
         // fixme: render upper menu for either personal or ordinary timeline
         if (user) {
             setupFrontpageButton()
@@ -181,7 +201,7 @@
             // render avaialble tag-filter buttons
             renderTagView()
         }
-
+        $('#progressbar').progressbar({value: 80});
         //
         if (status !== null) {
             setupUserPage()
@@ -194,7 +214,8 @@
             showResultsetView(true)
         }
         //
-        // _this.skroller.refresh()
+        $('#progressbar').progressbar({value: 100});
+        _this.skroller.refresh()
     }
 
     this.renderLoadMoreButton = function () {
@@ -223,7 +244,7 @@
                 // prepare model
                 _this.model.setTagFilter([])
                 // go to
-                _this.goToTimeline()
+                _this.goToTimeline(true)
                 _this.pushTimelineViewState()
             })
             $('#menu').append($homeButton)
@@ -286,7 +307,7 @@
         function doLogin() {
             var user = checkUserAuthorization() // login button handler
             if (user != null) {
-                _this.goToTimeline()
+                _this.goToTimeline(true)
                 _this.pushTimelineViewState()
             }
         }
@@ -469,7 +490,7 @@
                 $my.attr("href", "/notes/user/" + user.id)
             } else {
                 $my.click(function (e) {
-                    _this.goToPersonalTimeline(user)
+                    _this.goToPersonalTimeline(user, true)
                     _this.pushPersonalViewState(user)
                 })
             }
@@ -739,7 +760,7 @@
         var $creator_link = $('<a id="user-' +creator.id+ '" title="Zeige '+creator_name+'s Timeline" class="profile btn"></a>')
             $creator_link.text(creator_name)
             $creator_link.click(function(e) {
-                _this.goToPersonalTimeline(creator)
+                _this.goToPersonalTimeline(creator, true)
                 _this.pushPersonalViewState(creator)
             })
 
@@ -863,7 +884,7 @@
                 var selectedTag = _this.model.getTagById(tagId)
                 _this.model.addTagToFilter(selectedTag)
                 // go to updated view
-                _this.goToTimeline()
+                _this.goToTimeline(true)
                 // fixme: formerly here were just (optimal) view updates
                 _this.pushTimelineViewState()
 
@@ -948,7 +969,7 @@
                     var tagId = parseInt(e.target.id)
                     var tag = _this.model.getTagById(tagId)
                     _this.model.removeTagFromFilter(tag)
-                    _this.goToTimeline()
+                    _this.goToTimeline(true)
                     _this.pushTimelineViewState()
                 })
             var $tagButton = $('<a class="btn tag selected">' +tags[i].value+ '</a>')
@@ -961,7 +982,7 @@
                 // prepare model
                 _this.model.setTagFilter([])
                 // go to new view
-                _this.goToTimeline()
+                _this.goToTimeline(true)
                 _this.pushTimelineViewState()
             })
         $filterButtons.append($clearButton)
@@ -1175,13 +1196,13 @@
 
             // update app-model
             _this.model.setTagFilter(pop.state.data.tags)
-            _this.goToTimeline()
+            _this.goToTimeline(true)
 
         } else if (pop.state.name == FULL_TIMELINE) {
 
             // update app-model
             _this.model.setTagFilter([])
-            _this.goToTimeline()
+            _this.goToTimeline(true)
 
         } else if (pop.state.name == PERSONAL_TIMELINE) {
 
@@ -1189,7 +1210,7 @@
             var user = dmc.get_topic_by_id(userId, true)
             // fixme: re-set tagfilter..
             _this.model.setTagFilter([])
-            _this.goToPersonalTimeline(user)
+            _this.goToPersonalTimeline(user, true)
 
         } else {
             console.log("unknown view.. ")
@@ -1409,10 +1430,8 @@
             _this.renderNotification("Wir werden nur unfreiwillig inhaltsfreie Beitr&auml;ge speichern.",
                 400, TIMELINE_AREA, '', 'slow')
         }
-        // --- End (Transaction) ---
-        // unnecessary, just inserBefore the createResourceTopic at the top of our list
-        // or better implement observables, a _this.model the ui can "bind" to
-        _this.goToTimeline() // todo: maybe we're currently on our personal timeline?
+        // fixme: if we're adding a resource on our personal timeline, we currently return to the global one
+        _this.goToTimeline(true)
     }
 
     this.doSaveResource = function () {
