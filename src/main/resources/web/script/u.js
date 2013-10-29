@@ -164,7 +164,7 @@ function User (controler, dict, emc, account) {
         var username = _user.account.value // ### double check if this is always username
         var password = _user.account.composite['dm4.accesscontrol.password'].value
         var html = "<br/><br/><span class=\"label\">Deine Zugangsdaten</span><br/>"
-            + "<form id=\"user-form\" name=\"search\" action=\"javascript:void(0)\">"
+            + "<form id=\"user-form\" name=\"account\" action=\"javascript:void(0)\">"
             + "  <label for=\"username\">Username</label>"
             + "  <input name=\"username\" class=\"username\" type=\"text\" disabled=\"disabled\" title=\"A username cannot be changed\""
             + "    value=\"" +username+ "\" /><label for=\"pwdfield\">Your password</label>"
@@ -175,10 +175,20 @@ function User (controler, dict, emc, account) {
             + "</form>"
         var $account_settings = $('<div class="account-settings">')
             $account_settings.html(html)
+        var moodle_html = "<br/><br/><span class=\"label\">Dein ISIS Sicherheitsschl&uuml;ssel</span><br/>"
+            + "<form id=\"moodle-key\" name=\"moodle-key\" action=\"javascript:void(0)\">"
+            + "  <label for=\"security-key\">(wird aus Sicherheitsgr&uuml;nden hier nicht angezeigt)</label>"
+            + "  <input name=\"security-key\" class=\"security-key\" type=\"password\" value=\"\" />"
+            + "  <input class=\"save-key\" type=\"button\" value=\"Neuen Key Speichern\" />"
+        var $moodle_settings = $('<div class="moodle-settings">')
+            $moodle_settings.html(moodle_html)
+        //
         $('.user-settings', $parent).append($account_settings)
+        $('.user-settings', $parent).append($moodle_settings)
         // render initial state of this dialog
         $(".edit-pwd").click(_this.editPasswordHandler)
         $(".save-pwd").click(_this.submitPasswordHandler)
+        $(".save-key").click(_this.submitKeyHandler)
         $(".save-pwd").hide()
     }
 
@@ -365,6 +375,15 @@ function User (controler, dict, emc, account) {
         }
         // update gui
         _this.editPasswordHandler(undefined, message, pwd)
+    }
+
+    this.submitKeyHandler = function (e) {
+        var key = $(".security-key").val()
+        if (key !== "" && key !== " ") {
+            var response = emc.setMoodleKey({ "moodle_key" : key, "user_id" : _user.account.id }, _user.account.id)
+                console.log("set new moodle key for " + _user.account.id)
+                console.log(response)
+        }
     }
 
 }

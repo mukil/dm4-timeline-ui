@@ -153,6 +153,12 @@ function EMC (dmc, model) {
         return resourceTopic
     }
 
+    this.setMoodleKey = function(key, user_id) {
+        var resourceTopic = dmc.request("POST", "/moodle/set/key/" + user_id, key)
+        if (resourceTopic == undefined) throw new Error("Something mad happened.")
+        return resourceTopic
+    }
+
     this.createNewTagsForResource = function (resource, tagsToCreate) {
         // creating new tags and associtating these with the given resource
         for (var i=0; i < tagsToCreate.length; i++) {

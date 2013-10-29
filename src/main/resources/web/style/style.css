@@ -569,6 +569,7 @@ textarea#math-input-dialog {
     margin-top: 30px;
 }
 
+.eduzen.personal #profile .user-settings input.save-key,
 .eduzen.personal #profile .user-settings input.save-edits,
 .eduzen.personal #profile .user-settings input.cancel-pwd,
 .eduzen.personal #profile .user-settings input.edit-pwd,
@@ -623,10 +624,15 @@ textarea#math-input-dialog {
     position: relative;
 }
 
+.eduzen.personal #profile .user-settings .moodle-settings,
 .eduzen.personal #profile .user-settings .account-settings {
     position: absolute;
     left: 34%;
     top: -20px;
+}
+
+.eduzen.personal #profile .user-settings .moodle-settings {
+    top: 245px;
 }
 
 .eduzen.personal #profile .user-settings span.picture.label {
