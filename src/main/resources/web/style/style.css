@@ -264,12 +264,13 @@
 
 .eduzen #progressbar {
     position: fixed;
-    top: 39px;
+    top: 7px;
     margin-left: 50px;
     margin-right: 60px;
     height: 22px;
-    width: 525px;
+    width: 600px;
     z-index: 1009;
+    background-color: #fff;
 }
 
 /*!
@@ -305,12 +306,12 @@
 
 .eduzen.guest .timeline.unrendered span.tag-filter-info {
     margin-top: 0px;
-    left: 118px;
+    left: 128px;
 }
 
 .eduzen.guest .timeline.rendered span.tag-filter-info {
     margin-top: 33px;
-    left: 62px;
+    left: 72px;
 }
 
 /** here no filter can be present in options bar */
@@ -788,7 +789,7 @@ textarea#math-input-dialog {
 
 .eduzen .timeline .login-menu-button {
     position: absolute;
-    top: 0px; left: 60px;
+    top: 0px; left: 70px;
     padding: 7px;
     padding-top: 9px;
     color: #a9a9a9;
@@ -824,7 +825,7 @@ textarea#math-input-dialog {
     display: inline-block;
     position: absolute;
     top: 11px;
-    left: 120px;
+    left: 130px;
 }
 
 .eduzen .timeline.rendered div.about-login,
@@ -852,7 +853,7 @@ textarea#math-input-dialog {
     display: none;
     position: absolute;
     top: 1px;
-    left: 115px;
+    left: 130px;
     background: #fff;
     z-index: 99;
 }

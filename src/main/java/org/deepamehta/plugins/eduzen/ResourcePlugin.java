@@ -69,6 +69,9 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     private final static String COMPOSITION_TYPE_URI = "dm4.core.composition";
     private final static String ACCOUNT_TYPE_URI = "dm4.accesscontrol.user_account";
     private final static String IDENTITY_NAME_TYPE_URI = "org.deepamehta.identity.display_name";
+    private final static String PROFILE_PICTURE_EDGE_URI = "org.deepamehta.identity.profile_picture_edge";
+    private final static String DEEPAMEHTA_FILE_URI = "dm4.files.file";
+    private final static String DEEPAMEHTA_FILE_PATH_URI = "dm4.files.path";
 
     private AccessControlService acService = null;
 
@@ -313,6 +316,9 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Path("/notes")
     @Produces("text/html")
     public Viewable getTimelineView() {
+        context.setVariable("name", "Notizen Timeline");
+        context.setVariable("path", "/notes");
+        context.setVariable("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
         return view("index");
     }
 
@@ -328,6 +334,9 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Produces("text/html")
     public Viewable getFilteredeTimelineView(@PathParam("tags") String tagFilter,
         @HeaderParam("Cookie") ClientState clientState) {
+        context.setVariable("name", "Gefilterte Notizen Timeline, Tags: " + tagFilter);
+        context.setVariable("path", "/notes/tagged/" + tagFilter);
+        context.setVariable("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
         return view("index");
     }
 
@@ -336,6 +345,17 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Produces("text/html")
     public Viewable getPersonalTimelineView(@PathParam("userId") long userId,
         @HeaderParam("Cookie") ClientState clientState) {
+        //
+        String display_name = getUserDisplayName(userId);
+        context.setVariable("name", display_name + "'s Notizen Timeline");
+        String profile_picture = getUserProfilePicturePath(userId);
+        context.setVariable("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
+        if (profile_picture != null) {
+            context.setVariable("picture", "http://notizen.eduzen.tu-berlin.de/filerepo" + profile_picture);
+        }
+        context.setVariable("path", "/notes/user" + userId);
+
+        //
         return view("index");
     }
 
@@ -399,6 +419,23 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     private boolean associationExists(String edge_type, Topic item, Topic user) {
         Set<Association> results = dms.getAssociations(item.getId(), user.getId(), edge_type);
         return (results.size() > 0) ? true : false;
+    }
+
+    private String getUserDisplayName(long userId) {
+        Topic user = dms.getTopic(userId, true, null);
+        CompositeValueModel comp = user.getModel().getCompositeValueModel();
+        if (comp.has(IDENTITY_NAME_TYPE_URI)) {
+            return comp.getString(IDENTITY_NAME_TYPE_URI);
+        }
+        return user.getSimpleValue().toString();
+    }
+
+    private String getUserProfilePicturePath(long userId) {
+        Topic user = dms.getTopic(userId, true, null);
+        Topic picture = user.getRelatedTopic(PROFILE_PICTURE_EDGE_URI, DEFAULT_ROLE_TYPE_URI, DEFAULT_ROLE_TYPE_URI,
+                DEEPAMEHTA_FILE_URI, true, true, null);
+        if (picture != null) return picture.getModel().getCompositeValueModel().getString(DEEPAMEHTA_FILE_PATH_URI);
+        return null;
     }
 
 }

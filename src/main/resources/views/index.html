@@ -5,6 +5,10 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <title>Notes Timeline - (0.2.1-SNAPSHOT)</title>
         <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0"/>
+        <meta property="og:title" th:content="${name}" />
+        <meta property="og:url" th:content="'http://notizen.eduzen.tu-berlin.de' + ${path}" />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" th:content="${picture}"/>
 
         <link rel="stylesheet" href="/org.deepamehta.eduzen-tagging-notes/style/style.css"/>
         <link rel="stylesheet" href="/org.deepamehta.eduzen-tagging-notes/script/vendor/ckeditor/contents.css"/>

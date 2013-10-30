@@ -39,7 +39,7 @@
 
     this.initializePageView = function () {
 
-        $(window).on('load', function(event) { _this.hideProgressBar() });
+        $(window).on('load', function(event) {  _this.hideProgressBar() });
 
         // parse requested location
         var pathname = window.location.pathname
@@ -167,6 +167,7 @@
 
     this.hideProgressBar = function () {
         var $progressbar = $('#progressbar')
+            $progressbar.progressbar({value: 100 });
             $progressbar.progressbar( "disable" );
             $progressbar.hide()
     }
@@ -181,7 +182,7 @@
         var status = checkLoggedInUser()
         renderUserInfo()
 
-        $('#progressbar').progressbar({value: 30});
+        $('#progressbar').progressbar({value: 20});
         // fixme: render upper menu for either personal or ordinary timeline
         if (user) {
             setupFrontpageButton()
@@ -201,7 +202,7 @@
             // render avaialble tag-filter buttons
             renderTagView()
         }
-        $('#progressbar').progressbar({value: 80});
+        $('#progressbar').progressbar({value: 50});
         //
         if (status !== null) {
             setupUserPage()
@@ -214,7 +215,7 @@
             showResultsetView(true)
         }
         //
-        $('#progressbar').progressbar({value: 100});
+        $('#progressbar').progressbar({value: 80});
         _this.skroller.refresh()
     }
 
