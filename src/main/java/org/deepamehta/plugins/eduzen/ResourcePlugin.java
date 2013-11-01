@@ -346,6 +346,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     public Viewable getPersonalTimelineView(@PathParam("userId") long userId,
         @HeaderParam("Cookie") ClientState clientState) {
         //
+        // ### String description = getUsersDescription(userId);
         String display_name = getUserDisplayName(userId);
         context.setVariable("name", display_name + "'s Notizen Timeline");
         String profile_picture = getUserProfilePicturePath(userId);

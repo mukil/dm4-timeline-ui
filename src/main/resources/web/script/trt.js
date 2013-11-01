@@ -39,8 +39,6 @@
 
     this.initializePageView = function () {
 
-        $(window).on('load', function(event) {  _this.hideProgressBar() });
-
         // parse requested location
         var pathname = window.location.pathname
         var attributes = pathname.split('/')
@@ -67,6 +65,7 @@
         if (noteId === undefined || noteId === "") {
 
             _this.goToTimeline() // load timeline with no filter set
+            $(window).on('load', function(event) {  _this.hideProgressBar() });
 
         } else if (noteId === "tagged") {
 
@@ -79,12 +78,14 @@
                 if (selectedTag != undefined) _this.model.addTagToFilter(selectedTag)
             }
             _this.goToTimeline() // call timeline after filter was set.
+            $(window).on('load', function(event) {  _this.hideProgressBar() });
 
         } else if (noteId === "user") {
 
             var userId = attributes[3]
             var user = dmc.get_topic_by_id(userId, true)
             _this.goToPersonalTimeline(user)
+            $(window).on('load', function(event) {  _this.hideProgressBar() });
 
         } else {
 
