@@ -183,7 +183,7 @@
         var status = checkLoggedInUser()
         renderUserInfo()
 
-        $('#progressbar').progressbar({value: 20});
+        $('#progressbar').progressbar({value: 15});
         // fixme: render upper menu for either personal or ordinary timeline
         if (user) {
             setupFrontpageButton()
@@ -301,8 +301,8 @@
                 + '</span>')
         $($menuToggle).insertBefore('a#info')
         //
-        $('.about-login').html('Um Beitr&auml;ge zu verfassen musst du eingeloggt sein. Einen Account bekommst du '
-            + '<a href="http://www.eduzen.tu-berlin.de/zur-notizen-webanwendung#account">hier</a>.</div>')
+        $('.about-login').html('Um Beitr&auml;ge zu verfassen musst du eingeloggt sein.</div>')
+        // Einen Account bekommst du <a href="http://www.eduzen.tu-berlin.de/zur-notizen-webanwendung#account">hier</a>.
         //
         $($loginMenu).insertBefore('a#info')
 

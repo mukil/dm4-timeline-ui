@@ -69,6 +69,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     private final static String COMPOSITION_TYPE_URI = "dm4.core.composition";
     private final static String ACCOUNT_TYPE_URI = "dm4.accesscontrol.user_account";
     private final static String IDENTITY_NAME_TYPE_URI = "org.deepamehta.identity.display_name";
+    private final static String IDENTITY_INFOS_TYPE_URI = "org.deepamehta.identity.infos";
     private final static String PROFILE_PICTURE_EDGE_URI = "org.deepamehta.identity.profile_picture_edge";
     private final static String DEEPAMEHTA_FILE_URI = "dm4.files.file";
     private final static String DEEPAMEHTA_FILE_PATH_URI = "dm4.files.path";
@@ -346,9 +347,10 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     public Viewable getPersonalTimelineView(@PathParam("userId") long userId,
         @HeaderParam("Cookie") ClientState clientState) {
         //
-        // ### String description = getUsersDescription(userId);
+        String description = getUsersDescription(userId);
         String display_name = getUserDisplayName(userId);
         context.setVariable("name", display_name + "'s Notizen Timeline");
+        context.setVariable("description", description);
         String profile_picture = getUserProfilePicturePath(userId);
         context.setVariable("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
         if (profile_picture != null) {
@@ -437,6 +439,15 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
                 DEEPAMEHTA_FILE_URI, true, true, null);
         if (picture != null) return picture.getModel().getCompositeValueModel().getString(DEEPAMEHTA_FILE_PATH_URI);
         return null;
+    }
+
+    private String getUsersDescription(long userId) {
+        Topic user = dms.getTopic(userId, true, null);
+        CompositeValueModel comp = user.getModel().getCompositeValueModel();
+        if (comp.has(IDENTITY_INFOS_TYPE_URI)) {
+            return comp.getString(IDENTITY_INFOS_TYPE_URI);
+        }
+        return "&Ouml;ffentliche Notizen";
     }
 
 }

@@ -264,13 +264,22 @@
 
 .eduzen #progressbar {
     position: fixed;
-    top: 7px;
+    top: 0px;
+    padding: 8px;
+    border: 0px solid transparent;
     margin-left: 50px;
     margin-right: 60px;
-    height: 22px;
-    width: 600px;
+    height: 20px;
+    width: 55%;
     z-index: 1009;
     background-color: #fff;
+}
+
+.eduzen #progressbar .loading-label {
+    color: #fff;
+    position: absolute;
+    top: 10px;
+    left: 16px;
 }
 
 /*!
@@ -908,7 +917,7 @@ textarea#math-input-dialog {
 .eduzen input.tagging {
     padding-left: 7px;
     padding-bottom: 5px;
-    padding-top: 5px;
+    padding-top: 3px;
     /** border: 1px solid #ffc700 !important; **/
     background-color: #f1f1f1;
 }
@@ -935,20 +944,16 @@ input.cke_dialog_ui_input_text:focus {
 }
 
 .eduzen .add-tag-dialog {
-    display: inline-block;
-    width: 240px;
+    display: inline-block !important;
 }
 
+.eduzen input.new-tag.ui-autocomplete {
+    position: relative;
+}
+
+.eduzen .close-tag.btn,
 .eduzen .save-tag.btn {
     border: 1px solid transparent;
-    position: relative;
-    left: 102px;
-}
-
-.eduzen .close-tag.btn {
-    border: 1px solid transparent;
-    position: relative;
-    left: 98px;
 }
 
 .eduzen .close-tag.btn:hover,
