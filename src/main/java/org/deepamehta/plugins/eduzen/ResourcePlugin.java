@@ -164,7 +164,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             // is locked?
             boolean isLocked = topic.getCompositeValueModel().getBoolean(RESOURCE_LOCKED_URI);
             // update resource topic
-            resource = dms.getTopic(topic.getId(), true, clientState);
+            resource = dms.getTopic(topic.getId(), true);
             // Directives updateDirective = dms.updateTopic(topic, clientState);
             // dms.updateTopic() - most high-level model
             // resource.update(topic, clientState, updateDirective); // id, overriding model
@@ -203,7 +203,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         //
         JSONArray results = new JSONArray();
         try {
-            ResultSet<RelatedTopic> all_results = dms.getTopics(RESOURCE_URI, true, 0, clientState);
+            ResultSet<RelatedTopic> all_results = dms.getTopics(RESOURCE_URI, true, 0);
             log.info("> fetching " +all_results.getSize()+ " resources.. for getting " + from + " to " + (from + size) );
             // build up sortable collection of all result-items (warning: in-memory copy of _all_ published soundposter)
             ArrayList<RelatedTopic> in_memory = getResultSetSortedByCreationTime(all_results, clientState);
@@ -233,7 +233,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         //
         JSONArray results = new JSONArray();
         try {
-            Topic user  = dms.getTopic(userId, true, clientState);
+            Topic user  = dms.getTopic(userId, true);
             ResultSet<RelatedTopic> all_results = fetchAllContributionsByUser(user);
             log.info("fetching " +all_results.getSize()+ " contributions by user " + user.getSimpleValue());
             for (RelatedTopic item : all_results) {
@@ -275,7 +275,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     private Topic fetchCreator(Topic resource) {
         //
         return resource.getRelatedTopic(CREATOR_EDGE_URI, PARENT_TYPE_URI,
-                CHILD_TYPE_URI, ACCOUNT_TYPE_URI, true, false, null);
+                CHILD_TYPE_URI, ACCOUNT_TYPE_URI, true, false);
     }
 
     private Association assignAuthorship(Topic resource, Topic user, ClientState clientState) {
@@ -297,9 +297,9 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         //
         ResultSet<RelatedTopic> all_resources = null;
         all_resources = user.getRelatedTopics(CREATOR_EDGE_URI, CHILD_TYPE_URI,
-                PARENT_TYPE_URI, RESOURCE_URI, true, false, 0, null);
+                PARENT_TYPE_URI, RESOURCE_URI, true, false, 0);
         all_resources.addAll(user.getRelatedTopics(CONTRIBUTOR_EDGE_URI, CHILD_TYPE_URI,
-                PARENT_TYPE_URI, RESOURCE_URI, true, false, 0, null));
+                PARENT_TYPE_URI, RESOURCE_URI, true, false, 0));
         return all_resources;
     }
 
@@ -343,7 +343,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Path("/notes/{id}")
     @Produces("text/html")
     public Viewable getDetailView(@PathParam("id") long resourceId, @HeaderParam("Cookie") ClientState clientState) {
-        Topic resource = dms.getTopic(resourceId, true, clientState);
+        Topic resource = dms.getTopic(resourceId, true);
         long lastModified = resource.getModel().getCompositeValueModel().getLong(RESOURCE_LAST_MODIFIED_URI);
         context.setVariable("resourceName", "Notiz, zuletzt bearbeitet: " + new Date(lastModified).toString());
         context.setVariable("relativePath", "/notes/" + resource.getId());
@@ -358,7 +358,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Path("/notes/{id}/print")
     @Produces("text/html")
     public Viewable getDetailPrintView(@PathParam("id") long resourceId, @HeaderParam("Cookie") ClientState clientState) {
-        Topic resource = dms.getTopic(resourceId, true, clientState);
+        Topic resource = dms.getTopic(resourceId, true);
         long lastModified = resource.getModel().getCompositeValueModel().getLong(RESOURCE_LAST_MODIFIED_URI);
         context.setVariable("resourceName", "Notiz, zuletzt bearbeitet: " + new Date(lastModified).toString());
         context.setVariable("relativePath", "/notes/" + resource.getId());
@@ -393,7 +393,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         if (logged_in_user.equals("")) throw new WebApplicationException(401);
         Topic username = acService.getUsername(logged_in_user);
         return username.getRelatedTopic(COMPOSITION_TYPE_URI, CHILD_TYPE_URI, PARENT_TYPE_URI,
-                ACCOUNT_TYPE_URI, true, false, null);
+                ACCOUNT_TYPE_URI, true, false);
     }
 
     private boolean associationExists(String edge_type, Topic item, Topic user) {

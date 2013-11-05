@@ -20,8 +20,8 @@ public class Resource implements JSONEnabled {
     /**
      * Loads an existing <code>Content</code> topic.
      */
-    public Resource(long id, DeepaMehtaService dms, ClientState clientState) {
-        topic = dms.getTopic(id, true, clientState);
+    public Resource(long id, DeepaMehtaService dms) {
+        topic = dms.getTopic(id, true);
         this.dms = dms;
     }
 

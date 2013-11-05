@@ -23,19 +23,19 @@ public class Migration7 extends Migration {
     public void run() {
 
         // 1) assign new types to our default workspace
-        TopicType blocked = dms.getTopicType(BLOCKED_TYPE_URI, null);
+        TopicType blocked = dms.getTopicType(BLOCKED_TYPE_URI);
         assignWorkspace(blocked);
-        TopicType study_subject = dms.getTopicType(STUDY_SUBJECT_TYPE_URI, null);
+        TopicType study_subject = dms.getTopicType(STUDY_SUBJECT_TYPE_URI);
         assignWorkspace(study_subject);
 
         // 2) assign new types t o"org.deepamehta.resources.*" and "org.deepamehta.identity.*"
 
-        TopicType account = dms.getTopicType(USER_ACCOUNT_TYPE_URI, null);
+        TopicType account = dms.getTopicType(USER_ACCOUNT_TYPE_URI);
         logger.info("Eduzen Tagging Notes Migration7 => Enriching \"User Account\"-Type about \"Subject of study\"");
         account.addAssocDef(new AssociationDefinitionModel("dm4.core.composition_def", USER_ACCOUNT_TYPE_URI,
             STUDY_SUBJECT_TYPE_URI, "dm4.core.one", "dm4.core.one"));
 
-        TopicType resource = dms.getTopicType(RESOURCE_TYPE_URI, null);
+        TopicType resource = dms.getTopicType(RESOURCE_TYPE_URI);
         logger.info("Eduzen Tagging Notes Migration7 => Enriching \"Resource\"-Type about \"Blocked for edits\"");
         resource.addAssocDef(new AssociationDefinitionModel("dm4.core.composition_def", RESOURCE_TYPE_URI,
             BLOCKED_TYPE_URI, "dm4.core.one", "dm4.core.one"));
@@ -48,7 +48,7 @@ public class Migration7 extends Migration {
         if (hasWorkspace(topic)) {
             return;
         }
-        Topic defaultWorkspace = dms.getTopic("uri", new SimpleValue(WS_DEFAULT_URI), false, null);
+        Topic defaultWorkspace = dms.getTopic("uri", new SimpleValue(WS_DEFAULT_URI), false);
         dms.createAssociation(new AssociationModel("dm4.core.aggregation",
             new TopicRoleModel(topic.getId(), "dm4.core.parent"),
             new TopicRoleModel(defaultWorkspace.getId(), "dm4.core.child")
@@ -57,6 +57,6 @@ public class Migration7 extends Migration {
 
     private boolean hasWorkspace(Topic topic) {
         return topic.getRelatedTopics("dm4.core.aggregation", "dm4.core.parent", "dm4.core.child",
-            "dm4.workspaces.workspace", false, false, 0, null).getSize() > 0;
+            "dm4.workspaces.workspace", false, false, 0).getSize() > 0;
     }
 }

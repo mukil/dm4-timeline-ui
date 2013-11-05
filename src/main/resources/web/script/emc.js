@@ -154,7 +154,7 @@ function EMC (dmc, model) {
     }
 
     this.setMoodleKey = function(key, user_id) {
-        var resourceTopic = dmc.request("POST", "/moodle/set/key/" + user_id, key)
+        var resourceTopic = dmc.request("POST", "/moodle/key/" + user_id, key)
         if (resourceTopic == undefined) throw new Error("Something mad happened.")
         return resourceTopic
     }

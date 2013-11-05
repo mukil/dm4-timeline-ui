@@ -21,7 +21,7 @@ public class Migration5 extends Migration {
     public void run() {
 
         // 1) assign type of "org.deepamehta-reviews"-plugin to default workspace "DeepaMehta"
-        TopicType reviewScore = dms.getTopicType(REVIEW_SCORE, null);
+        TopicType reviewScore = dms.getTopicType(REVIEW_SCORE);
         assignWorkspace(reviewScore);
 
     }
@@ -32,7 +32,7 @@ public class Migration5 extends Migration {
         if (hasWorkspace(topic)) {
             return;
         }
-        Topic defaultWorkspace = dms.getTopic("uri", new SimpleValue(WS_DEFAULT_URI), false, null);
+        Topic defaultWorkspace = dms.getTopic("uri", new SimpleValue(WS_DEFAULT_URI), false);
         dms.createAssociation(new AssociationModel("dm4.core.aggregation",
             new TopicRoleModel(topic.getId(), "dm4.core.parent"),
             new TopicRoleModel(defaultWorkspace.getId(), "dm4.core.child")
@@ -41,6 +41,6 @@ public class Migration5 extends Migration {
 
     private boolean hasWorkspace(Topic topic) {
         return topic.getRelatedTopics("dm4.core.aggregation", "dm4.core.parent", "dm4.core.child",
-            "dm4.workspaces.workspace", false, false, 0, null).getSize() > 0;
+            "dm4.workspaces.workspace", false, false, 0).getSize() > 0;
     }
 }
