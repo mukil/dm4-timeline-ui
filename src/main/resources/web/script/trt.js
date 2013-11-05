@@ -64,7 +64,7 @@
         // route to distinct views
         if (noteId === undefined || noteId === "") {
 
-            _this.goToTimeline() // load timeline with no filter set
+            _this.goToTimeline(true, false) // load timeline with no filter set
             $(window).on('load', function(event) {  _this.hideProgressBar() });
 
         } else if (noteId === "tagged") {
@@ -77,14 +77,14 @@
                 selectedTag = _this.model.getTagByName(label)
                 if (selectedTag != undefined) _this.model.addTagToFilter(selectedTag)
             }
-            _this.goToTimeline() // call timeline after filter was set.
+            _this.goToTimeline(true, false) // call timeline after filter was set.
             $(window).on('load', function(event) {  _this.hideProgressBar() });
 
         } else if (noteId === "user") {
 
             var userId = attributes[3]
             var user = dmc.get_topic_by_id(userId, true)
-            _this.goToPersonalTimeline(user)
+            _this.goToPersonalTimeline(user, true, false)
             $(window).on('load', function(event) {  _this.hideProgressBar() });
 
         } else {
@@ -98,20 +98,20 @@
 
     }
 
-    this.goToTimeline = function (hide_progressbar) {
+    this.goToTimeline = function (render_progressbar, hide_progressbar) {
 
-        _this.renderProgressBar()
+        if (render_progressbar) _this.renderProgressBar()
         // prepare page model (according to filter)
         _this.loadResources() // optimize: maybe we dont need to load it again
         // render timeline view
         renderView()
-        if (hide_progressbar) _this.hideProgressBar()
+        if (hide_progressbar) _this.hideProgressBar() // this is needed when no DOM Load Event can hide our progressbar
 
     }
 
-    this.goToPersonalTimeline = function (account, hide_progressbar) {
+    this.goToPersonalTimeline = function (account, render_progressbar, hide_progressbar) {
 
-        _this.renderProgressBar()
+        if (render_progressbar) _this.renderProgressBar()
         // prepare page model
         _this.model.setTagFilter([])
         // render update before we load all the stuff
@@ -246,7 +246,7 @@
                 // prepare model
                 _this.model.setTagFilter([])
                 // go to
-                _this.goToTimeline(true)
+                _this.goToTimeline(false)
                 _this.pushTimelineViewState()
             })
             $('#menu').append($homeButton)
@@ -309,7 +309,7 @@
         function doLogin() {
             var user = checkUserAuthorization() // login button handler
             if (user != null) {
-                _this.goToTimeline(true)
+                _this.goToTimeline(false)
                 _this.pushTimelineViewState()
             }
         }
@@ -886,7 +886,7 @@
                 var selectedTag = _this.model.getTagById(tagId)
                 _this.model.addTagToFilter(selectedTag)
                 // go to updated view
-                _this.goToTimeline(true)
+                _this.goToTimeline(true, true)
                 // fixme: formerly here were just (optimal) view updates
                 _this.pushTimelineViewState()
 
@@ -971,7 +971,7 @@
                     var tagId = parseInt(e.target.id)
                     var tag = _this.model.getTagById(tagId)
                     _this.model.removeTagFromFilter(tag)
-                    _this.goToTimeline(true)
+                    _this.goToTimeline(true, true)
                     _this.pushTimelineViewState()
                 })
             var $tagButton = $('<a class="btn tag selected">' +tags[i].value+ '</a>')
@@ -984,7 +984,7 @@
                 // prepare model
                 _this.model.setTagFilter([])
                 // go to new view
-                _this.goToTimeline(true)
+                _this.goToTimeline(true, true)
                 _this.pushTimelineViewState()
             })
         $filterButtons.append($clearButton)
@@ -1198,13 +1198,13 @@
 
             // update app-model
             _this.model.setTagFilter(pop.state.data.tags)
-            _this.goToTimeline(true)
+            _this.goToTimeline(true, true)
 
         } else if (pop.state.name == FULL_TIMELINE) {
 
             // update app-model
             _this.model.setTagFilter([])
-            _this.goToTimeline(true)
+            _this.goToTimeline(true, true)
 
         } else if (pop.state.name == PERSONAL_TIMELINE) {
 
@@ -1433,7 +1433,7 @@
                 400, TIMELINE_AREA, '', 'slow')
         }
         // fixme: if we're adding a resource on our personal timeline, we currently return to the global one
-        _this.goToTimeline(true)
+        _this.goToTimeline(false)
     }
 
     this.doSaveResource = function () {
