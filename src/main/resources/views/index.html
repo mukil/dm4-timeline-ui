@@ -61,36 +61,23 @@
 
     <body class="eduzen notes">
 
-        <div class="timeline" data-0="position:static;" data-top-top="position:fixed;top:0;">
+        <div class="timeline headline">
 
-            <div id="message-timeline"></div>
-
-            <div class="options">
-                <span class="result-text"></span>
-                <span class="tag-filter-info"></span>
-
-                <div id="menu">
-                    <div class="sort">
-                        <div class="onoffswitch" id="most-popular-toggle">
-                        <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch"></input>
-                        <label class="onoffswitch-label" for="myonoffswitch">
-                            <div class="onoffswitch-inner"></div>
-                            <div class="onoffswitch-switch"></div>
-                        </label>
-                        </div>
-                    </div>
-                    <div class="sort-label">Sortierung nach Bewertung</div>
-                    <!-- a class="btn sort" id="most-popular">Sortierung nach Bewertung</a-->
-                    <a class="btn" id="new">Neuen Inhalt hinzuf&uuml;gen</a>
-                    <div class="about-login"></div>
-                    <a class="btn" href="/notes/info" id="info">Tipps</a>
-                    <span class="username"></span>
+            <div id="menu">
+                <!-- a class="btn sort" id="most-popular">Sortierung nach Bewertung</a-->
+                <!-- a class="btn" id="new">Neuen Inhalt hinzuf&uuml;gen</a-->
+                <div class="about-login"></div>
+                <div class="pages">
+                    <a href="/notes/info" id="info" title="Nutzungshinweise und Impressum">Tipps</a>
                 </div>
+                <span class="username"></span>
             </div>
 
-            <div class="info" id="nav">
-                <b class="header-title"></b>
-            </div>
+            <a href="http://www.eduzen.tu-berlin.de" target="_blank">
+                <img src="/org.deepamehta.eduzen-tagging-notes/images/eduzen-logo-35px-height.png"
+                 class="eduzen-logo" title="Notizen ist eine Entwicklung des Studienreformprojekts eduZEN"
+                 alt="EducationZEN Logo" height="35" width="184" />
+            </a>
 
         </div>
 
@@ -101,6 +88,33 @@
         <!--placeholder div to prevent jumpy content when nav gets pinned -->
         <div style="padding:2em;" data-0="display:none;" data-top-top="display:block;"
              data-anchor-target="#nav">&nbsp;</div>
+
+        <div class="sidebar">
+
+            <div class="sort-label">Sortierung nach Bewertung</div>
+
+            <div class="sort">
+                <div class="onoffswitch" id="most-popular-toggle">
+                <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch"></input>
+                <label class="onoffswitch-label" for="myonoffswitch">
+                    <div class="onoffswitch-inner"></div>
+                    <div class="onoffswitch-switch"></div>
+                </label>
+                </div>
+            </div>
+
+            <div class="options">
+                <span class="result-text"></span>
+                <span class="tag-filter-info"></span>
+            </div>
+
+            <div class="info" id="nav">
+                <div class="tag-cloud-header"></div>
+            </div>
+
+            <div id="message-timeline"></div>
+
+        </div>
 
         <div id="profile"></div>
 
