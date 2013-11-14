@@ -277,6 +277,42 @@
     display: none;
 }
 
+.eduzen #progressbar {
+    position: fixed;
+    top: 0px;
+    padding: 8px;
+    border: 0px solid transparent;
+    margin-left: 50px;
+    margin-right: 60px;
+    height: 20px;
+    width: 55%;
+    z-index: 1009;
+    background-color: #fff;
+}
+
+.eduzen #progressbar .loading-label {
+    color: #fff;
+    position: absolute;
+    top: 10px;
+    left: 16px;
+}
+
+/*!
+ * jQuery UI Progressbar '1.8-stable'
+ *
+ * Copyright 2012, AUTHORS.txt (http://jqueryui.com/about)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://jquery.org/license
+ *
+ * http://docs.jquery.com/UI/Progressbar#theming
+ */
+.ui-progressbar { height:2em; text-align: left; overflow: hidden; }
+.ui-progressbar .ui-progressbar-value {margin: -1px; height:100%; }
+
+.ui-progressbar-value.ui-widget-header {
+    background: #ffc700 /*{bgColorHeader} url(images/ui-bg_highlight-soft_75_cccccc_1x100.png)/*{bgImgUrlHeader}*/ 50%/*{bgHeaderXPos}*/ 50%/*{bgHeaderYPos}*/ repeat-x/*{bgHeaderRepeat}*/
+}
+
 .eduzen .timeline span.tag-filter-info {
     background-color: #fff;
     margin-top: 0px;
@@ -294,7 +330,7 @@
 
 .eduzen.guest .timeline.unrendered span.tag-filter-info {
     margin-top: 0px;
-    left: 118px;
+    left: 128px;
 }
 
 .eduzen.guest .timeline.rendered span.tag-filter-info {
@@ -743,6 +779,7 @@ textarea#math-input-dialog {
 
 .eduzen.personal #profile .view .infos {
     margin-top: 5px;
+    margin-right: 200px;
 }
 
 .eduzen.personal #profile .view .display-name {
@@ -859,7 +896,7 @@ textarea#math-input-dialog {
     display: none;
     position: absolute;
     top: 1px;
-    left: 125px;
+    left: 130px;
     background: #fff;
     z-index: 99;
 }
@@ -915,7 +952,7 @@ textarea#math-input-dialog {
 .eduzen input.tagging {
     padding-left: 7px;
     padding-bottom: 5px;
-    padding-top: 5px;
+    padding-top: 3px;
     /** border: 1px solid #ffc700 !important; **/
     background-color: #f1f1f1;
     display: inline-block;
@@ -943,20 +980,16 @@ input.cke_dialog_ui_input_text:focus {
 }
 
 .eduzen .add-tag-dialog {
-    display: inline-block;
-    width: 240px;
+    display: inline-block !important;
 }
 
+.eduzen input.new-tag.ui-autocomplete {
+    position: relative;
+}
+
+.eduzen .close-tag.btn,
 .eduzen .save-tag.btn {
     border: 1px solid transparent;
-    position: relative;
-    left: 102px;
-}
-
-.eduzen .close-tag.btn {
-    border: 1px solid transparent;
-    position: relative;
-    left: 98px;
 }
 
 .eduzen .close-tag.btn:hover,
@@ -1036,7 +1069,9 @@ input.cke_dialog_ui_input_text:focus {
     background-color: #f1f1f1;
     padding: 15px;
     z-index: 1;
-    border: 1px solid #f5f5f5;
+    border: 1px solid transparent;
+    /** border: 2px solid transparent;
+    border-left: 2px solid #ffc700; **/
     margin-top: 0px;
     margin-left: 0px;
     margin-right: 0px;
@@ -1097,6 +1132,26 @@ input.cke_dialog_ui_input_text:focus {
     overflow: hidden;
     max-width: 75%;
 }
+
+.eduzen ul.list li div.votes,
+.eduzen ul.list li div.toolbar {
+    opacity: 0;
+    -webkit-transition: opacity 0.5s ease-out;
+    -moz-transition: opacity 0.5s ease-out;
+    -o-transition: opacity 0.5s ease-out;
+}
+
+.eduzen ul.list li:hover div.votes,
+.eduzen ul.list li:hover div.toolbar {
+    -webkit-transition: opacity 0.5s ease-out;
+    -moz-transition: opacity 0.5s ease-out;
+    -o-transition: opacity 0.5s ease-out;
+    opacity: 1;
+}
+
+/** .eduzen ul.list li:hover div.item-content {
+    border-top: 2px solid #ffc700;
+} **/
 
 .eduzen.personal ul.list {
     max-width: 90%;
