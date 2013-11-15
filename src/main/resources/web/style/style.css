@@ -311,6 +311,7 @@ body.eduzen.note {
     border-top: 1px solid #fff;
     padding-top: 9px;
     background-color: #fff;
+    z-index: 115;
 }
 
 .eduzen .timeline {
