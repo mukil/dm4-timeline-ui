@@ -1,3 +1,4 @@
+
 (function (CKEDITOR, MathJax, $, console, dmc) {
 
     var _this = this
@@ -30,10 +31,7 @@
 
     var TAGGING_FIELD_SELECTOR = "input.tagging"
 
-    /**
-     *  Fixmes: adding Tag to resource which has none (no display update), adding tag to resource which has one adds
-     *  new tag twice to tag-filter-view
-     **/
+
 
     /** Main router to all views */
 
@@ -312,7 +310,6 @@
         $($menuToggle).insertBefore('a#info')
         //
         $('.about-login').html('Um Beitr&auml;ge zu verfassen musst du eingeloggt sein.</div>')
-        // Einen Account bekommst du <a href="http://www.eduzen.tu-berlin.de/zur-notizen-webanwendung#account">hier</a>.
         //
         $($loginMenu).insertBefore('a#info')
 
@@ -353,7 +350,6 @@
 
     this.setupDetailView = function () {
         // set page-data
-        // setupCKEditor()
         var creator = _this.getRelatedUserAccount(_this.model.getCurrentResource().id)
         var display_name = creator.value
         //
@@ -422,18 +418,6 @@
                         $check.show()
                     $('label.lock').show()
                 }
-
-                //
-                /** var $container = $('#resource_input .math-output')
-                $.each($container, function (e, item) {
-                    //
-                    console.log("registering click handler on item ... ")
-                    item.click(function(e) {
-                        console.log(e)
-                        console.log(this)
-                        this.focus()
-                    })
-                }) **/
                 // skip tags, they are already setup for this resource
                 quickfixPDFImageRendering() // hacketi hack
                 // formula needs to be rendered to be edited..
@@ -499,7 +483,7 @@
         } else {
             var user = _this.model.getCurrentUserTopic()
             // fixme: we have currently 2 different buttons, depending on the current view
-            var $my = $('<a class="btn my" title="Meine Beitr&auml;ge">' + name+ '</a>')
+            var $my = $('<a class="btn my" title="Zeige meine Beitr&auml;ge">' + name+ '</a>')
             if (current_view === DETAIL_VIEW ){
                 $my.attr("href", "/notes/user/" + user.id)
             } else {
@@ -564,26 +548,20 @@
 
     this.setupPageControls = function () {
         // setting up sort-controls and input button
-        $("a#new").click(function (e) {window.scrollTo(0, 0)})
         $(".onoffswitch-label").click(function (e) {
-
             if (_this.model.isSortedByScore) { // turn toggle-off
                 // $("a#most-popular").removeClass("selected")
                 _this.model.setAvailableResources(getAlphabeticalResources())
                 // _this.model.setTagFilter([]) // fixme: allow during filtering
                 _this.model.isSortedByScore = false // set resultset sorting flag
-                console.log("sorted by time" + _this.model.isSortedByScore)
-                console.log(_this.model.getAvailableResources())
             } else { // turn toggle-on
                 // $("a#most-popular").addClass("selected")  //
                 // just sort all currently existing resources (client-side)
                 _this.model.setAvailableResources(getHighestResources())
                 // _this.model.setTagFilter([]) // fixme: allow during filtering
                 _this.model.isSortedByScore = true // set resultset sorting flag
-                console.log("sorted by score " + _this.model.isSortedByScore)
-                console.log(_this.model.getAvailableResources())
             }
-            // fixme: this is a partial, more efficient page-update hack, not using our routing
+            // fixme: this is a partial, more efficient page-update hack, which does not us our routing
             if (checkLoggedInUser() !== null) {
                 // render loaded resources in timeline
                 showResultsetView(false)
@@ -837,7 +815,8 @@
                 setupTagFieldControls('li#' +clickedListItem+ ' .toolbar div.add-tag-dialog input.new-tag')
                 $addDialog.show("slow")
             })
-        var $edit = $('<a class="edit-item btn" href="/notes/'+item.id+'">zur Detailansicht dieses Beitrags</a>.')
+        var $edit = $('<a class="edit-item btn" href="/notes/' +item.id+ '"'
+            + ' title="Öffne Detailansicht dieser Notiz">zur Detailansicht dieses Beitrags</a>.')
         // score info area
         var $votes = $('<div class="votes">Bewerte diesen Inhalt </div>')
         var $upvote = $('<a id="' +item.id+ '" class="btn vote">+</a>') // we have an id triple in this "component"
@@ -886,7 +865,8 @@
         if (tags == undefined) return undefined
         for (var i=0; i < tags.length; i++) {
             var element = tags[i]
-            var $tag = $('<a id="' +element.id+ '" class="btn tag">' +element.value+ '</a>')
+            var $tag = $('<a id="' +element.id+ '" class="btn tag" title="Filter Timeline nach '+element.value+'">'
+                + element.value + '</a>')
             // the event handler, if a filter-request is made
             $tag.click(function (e) {
                 var tagId = e.target.id
@@ -1142,6 +1122,8 @@
             // registering selection-handler on all visible formulas
             $('div.math-output').click(function(e) {
 
+                console.log("Clicked .. Formula ..")
+
                 var previous = _this.model.getSelectedFormula()
                 if (_this.model.getSelectedFormula() != undefined) {
                     _this.deselectEditableFormula(previous)
@@ -1166,26 +1148,11 @@
     this.deselectEditableFormula = function(element) {
         $(element).removeClass('selected')
         _this.model.setSelectedFormula(undefined)
-        console.log("clearing formula selection ...")
     }
 
     this.selectEditableFormula = function(element) {
         _this.model.setSelectedFormula(element)
         $(element).addClass('selected')
-        console.log("setting formula selection ...")
-    }
-
-    /** to be removed: never used **/
-    this.updateFormulas = function () {
-        var formulas = MathJax.Hub.getAllJax()
-        console.log(formulas)
-        for (var els in formulas) {
-            var formula = formulas[els]
-            formula.needsUpdate()
-            formula.Rerender()
-            formula.needsUpdate()
-            console.log(formula)
-        }
     }
 
 

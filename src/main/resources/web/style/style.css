@@ -1,11 +1,4 @@
 
-/* body.eduzen .notes {
-    padding: 0px;
-    margin: 25px !important;
-    font-size: 16px;
-    line-height: 1.2em;
-} */
-
 body.eduzen.info,
 body.eduzen.note {
     margin: 0px;
@@ -85,6 +78,7 @@ body.eduzen.note {
     height: 40px;
     position: fixed;
     top: 0px;
+    z-index: 114;
 }
 
 .eduzen.note .username {
@@ -164,24 +158,20 @@ body.eduzen.note {
 .eduzen #menu .btn.logout {
     padding: 7px;
     padding-left: 5px;
-    padding-right: 5px;
     text-decoration: none;
     margin-right: 0px;
-    /** border: 1px solid transparent;
-    border-top: 1px solid transparent;
-    border-left: 1px solid transparent;
-    border-right: 1px solid transparent; **/
     padding-top: 9px;
     color: #a9a9a9;
 }
 
-/**  .eduzen #menu .username a.btn.my.pressed,
-.eduzen #menu .username a.btn.my:hover,
-.eduzen #menu .username a.logout:hover {
-    background-color: #FFC700;
-    border: 1px solid #FFC700;
-    color: #fff;
-} */
+.eduzen #menu .btn.logout {
+    padding-right: 8px;
+}
+
+.eduzen #menu .btn.my {
+    padding-right: 2px;
+    font-weight: bold;
+}
 
 .eduzen #menu .pages {
     float: right;
@@ -228,14 +218,50 @@ body.eduzen.note {
 }
 
 .eduzen div.tag-list {
+    position: relative;
+    left: 20px;
     margin-left: 0px;
     margin-top: 6px;
     min-height: 36px;
     margin-bottom: 5px;
-    pointer-events: all;
-    overflow-y: auto;
-    width: 100%;
-    /** text-align: left; **/
+    overflow-y: scroll;
+    height: 98%;
+    padding-right: 10px;
+}
+
+.eduzen .sidebar .info .tag-list::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+.eduzen .sidebar .info {
+    height: 95%;
+}
+
+.eduzen .sidebar .info .tag-list::-webkit-scrollbar-button:start:decrement,
+.eduzen .sidebar .info .tag-list::-webkit-scrollbar-button:end:increment {
+    display: block;
+    height: 0;
+    background-color: transparent;
+}
+
+.eduzen .sidebar .info .tag-list::-webkit-scrollbar-track-piece {
+    background-color: #f1f1f1;
+    -webkit-border-radius: 0;
+    -webkit-border-bottom-right-radius: 8px;
+    -webkit-border-bottom-left-radius: 8px;
+}
+
+.eduzen .sidebar .info .tag-list::-webkit-scrollbar-thumb:vertical {
+    height: 50px;
+    background-color: #a9a9a9;
+    -webkit-border-radius: 8px;
+}
+
+.eduzen .sidebar .info .tag-list::-webkit-scrollbar-thumb:horizontal {
+    width: 50px;
+    background-color: #a9a9a9;
+    -webkit-border-radius: 8px;
 }
 
 .eduzen div.results b.label {
@@ -288,7 +314,6 @@ body.eduzen.note {
 }
 
 .eduzen .timeline {
-    /** padding-left: 40px; padding-right: 40px; **/
     z-index: 100;
     width: 100%;
     min-height: 40px;
@@ -315,8 +340,6 @@ body.eduzen.note {
     /** border: 1px #2272AD solid; **/
     margin-bottom: 5px;
     margin-top: 5px;
-    /** position: relative;
-    top: -2px; **/
     max-height: 15px;
     border: 1px solid #f5f5f5;
 }
@@ -344,7 +367,7 @@ body.eduzen.note {
 }
 
 .eduzen.notes.guest #progressbar {
-    margin-left: 60px;
+    margin-left: 65px;
 }
 
 .eduzen #progressbar {
@@ -526,14 +549,6 @@ textarea#math-input-dialog {
     margin-bottom: 100px;
 }
 
-/** .eduzen .tag {
-    vertical-align: baseline;
-}
-
-.eduzen .tag img {
-    padding: 3px;
-} **/
-
 .eduzen img:hover {
     filter: none;
     opacity: 1;
@@ -594,13 +609,6 @@ textarea#math-input-dialog {
 
 .eduzen.notes input.submit {
     float: right;
-    /** position: relative;
-    top: -40px; float: right;
-    margin-right: 60px;
-    background-color: #fff;
-    border: 1px solid #f5f5f5;
-    border-top: 1px solid transparent;
-    **/
     cursor: pointer;
     padding: 5px;
 }
@@ -710,8 +718,16 @@ textarea#math-input-dialog {
     display: none;
 }
 
-.eduzen.personal #profile .user-settings img.remove,
 .eduzen.personal #profile .user-settings img.add {
+    cursor: pointer;
+    max-width: 32px;
+    max-height: 32px;
+    position: absolute;
+    left: 0px; top: 20px;
+    z-index: 101;
+}
+
+.eduzen.personal #profile .user-settings img.remove {
     cursor: pointer;
     max-width: 32px;
     max-height: 32px;
@@ -725,10 +741,6 @@ textarea#math-input-dialog {
     left: 10%;
     width: 80%;
     height: 100px;
-}
-
-.eduzen.personal .ui-dialog.ui-widget {
-
 }
 
 .eduzen.personal #profile .user-settings label {
@@ -874,7 +886,7 @@ textarea#math-input-dialog {
 .eduzen.guest .headline div.about-login {
     display: inline-block;
     position: relative;
-    top: 10px; left: 90px;
+    top: 11px; left: 95px;
     color: #a9a9a9;
 }
 
@@ -1003,14 +1015,22 @@ input.cke_dialog_ui_input_text:focus {
     position: relative;
 }
 
+.eduzen input.new-tag {
+    margin-right: 2px;
+}
+
 .eduzen .close-tag.btn,
 .eduzen .save-tag.btn {
-    border: 1px solid transparent;
+    border: 1px solid #f1f1f1;
+    border-bottom: 1px solid transparent;
+    color: #a9a9a9;
+    margin-left: 5px;
 }
 
 .eduzen .close-tag.btn:hover,
 .eduzen .save-tag.btn:hover {
     border: 1px solid #0782C1;
+    border-bottom: 1px solid transparent;
 }
 
 
@@ -1023,17 +1043,9 @@ input.cke_dialog_ui_input_text:focus {
     font-family: Helvetica Neue, Arial, sans-serif;
 }
 
-/** .eduzen p {
-  margin: 0.5em;
-} **/
-
 .eduzen p.empty {
     height: 70px;
 }
-
-/** .eduzen label {
-    display: block;
-} **/
 
 .eduzen button {
     padding: 6px; height: 30px
@@ -1107,7 +1119,7 @@ input.cke_dialog_ui_input_text:focus {
 }
 
 .eduzen li div.item-content {
-    color: #343434;
+    color: #383838;
 }
 
 .eduzen li,
@@ -1118,7 +1130,7 @@ input.cke_dialog_ui_input_text:focus {
 
 .eduzen div.item-content li,
 .eduzen #resource_input li {
-    color: #000;
+    color: #383838;
 }
 
 .eduzen ul.objects li,
@@ -1147,14 +1159,6 @@ input.cke_dialog_ui_input_text:focus {
     -o-transition: opacity 0.5s ease-out;
     opacity: 1;
 }
-
-/** .eduzen ul.list li:hover div.item-content {
-    border-top: 2px solid #ffc700;
-} **/
-
-/** .eduzen.personal ul.list {
-    max-width: 90%;
-} **/
 
 .eduzen.personal ul.list li {
     padding-right: 50px;
@@ -1203,13 +1207,6 @@ input.cke_dialog_ui_input_text:focus {
     padding: 6px;
     margin-right: 4px;
 }
-
-/***.eduzen .toolbar {
-    position: relative;
-    color: #a9a9a9;
-    padding-left: 5px;
-    top: -7px; left: 10px;
-} */
 
 .eduzen .tags {
     padding-right: 10px;
