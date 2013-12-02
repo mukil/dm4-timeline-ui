@@ -175,16 +175,16 @@ function User (controler, dict, emc, account) {
             + "</form>"
         var $account_settings = $('<div class="account-settings">')
             $account_settings.html(html)
-        var moodle_html = "<br/><br/><span class=\"label\">Dein ISIS Sicherheitsschl&uuml;ssel</span><br/>"
+        /** var moodle_html = "<br/><br/><span class=\"label\">Dein ISIS Sicherheitsschl&uuml;ssel</span><br/>"
             + "<form id=\"moodle-key\" name=\"moodle-key\" action=\"javascript:void(0)\">"
             + "  <label for=\"security-key\">(wird aus Sicherheitsgr&uuml;nden hier nicht angezeigt)</label>"
             + "  <input name=\"security-key\" class=\"security-key\" type=\"password\" value=\"\" />"
             + "  <input class=\"save-key\" type=\"button\" value=\"Neuen Key Speichern\" />"
         var $moodle_settings = $('<div class="moodle-settings">')
-            $moodle_settings.html(moodle_html)
+            $moodle_settings.html(moodle_html) **/
         //
         $('.user-settings', $parent).append($account_settings)
-        $('.user-settings', $parent).append($moodle_settings)
+        // $('.user-settings', $parent).append($moodle_settings)
         // render initial state of this dialog
         $(".edit-pwd").click(_this.editPasswordHandler)
         $(".save-pwd").click(_this.submitPasswordHandler)
@@ -382,7 +382,7 @@ function User (controler, dict, emc, account) {
         if (key !== "" && key !== " ") {
             var response = emc.setMoodleKey({ "moodle_key" : key, "user_id" : _user.account.id }, _user.account.id)
                 console.log("set new moodle key for " + _user.account.id)
-                console.log(response)
+                // console.log(response)
         }
     }
 

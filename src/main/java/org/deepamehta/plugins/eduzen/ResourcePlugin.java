@@ -78,7 +78,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
 
     @Override
     public void init() {
-        setupRenderContext();
+        initTemplateEngine();
     }
 
     @Override
@@ -317,9 +317,9 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Path("/notes")
     @Produces("text/html")
     public Viewable getTimelineView() {
-        context.setVariable("name", "Notizen Timeline");
-        context.setVariable("path", "/notes");
-        context.setVariable("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
+        viewData("name", "Notizen Timeline");
+        viewData("path", "/notes");
+        viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
         return view("index");
     }
 
@@ -335,9 +335,9 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Produces("text/html")
     public Viewable getFilteredeTimelineView(@PathParam("tags") String tagFilter,
         @HeaderParam("Cookie") ClientState clientState) {
-        context.setVariable("name", "Gefilterte Notizen Timeline, Tags: " + tagFilter);
-        context.setVariable("path", "/notes/tagged/" + tagFilter);
-        context.setVariable("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
+        viewData("name", "Gefilterte Notizen Timeline, Tags: " + tagFilter);
+        viewData("path", "/notes/tagged/" + tagFilter);
+        viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
         return view("index");
     }
 
@@ -349,14 +349,14 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         //
         String description = getUsersDescription(userId);
         String display_name = getUserDisplayName(userId);
-        context.setVariable("name", display_name + "'s Notizen Timeline");
-        context.setVariable("description", description);
+        viewData("name", display_name + "'s Notizen Timeline");
+        viewData("description", description);
         String profile_picture = getUserProfilePicturePath(userId);
-        context.setVariable("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
+        viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
         if (profile_picture != null) {
-            context.setVariable("picture", "http://notizen.eduzen.tu-berlin.de/filerepo" + profile_picture);
+            viewData("picture", "http://notizen.eduzen.tu-berlin.de/filerepo" + profile_picture);
         }
-        context.setVariable("path", "/notes/user" + userId);
+        viewData("path", "/notes/user" + userId);
 
         //
         return view("index");
@@ -368,12 +368,12 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     public Viewable getDetailView(@PathParam("id") long resourceId, @HeaderParam("Cookie") ClientState clientState) {
         Topic resource = dms.getTopic(resourceId, true);
         long lastModified = resource.getModel().getCompositeValueModel().getLong(RESOURCE_LAST_MODIFIED_URI);
-        context.setVariable("resourceName", "Notiz, zuletzt bearbeitet: " + new Date(lastModified).toString());
-        context.setVariable("relativePath", "/notes/" + resource.getId());
-        context.setVariable("style", "style.css");
+        viewData("resourceName", "Notiz, zuletzt bearbeitet: " + new Date(lastModified).toString());
+        viewData("relativePath", "/notes/" + resource.getId());
+        viewData("style", "style.css");
         // boolean isLocked = resource.getModel().getCompositeValueModel().getBoolean(RESOURCE_LOCKED_URI);
         // context.setVariable("isLocked", isLocked);
-        context.setVariable("resourceId", resource.getId());
+        viewData("resourceId", resource.getId());
         return view("resource");
     }
 
@@ -383,12 +383,12 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     public Viewable getDetailPrintView(@PathParam("id") long resourceId, @HeaderParam("Cookie") ClientState clientState) {
         Topic resource = dms.getTopic(resourceId, true);
         long lastModified = resource.getModel().getCompositeValueModel().getLong(RESOURCE_LAST_MODIFIED_URI);
-        context.setVariable("resourceName", "Notiz, zuletzt bearbeitet: " + new Date(lastModified).toString());
-        context.setVariable("relativePath", "/notes/" + resource.getId());
-        context.setVariable("style", "detail-print.css");
+        viewData("resourceName", "Notiz, zuletzt bearbeitet: " + new Date(lastModified).toString());
+        viewData("relativePath", "/notes/" + resource.getId());
+        viewData("style", "detail-print.css");
         // boolean isLocked = resource.getModel().getCompositeValueModel().getBoolean(RESOURCE_LOCKED_URI);
         // context.setVariable("isLocked", isLocked);
-        context.setVariable("resourceId", resource.getId());
+        viewData("resourceId", resource.getId());
         return view("resource");
     }
 
@@ -425,7 +425,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     }
 
     private String getUserDisplayName(long userId) {
-        Topic user = dms.getTopic(userId, true, null);
+        Topic user = dms.getTopic(userId, true);
         CompositeValueModel comp = user.getModel().getCompositeValueModel();
         if (comp.has(IDENTITY_NAME_TYPE_URI)) {
             return comp.getString(IDENTITY_NAME_TYPE_URI);
@@ -434,15 +434,15 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     }
 
     private String getUserProfilePicturePath(long userId) {
-        Topic user = dms.getTopic(userId, true, null);
+        Topic user = dms.getTopic(userId, true);
         Topic picture = user.getRelatedTopic(PROFILE_PICTURE_EDGE_URI, DEFAULT_ROLE_TYPE_URI, DEFAULT_ROLE_TYPE_URI,
-                DEEPAMEHTA_FILE_URI, true, true, null);
+                DEEPAMEHTA_FILE_URI, true, true);
         if (picture != null) return picture.getModel().getCompositeValueModel().getString(DEEPAMEHTA_FILE_PATH_URI);
         return null;
     }
 
     private String getUsersDescription(long userId) {
-        Topic user = dms.getTopic(userId, true, null);
+        Topic user = dms.getTopic(userId, true);
         CompositeValueModel comp = user.getModel().getCompositeValueModel();
         if (comp.has(IDENTITY_INFOS_TYPE_URI)) {
             return comp.getString(IDENTITY_INFOS_TYPE_URI);
