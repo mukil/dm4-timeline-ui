@@ -5,6 +5,10 @@ body {
     color: #000;
 }
 
+#menu {
+    display: none;
+}
+
 a.print-view,
 .header .username,
 .header a.back-to-front,

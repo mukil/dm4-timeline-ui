@@ -1,10 +1,13 @@
 
-/* body.eduzen .notes {
-    padding: 0px;
-    margin: 25px !important;
-    font-size: 16px;
-    line-height: 1.2em;
-} */
+body.eduzen.info,
+body.eduzen.note {
+    margin: 0px;
+}
+
+.eduzen.info .header,
+.eduzen.note .header {
+    margin-top: 60px;
+}
 
 .eduzen #message-timeline,
 .eduzen #message-top {
@@ -63,17 +66,24 @@
     color: #383838;
 }
 
-.eduzen.guest .username,
-.eduzen.note .username {
-    padding: 7px;
-    padding-top: 9px;
+.eduzen.guest .username {
+    display: none;
 }
 
-.eduzen.note .username,
-.eduzen .timeline.rendered .username,
-.eduzen .timeline.unrendered .username {
+.eduzen.info #menu,
+.eduzen.note #menu {
+    background-color: #fff;
+    border-bottom: 1px solid #FFC700;
+    width: 100%;
+    height: 40px;
+    position: fixed;
+    top: 0px;
+    z-index: 114;
+}
+
+.eduzen.note .username {
     position: absolute;
-    right: 380px;
+    left: 120px;
     top: 0px;
     padding-left: 7px;
     border: 1px solid #f5f5f5;
@@ -82,41 +92,102 @@
     background-color: #fff;
 }
 
-/* .eduzen .timeline .username:hover {
-    border: 1px solid #0782C1;
-    border-top: 0px solid transparent;
-} **/
-
-.eduzen #menu .username a.btn.my {
-    margin-left: 3px;
-    padding: 7px;
-    margin-right: 0px;
-    padding-right: 5px;
-    padding-left: 5px;
+.eduzen.note.guest .username {
+    padding-top: 9px;
 }
 
-.eduzen #menu .username a.btn.logout {
-    padding: 7px;
-    margin-right: 0px;
-    padding-left: 4px;
-    padding-right: 5px;
-}
-
-.eduzen #menu .username a.btn.my.pressed,
-.eduzen #menu .username a.btn.my:hover,
-.eduzen #menu .username a.logout:hover {
-    background-color: #FFC700;
-    border: 1px solid #FFC700;
-    color: #fff;
-}
-
-.eduzen span.meta {
+.eduzen .headline .username {
+    position: absolute;
+    left: 35px;
+    top: 0px;
+    padding-left: 7px;
+    border: 1px solid #f5f5f5;
+    border-top: 1px solid transparent;
     color: #a9a9a9;
-    margin-right: 4px;
+    background-color: #fff;
 }
 
-.eduzen .timeline.unrendered div.tag-list {
-    margin-top: 35px;
+.eduzen .headline .username:hover {
+    border: 1px solid #0782C1;
+    border-top: 1px solid transparent;
+
+}
+
+.eduzen.personal .headline .username {
+    left: 120px;
+}
+
+.eduzen .headline {
+    border-bottom: 1px solid #FFC700;
+    position: fixed;
+    top: 0px;
+    background-color: #fff;
+}
+
+.eduzen .sidebar {
+    position: fixed;
+    right: 30px;
+    top: 50px;
+    max-width: 31%;
+    height: 90%;
+    text-align: right;
+}
+
+.eduzen .eduzen-logo {
+    float: right;
+    position: absolute;
+    top: 1px; right: 40px;
+}
+
+.eduzen.note .eduzen-logo {
+    right: 60px;
+}
+
+.eduzen #resources {
+    position: relative;
+    top: 60px;
+    width: 65%;
+}
+
+.eduzen #menu .btn.my:hover,
+.eduzen #menu .btn.logout:hover {
+    color: #0782C1;
+}
+
+.eduzen #menu .btn.my,
+.eduzen #menu .btn.logout {
+    padding: 7px;
+    padding-left: 5px;
+    text-decoration: none;
+    margin-right: 0px;
+    padding-top: 9px;
+    color: #a9a9a9;
+}
+
+.eduzen #menu .btn.logout {
+    padding-right: 8px;
+}
+
+.eduzen #menu .btn.my {
+    padding-right: 2px;
+    font-weight: bold;
+}
+
+.eduzen #menu .pages {
+    float: right;
+    margin-right: 300px;
+}
+
+.eduzen .options .tag-filter-info span.meta {
+    color: #a9a9a9;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.eduzen .info .tag-cloud-header {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    color: #a9a9a9;
 }
 
 .eduzen div.math-output {
@@ -147,62 +218,89 @@
 }
 
 .eduzen div.tag-list {
+    position: relative;
+    left: 20px;
     margin-left: 0px;
     margin-top: 6px;
     min-height: 36px;
     margin-bottom: 5px;
-    pointer-events: all;
+    overflow-y: scroll;
+    height: 98%;
+    padding-right: 10px;
 }
 
-.eduzen .timeline.unrendered div.tag-list .label {
+.eduzen .sidebar .info .tag-list::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+.eduzen .sidebar .info {
+    height: 95%;
+}
+
+.eduzen .sidebar .info .tag-list::-webkit-scrollbar-button:start:decrement,
+.eduzen .sidebar .info .tag-list::-webkit-scrollbar-button:end:increment {
     display: block;
+    height: 0;
+    background-color: transparent;
+}
+
+.eduzen .sidebar .info .tag-list::-webkit-scrollbar-track-piece {
+    background-color: #f1f1f1;
+    -webkit-border-radius: 0;
+    -webkit-border-bottom-right-radius: 8px;
+    -webkit-border-bottom-left-radius: 8px;
+}
+
+.eduzen .sidebar .info .tag-list::-webkit-scrollbar-thumb:vertical {
+    height: 50px;
+    background-color: #a9a9a9;
+    -webkit-border-radius: 8px;
+}
+
+.eduzen .sidebar .info .tag-list::-webkit-scrollbar-thumb:horizontal {
+    width: 50px;
+    background-color: #a9a9a9;
+    -webkit-border-radius: 8px;
 }
 
 .eduzen div.results b.label {
     margin-left: 45px;
 }
 
-.eduzen.notes.guest .timeline.unrendered a#new,
-.eduzen .timeline.rendered a#new {
+.eduzen.notes.guest .headline a#new,
+.eduzen .headline a#new {
     display: none;
     padding-right: 10px;
     pointer-events: all;
 }
 
-.eduzen .btn.my,
-.eduzen .btn.logout {
-    padding: 0px;
-    padding-left: 5px;
-    text-decoration: none;
-}
-
-.eduzen .timeline.rendered a#info,
-.eduzen .timeline.unrendered a#info {
+.eduzen .pages a {
     display: inline-block;
     padding: 7px;
     border: 1px solid #f1f1f1;
     border-top: 1px solid #fff;
     padding-top: 9px;
     text-decoration: underline;
-    position: absolute; right: 300px; top: 0px;
     background-color: #fff;
 }
 
-/** .eduzen .timeline.rendered a#info {
-    display: none;
-} **/
+.eduzen.note .print-view {
+    right: 270px;
+}
 
-/** .eduzen .timeline.unrendered a#info {
-} **/
+.eduzen.note .back-to-front {
+    right: 380px;
+}
 
 .eduzen .print-view {
-    position: absolute;
+    position: fixed;
     right: 80px; top: 0px;
 }
 
 .eduzen .back-to-front {
-    position: absolute;
-    right: 185px; top: 0px;
+    position: fixed;
+    right: 260px; top: 0px;
 }
 
 .eduzen .print-view,
@@ -213,19 +311,13 @@
     border-top: 1px solid #fff;
     padding-top: 9px;
     background-color: #fff;
-}
-
-.eduzen .timeline.unrendered a#new {
-    display: none;
+    z-index: 115;
 }
 
 .eduzen .timeline {
-    background-color: transparent;
-    /** padding-left: 40px; padding-right: 40px; **/
     z-index: 100;
     width: 100%;
-    min-height: 30px;
-    pointer-events: none;
+    min-height: 40px;
     left: 0px;
 }
 
@@ -244,18 +336,11 @@
     border: 0px solid transparent;
 }
 
-/**
-.eduzen .timeline .info {
-    min-height: 100px;
-} **/
-
 .eduzen .tag,
 .eduzen .btn.tag {
     /** border: 1px #2272AD solid; **/
     margin-bottom: 5px;
     margin-top: 5px;
-    /** position: relative;
-    top: -2px; **/
     max-height: 15px;
     border: 1px solid #f5f5f5;
 }
@@ -277,40 +362,61 @@
     display: none;
 }
 
-.eduzen .timeline span.tag-filter-info {
+.eduzen.notes.personal #progressbar,
+.eduzen.notes.personal.guest #progressbar {
+    margin-left: 80px;
+}
+
+.eduzen.notes.guest #progressbar {
+    margin-left: 65px;
+}
+
+.eduzen #progressbar {
+    position: fixed;
+    top: 0px;
+    padding: 8px;
+    border: 0px solid transparent;
+    margin-left: 140px;
+    margin-right: 60px;
+    height: 20px;
+    width: 55%;
+    z-index: 1009;
     background-color: #fff;
-    margin-top: 0px;
-    position: relative; top: 0px;
-    display: inline-block;
-    z-index: 1;
-    left: 75px;
 }
 
-.eduzen.personal .timeline.rendered span.tag-filter-info,
-.eduzen.personal .timeline.unrendered span.tag-filter-info{
-    margin-top: 10px;
-    left: 76px;
+.eduzen #progressbar .loading-label {
+    color: #fff;
+    position: absolute;
+    top: 10px;
+    left: 16px;
 }
 
-.eduzen.guest .timeline.unrendered span.tag-filter-info {
-    margin-top: 0px;
-    left: 118px;
+/*!
+ * jQuery UI Progressbar '1.8-stable'
+ *
+ * Copyright 2012, AUTHORS.txt (http://jqueryui.com/about)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://jquery.org/license
+ *
+ * http://docs.jquery.com/UI/Progressbar#theming
+ */
+.ui-progressbar { height:2em; text-align: left; overflow: hidden; }
+.ui-progressbar .ui-progressbar-value {margin: -1px; height:100%; }
+
+.ui-progressbar-value.ui-widget-header {
+    background: #ffc700 /*{bgColorHeader} url(images/ui-bg_highlight-soft_75_cccccc_1x100.png)/*{bgImgUrlHeader}*/ 50%/*{bgHeaderXPos}*/ 50%/*{bgHeaderYPos}*/ repeat-x/*{bgHeaderRepeat}*/
 }
 
-.eduzen.guest .timeline.rendered span.tag-filter-info {
-    margin-top: 33px;
-    left: 75px;
-}
-
-/** here no filter can be present in options bar */
-.eduzen.guest.personal .timeline.unrendered span.tag-filter-info,
-.eduzen.guest.personal .timeline.rendered span.tag-filter-info {
-    margin-top: 10px;
-    left: 138px;
-}
-
-.eduzen div.tag-filter-info .buttons {
+.eduzen .tag-filter-info a.buttons {
     margin-left: 5px;
+}
+
+.eduzen .tag-filter-info .reset.btn {
+    color: #a9a9a9;
+}
+
+.eduzen .tag-filter-info .reset.btn:hover {
+    color: #0782C1;
 }
 
 .eduzen .buttons a.btn.tag.selected {
@@ -357,57 +463,18 @@
 .eduzen .options {
     color: #a9a9a9;
     background-color: #fff;
-    border-bottom: 1px solid #FFC700;
     pointer-events: all;
-    min-height: 38px;
+    margin-top: 20px;
+    margin-right: 10px;
 }
 
-.eduzen .rendered .options {
-    background-color: #fff;
-    position: absolute;
-    top: 0px; left: 0px;
-    width: 100%;
-}
-
-.eduzen .unrendered .options {
-    /** border-right: 1px solid #FFC700; */
-    position: relative;
-}
-
-.eduzen .unrendered #nav.info {
-    padding-right: 40px;
-    width: 26%;
-    float: right;
-    background-color: #fff;
-}
-
-.eduzen .rendered #nav.info {
-    /** border-bottom: 1px solid #FFC700; **/
-    position: relative;
-    top: 55px;
-    left: 55px;
-    margin-right: 40px;
-}
-
-.eduzen #resources {
-    position: relative;
-    top: 60px;
-}
-
-.eduzen .results .list {
-    padding-left: 40px;
-    margin-bottom: 60px;
-    width: 100%;
+.eduzen .info {
+    margin-right: 10px;
 }
 
 .eduzen #resources #list-message {
     margin-left: 20px;
 }
-
-/** .eduzen #menu {
-    background-color: #fff;
-    position: absolute; right: 320px; top: 0px;
-} **/
 
 textarea#math-input-dialog {
     width: 100%;
@@ -483,14 +550,6 @@ textarea#math-input-dialog {
     margin-bottom: 100px;
 }
 
-/** .eduzen .tag {
-    vertical-align: baseline;
-}
-
-.eduzen .tag img {
-    padding: 3px;
-} **/
-
 .eduzen img:hover {
     filter: none;
     opacity: 1;
@@ -551,13 +610,6 @@ textarea#math-input-dialog {
 
 .eduzen.notes input.submit {
     float: right;
-    /** position: relative;
-    top: -40px; float: right;
-    margin-right: 60px;
-    background-color: #fff;
-    border: 1px solid #f5f5f5;
-    border-top: 1px solid transparent;
-    **/
     cursor: pointer;
     padding: 5px;
 }
@@ -597,17 +649,16 @@ textarea#math-input-dialog {
 
 .eduzen.personal #profile {
     display: block;
-    margin-top: 20px;
+    margin-top: 60px;
     padding-left: 55px;
     margin-right: 95px;
     margin-bottom: 0px;
     padding: 10px;
-    max-width: 88%;
     position: relative;
 }
 
 .eduzen.personal #profile .profile {
-    padding-left: 45px;
+    padding-left: 5px;
 }
 
 .eduzen.personal #profile .profile .edit-area {
@@ -619,15 +670,16 @@ textarea#math-input-dialog {
 .eduzen.personal #profile .user-settings {
     display: block;
     padding: 10px;
-    margin-left: 45px;
     min-height: 300px;
     position: relative;
+    width: 75%;
+    margin-top: 40px;
 }
 
 .eduzen.personal #profile .user-settings .moodle-settings,
 .eduzen.personal #profile .user-settings .account-settings {
     position: absolute;
-    left: 34%;
+    left: 36%;
     top: -20px;
 }
 
@@ -673,8 +725,16 @@ textarea#math-input-dialog {
     display: none;
 }
 
-.eduzen.personal #profile .user-settings img.remove,
 .eduzen.personal #profile .user-settings img.add {
+    cursor: pointer;
+    max-width: 32px;
+    max-height: 32px;
+    position: absolute;
+    left: 0px; top: 20px;
+    z-index: 101;
+}
+
+.eduzen.personal #profile .user-settings img.remove {
     cursor: pointer;
     max-width: 32px;
     max-height: 32px;
@@ -688,10 +748,6 @@ textarea#math-input-dialog {
     left: 10%;
     width: 80%;
     height: 100px;
-}
-
-.eduzen.personal .ui-dialog.ui-widget {
-
 }
 
 .eduzen.personal #profile .user-settings label {
@@ -730,7 +786,7 @@ textarea#math-input-dialog {
 
 .eduzen.personal.guest #profile {
     display: block;
-    margin-top: 40px;
+    margin-top: 60px;
     padding-left: 55px;
     margin-right: 95px;
     margin-bottom: 0px;
@@ -749,6 +805,7 @@ textarea#math-input-dialog {
 
 .eduzen.personal #profile .view .infos {
     margin-top: 5px;
+    margin-right: 200px;
 }
 
 .eduzen.personal #profile .view .display-name {
@@ -762,19 +819,27 @@ textarea#math-input-dialog {
     background-color: #f1f1f1;
     color: #2486bb;
     min-height: 200px;
+    width: 75%;
+    position: relative;
 }
 
 .eduzen.personal #resources {
     top: 0px;
+    width: 75%;
 }
 
 .eduzen #profile {
     display: none;
 }
 
+.eduzen.note .home-menu-button {
+    left: 40px !important;
+}
+
+.eduzen.note .home-menu-button,
 .eduzen.personal .timeline .home-menu-button {
     position: absolute;
-    top: 0px; left: -2px;
+    top: 0px; left: 35px;
     padding: 7px;
     padding-top: 9px;
     color: #a9a9a9;
@@ -785,12 +850,12 @@ textarea#math-input-dialog {
 }
 
 .eduzen.personal .timeline .login-menu-button {
-    left: 76px;
+    left: 120px;
 }
 
 .eduzen .timeline .login-menu-button {
     position: absolute;
-    top: 0px; left: 72px;
+    top: 0px; left: 35px;
     padding: 7px;
     padding-top: 9px;
     color: #a9a9a9;
@@ -800,12 +865,15 @@ textarea#math-input-dialog {
     background-color: #fff;
 }
 
+.eduzen.note .home-menu-button:hover,
+.eduzen.note .home-menu-button:focus,
 .eduzen.personal .timeline .home-menu-button:hover,
 .eduzen.personal .timeline .home-menu-button:focus,
 .eduzen .timeline .login-menu-button:hover,
 .eduzen .timeline .login-menu-button:focus {
     border: 1px solid #0782C1;
     border-top: 1px solid transparent;
+    color: #0782C1;
 }
 
 .eduzen .timeline .login-menu-button.pressed:hover,
@@ -817,25 +885,24 @@ textarea#math-input-dialog {
     color: #fff;
 }
 
-
-.eduzen.guest.personal .timeline.rendered div.about-login {
+.eduzen.guest.personal .headline div.about-login {
     display: none;
+    color: #a9a9a9;
 }
 
-.eduzen.guest .timeline.rendered div.about-login {
+.eduzen.guest .headline div.about-login {
     display: inline-block;
-    position: absolute;
-    top: 11px;
-    left: 130px;
+    position: relative;
+    top: 11px; left: 95px;
+    color: #a9a9a9;
 }
 
-.eduzen .timeline.rendered div.about-login,
-.eduzen .timeline.unrendered div.about-login {
+.eduzen .headline div.about-login {
     display: none;
 }
 
 .eduzen .login-menu .message a,
-.eduzen div.about-login a {
+.eduzen .headline div.about-login a {
     background-color: transparent;
     padding: 0px;
 }
@@ -865,18 +932,17 @@ textarea#math-input-dialog {
     display: none;
     position: absolute;
     top: 1px;
-    left: 125px;
+    left: 90px;
     background: #fff;
     z-index: 99;
 }
 
-.eduzen .timeline.unrendered .login-menu {
-    left: 125px;
+.eduzen.personal .login-menu {
+    left: 130px;
 }
 
-.eduzen.personal .timeline.rendered .login-menu,
-.eduzen.personal .timeline.unrendered .login-menu {
-    left: 130px;
+.eduzen.personal .login-menu {
+    left: 180px;
 }
 
 .eduzen .login-menu input {
@@ -921,7 +987,7 @@ textarea#math-input-dialog {
 .eduzen input.tagging {
     padding-left: 7px;
     padding-bottom: 5px;
-    padding-top: 5px;
+    padding-top: 3px;
     /** border: 1px solid #ffc700 !important; **/
     background-color: #f1f1f1;
     display: inline-block;
@@ -949,25 +1015,29 @@ input.cke_dialog_ui_input_text:focus {
 }
 
 .eduzen .add-tag-dialog {
-    display: inline-block;
-    width: 240px;
+    display: inline-block !important;
 }
 
+.eduzen input.new-tag.ui-autocomplete {
+    position: relative;
+}
+
+.eduzen input.new-tag {
+    margin-right: 2px;
+}
+
+.eduzen .close-tag.btn,
 .eduzen .save-tag.btn {
-    border: 1px solid transparent;
-    position: relative;
-    left: 102px;
-}
-
-.eduzen .close-tag.btn {
-    border: 1px solid transparent;
-    position: relative;
-    left: 98px;
+    border: 1px solid #f1f1f1;
+    border-bottom: 1px solid transparent;
+    color: #a9a9a9;
+    margin-left: 5px;
 }
 
 .eduzen .close-tag.btn:hover,
 .eduzen .save-tag.btn:hover {
     border: 1px solid #0782C1;
+    border-bottom: 1px solid transparent;
 }
 
 
@@ -980,17 +1050,9 @@ input.cke_dialog_ui_input_text:focus {
     font-family: Helvetica Neue, Arial, sans-serif;
 }
 
-/** .eduzen p {
-  margin: 0.5em;
-} **/
-
 .eduzen p.empty {
     height: 70px;
 }
-
-/** .eduzen label {
-    display: block;
-} **/
 
 .eduzen button {
     padding: 6px; height: 30px
@@ -1007,7 +1069,6 @@ input.cke_dialog_ui_input_text:focus {
 }
 
 .eduzen .label {
-    font-weight: bold;
     line-height: 1.6em;
     color: #a9a9a9;
     padding: 4px;
@@ -1022,27 +1083,14 @@ input.cke_dialog_ui_input_text:focus {
     padding-top: 8px;
 }
 
-.eduzen #results {
-    float: left;
-    /* overflow-y: auto;
-    max-height: 70%;
-    padding-right: 20px; **/
-    height: 100%;
-    z-index: 1;
-    margin-bottom: 65px;
-}
-
-.eduzen #result-list,
-.eduzen ul.list {
-    float: left;
-}
-
 .eduzen ul.list .item-content {
     color: #383838;
     background-color: #f1f1f1;
     padding: 15px;
     z-index: 1;
-    border: 1px solid #f5f5f5;
+    border: 1px solid transparent;
+    /** border: 2px solid transparent;
+    border-left: 2px solid #ffc700; **/
     margin-top: 0px;
     margin-left: 0px;
     margin-right: 0px;
@@ -1072,13 +1120,13 @@ input.cke_dialog_ui_input_text:focus {
 .eduzen ul.objects,
 .eduzen ul.list {
     padding-left: 0px;
+    padding-right: 10px;
     list-style-type: none;
     position: relative;
-    max-width: 75%;
 }
 
 .eduzen li div.item-content {
-    color: #343434;
+    color: #383838;
 }
 
 .eduzen li,
@@ -1089,7 +1137,7 @@ input.cke_dialog_ui_input_text:focus {
 
 .eduzen div.item-content li,
 .eduzen #resource_input li {
-    color: #000;
+    color: #383838;
 }
 
 .eduzen ul.objects li,
@@ -1101,15 +1149,26 @@ input.cke_dialog_ui_input_text:focus {
     padding-right: 15px;
     margin-bottom: 20px;
     overflow: hidden;
-    max-width: 75%;
 }
 
-.eduzen.personal ul.list {
-    max-width: 90%;
+.eduzen ul.list li div.votes,
+.eduzen ul.list li div.toolbar {
+    opacity: 0;
+    -webkit-transition: opacity 0.5s ease-out;
+    -moz-transition: opacity 0.5s ease-out;
+    -o-transition: opacity 0.5s ease-out;
+}
+
+.eduzen ul.list li:hover div.votes,
+.eduzen ul.list li:hover div.toolbar {
+    -webkit-transition: opacity 0.5s ease-out;
+    -moz-transition: opacity 0.5s ease-out;
+    -o-transition: opacity 0.5s ease-out;
+    opacity: 1;
 }
 
 .eduzen.personal ul.list li {
-    max-width: 100%;
+    padding-right: 50px;
 }
 
 .eduzen ul.list li div.item-content li {
@@ -1121,7 +1180,6 @@ input.cke_dialog_ui_input_text:focus {
     border: 1px solid #12b4d7;
 }
 
-.eduzen .timeline a,
 .eduzen .results a,
 .eduzen .footer a,
 .eduzen li a,
@@ -1156,13 +1214,6 @@ input.cke_dialog_ui_input_text:focus {
     padding: 6px;
     margin-right: 4px;
 }
-
-/***.eduzen .toolbar {
-    position: relative;
-    color: #a9a9a9;
-    padding-left: 5px;
-    top: -7px; left: 10px;
-} */
 
 .eduzen .tags {
     padding-right: 10px;
@@ -1284,17 +1335,15 @@ input.cke_dialog_ui_input_text:focus {
 
 .sort {
     display: inline-block;
-    position: absolute;
-    right: 80px;
-    top: 6px;
+    position: relative;
+    top: 6px; left: -10px;
 }
 
 .sort-label {
+    color: #a9a9a9;
     display: inline-block;
-    position: absolute;
-    right: 140px;
-    padding-top: 4px;
-    top: 6px;
+    position: relative;
+    left: -10px;
 }
 
 /** Thx to the author/s of http://proto.io/freebies/onoff/ for the following lines. */
@@ -1309,7 +1358,9 @@ input.cke_dialog_ui_input_text:focus {
 .sort .onoffswitch-label {
     display: block; overflow: hidden; cursor: pointer;
     border: 1px solid #999999; border-radius: 4px;
+    text-align: left;
 }
+
 .sort .onoffswitch-inner {
     width: 200%; margin-left: -100%;
     -moz-transition: margin 0.3s ease-in 0s; -webkit-transition: margin 0.3s ease-in 0s;

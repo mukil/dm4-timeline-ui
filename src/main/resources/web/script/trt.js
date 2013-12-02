@@ -1,3 +1,4 @@
+
 (function (CKEDITOR, MathJax, $, console, dmc) {
 
     var _this = this
@@ -30,10 +31,7 @@
 
     var TAGGING_FIELD_SELECTOR = "input.tagging"
 
-    /**
-     *  Fixmes: adding Tag to resource which has none (no display update), adding tag to resource which has one adds
-     *  new tag twice to tag-filter-view
-     **/
+
 
     /** Main router to all views */
 
@@ -64,7 +62,8 @@
         // route to distinct views
         if (noteId === undefined || noteId === "") {
 
-            _this.goToTimeline() // load timeline with no filter set
+            _this.goToTimeline(true, false) // load timeline with no filter set
+            $(window).on('load', function(event) {_this.hideProgressBar()});
 
         } else if (noteId === "tagged") {
 
@@ -76,13 +75,15 @@
                 selectedTag = _this.model.getTagByName(label)
                 if (selectedTag != undefined) _this.model.addTagToFilter(selectedTag)
             }
-            _this.goToTimeline() // call timeline after filter was set.
+            _this.goToTimeline(true, false) // call timeline after filter was set.
+            $(window).on('load', function(event) {_this.hideProgressBar()});
 
         } else if (noteId === "user") {
 
             var userId = attributes[3]
             var user = dmc.get_topic_by_id(userId, true)
-            _this.goToPersonalTimeline(user)
+            _this.goToPersonalTimeline(user, true, false)
+            $(window).on('load', function(event) {_this.hideProgressBar()});
 
         } else {
 
@@ -95,21 +96,25 @@
 
     }
 
-    this.goToTimeline = function () {
+    this.goToTimeline = function (render_progressbar, hide_progressbar) {
 
+        if (render_progressbar) _this.renderProgressBar()
         // prepare page model (according to filter)
         _this.loadResources() // optimize: maybe we dont need to load it again
         // render timeline view
         renderView()
+        if (hide_progressbar) _this.hideProgressBar() // this is needed when no DOM Load Event can hide our progressbar
 
     }
 
-    this.goToPersonalTimeline = function (account) {
+    this.goToPersonalTimeline = function (account, render_progressbar, hide_progressbar) {
 
+        if (render_progressbar) _this.renderProgressBar()
         // prepare page model
         _this.model.setTagFilter([])
         // render update before we load all the stuff
-        renderTagView()
+        // renderTagView('div.sidebar')
+        hideTagView()
         // enforce (re-)loading of full composite user topic in preparation for personal-timeline rendering
         var user_account = emc.getTopicById(account.id)
         // render profile-header first
@@ -122,6 +127,7 @@
         renderView(user_account) // fixme: setup without tag-filter-dialog
         //
         current_view = PERSONAL_TIMELINE
+        if (hide_progressbar) _this.hideProgressBar()
 
     }
 
@@ -154,6 +160,20 @@
         _this.model.getAvailableTags().sort(_this.name_sort_asc)
     }
 
+    this.renderProgressBar = function () {
+        var $progressbar = $( "#progressbar" ).progressbar( "widget" );
+            $progressbar.progressbar( "enable" );
+            $progressbar.show()
+            $progressbar.progressbar({value: 10, max: 100});
+    }
+
+    this.hideProgressBar = function () {
+        var $progressbar = $('#progressbar')
+            $progressbar.progressbar({value: 100});
+            $progressbar.progressbar( "disable" );
+            $progressbar.hide()
+    }
+
     /**
      * Rendering our interactive page. Either "personal" or "ordinary" and either for "guests" or "authenticated users".
      */
@@ -164,6 +184,7 @@
         var status = checkLoggedInUser()
         renderUserInfo()
 
+        $('#progressbar').progressbar({value: 15});
         // fixme: render upper menu for either personal or ordinary timeline
         if (user) {
             setupFrontpageButton()
@@ -181,9 +202,9 @@
             // render tag specific filter-info header
             showTagfilterInfo()
             // render avaialble tag-filter buttons
-            renderTagView()
+            renderTagView('div.sidebar')
         }
-
+        $('#progressbar').progressbar({value: 50});
         //
         if (status !== null) {
             setupUserPage()
@@ -196,6 +217,7 @@
             showResultsetView(true)
         }
         //
+        $('#progressbar').progressbar({value: 80});
         _this.skroller.refresh()
     }
 
@@ -216,8 +238,10 @@
         }
     }
 
-    this.setupFrontpageButton = function () {
-        var $homeButton = $('<a class="home-menu-button btn" title="Go to shared main timeline">Timeline</a>')
+    this.setupFrontpageButton = function (on_detail_view) {
+        var $homeButton = undefined
+        if (!on_detail_view) {
+            $homeButton = $('<a class="home-menu-button btn" title="Zur&uuml;ck zur Timeline-Ansicht">Timeline</a>')
             $homeButton.click(function (e) {
                 // fixme: doing some internal gui foo here
                 removeFrontpageButton()
@@ -225,10 +249,15 @@
                 // prepare model
                 _this.model.setTagFilter([])
                 // go to
-                _this.goToTimeline()
+                _this.goToTimeline(false)
                 _this.pushTimelineViewState()
             })
             $('#menu').append($homeButton)
+        } else {
+            $homeButton = $('<a class="home-menu-button btn"'
+                + ' "title="Zur&uuml;ck zur Timeline-Ansicht" href="/notes">Timeline</a>')
+            $('#menu').append($homeButton)
+        }
     }
 
     this.removeFrontpageButton = function () {
@@ -280,15 +309,14 @@
                 + '</span>')
         $($menuToggle).insertBefore('a#info')
         //
-        $('.about-login').html('Um Beitr&auml;ge zu verfassen musst du eingeloggt sein. Einen Account bekommst du '
-            + '<a href="http://www.eduzen.tu-berlin.de/zur-notizen-webanwendung#account">hier</a>.</div>')
+        $('.about-login').html('Um Beitr&auml;ge zu verfassen musst du eingeloggt sein.</div>')
         //
         $($loginMenu).insertBefore('a#info')
 
         function doLogin() {
             var user = checkUserAuthorization() // login button handler
             if (user != null) {
-                _this.goToTimeline()
+                _this.goToTimeline(false)
                 _this.pushTimelineViewState()
             }
         }
@@ -322,7 +350,6 @@
 
     this.setupDetailView = function () {
         // set page-data
-        // setupCKEditor()
         var creator = _this.getRelatedUserAccount(_this.model.getCurrentResource().id)
         var display_name = creator.value
         //
@@ -362,6 +389,7 @@
         $('label.lock').hide()
         //
         renderUserInfo()
+        setupFrontpageButton(true)
         renderDetailView()
 
         function setupEditDetailView () {
@@ -390,18 +418,6 @@
                         $check.show()
                     $('label.lock').show()
                 }
-
-                //
-                /** var $container = $('#resource_input .math-output')
-                $.each($container, function (e, item) {
-                    //
-                    console.log("registering click handler on item ... ")
-                    item.click(function(e) {
-                        console.log(e)
-                        console.log(this)
-                        this.focus()
-                    })
-                }) **/
                 // skip tags, they are already setup for this resource
                 quickfixPDFImageRendering() // hacketi hack
                 // formula needs to be rendered to be edited..
@@ -461,17 +477,18 @@
         var $username = $('.username')
         var name = _this.model.getCurrentUserName()
 
-        if (name === undefined) {
+        if (typeof name === 'undefined') {
             $username.text('Willkommen')
+            if (current_view === DETAIL_VIEW) $username.hide()
         } else {
             var user = _this.model.getCurrentUserTopic()
             // fixme: we have currently 2 different buttons, depending on the current view
-            var $my = $('<a class="btn my" title="Meine Beitr&auml;ge">' + name+ '</a>')
+            var $my = $('<a class="btn my" title="Zeige meine Beitr&auml;ge">' + name+ '</a>')
             if (current_view === DETAIL_VIEW ){
                 $my.attr("href", "/notes/user/" + user.id)
             } else {
                 $my.click(function (e) {
-                    _this.goToPersonalTimeline(user)
+                    _this.goToPersonalTimeline(user, true, true)
                     _this.pushPersonalViewState(user)
                 })
             }
@@ -531,26 +548,20 @@
 
     this.setupPageControls = function () {
         // setting up sort-controls and input button
-        $("a#new").click(function (e) {window.scrollTo(0, 0)})
         $(".onoffswitch-label").click(function (e) {
-
             if (_this.model.isSortedByScore) { // turn toggle-off
                 // $("a#most-popular").removeClass("selected")
                 _this.model.setAvailableResources(getAlphabeticalResources())
                 // _this.model.setTagFilter([]) // fixme: allow during filtering
                 _this.model.isSortedByScore = false // set resultset sorting flag
-                console.log("sorted by time" + _this.model.isSortedByScore)
-                console.log(_this.model.getAvailableResources())
             } else { // turn toggle-on
                 // $("a#most-popular").addClass("selected")  //
                 // just sort all currently existing resources (client-side)
                 _this.model.setAvailableResources(getHighestResources())
                 // _this.model.setTagFilter([]) // fixme: allow during filtering
                 _this.model.isSortedByScore = true // set resultset sorting flag
-                console.log("sorted by score " + _this.model.isSortedByScore)
-                console.log(_this.model.getAvailableResources())
             }
-            // fixme: this is a partial, more efficient page-update hack, not using our routing
+            // fixme: this is a partial, more efficient page-update hack, which does not us our routing
             if (checkLoggedInUser() !== null) {
                 // render loaded resources in timeline
                 showResultsetView(false)
@@ -739,7 +750,7 @@
         var $creator_link = $('<a id="user-' +creator.id+ '" title="Zeige '+creator_name+'s Timeline" class="profile btn"></a>')
             $creator_link.text(creator_name)
             $creator_link.click(function(e) {
-                _this.goToPersonalTimeline(creator)
+                _this.goToPersonalTimeline(creator, true, true)
                 _this.pushPersonalViewState(creator)
             })
 
@@ -786,7 +797,7 @@
                         // track "added tag"-goal
                         if (typeof piwikTracker !== 'undefined') piwikTracker.trackGoal(4)
                         // re-render both views
-                        renderTagView()
+                        renderTagView('div.sidebar')
                         setupResultListItem(item)
                         // update gui, remove dialog
                         $addDialog.remove()
@@ -804,7 +815,8 @@
                 setupTagFieldControls('li#' +clickedListItem+ ' .toolbar div.add-tag-dialog input.new-tag')
                 $addDialog.show("slow")
             })
-        var $edit = $('<a class="edit-item btn" href="/notes/'+item.id+'">zur Detailansicht dieses Beitrags</a>.')
+        var $edit = $('<a class="edit-item btn" href="/notes/' +item.id+ '"'
+            + ' title="Öffne Detailansicht dieser Notiz">zur Detailansicht dieses Beitrags</a>.')
         // score info area
         var $votes = $('<div class="votes">Bewerte diesen Inhalt </div>')
         var $upvote = $('<a id="' +item.id+ '" class="btn vote">+</a>') // we have an id triple in this "component"
@@ -853,7 +865,8 @@
         if (tags == undefined) return undefined
         for (var i=0; i < tags.length; i++) {
             var element = tags[i]
-            var $tag = $('<a id="' +element.id+ '" class="btn tag">' +element.value+ '</a>')
+            var $tag = $('<a id="' +element.id+ '" class="btn tag" title="Filter Timeline nach '+element.value+'">'
+                + element.value + '</a>')
             // the event handler, if a filter-request is made
             $tag.click(function (e) {
                 var tagId = e.target.id
@@ -863,7 +876,7 @@
                 var selectedTag = _this.model.getTagById(tagId)
                 _this.model.addTagToFilter(selectedTag)
                 // go to updated view
-                _this.goToTimeline()
+                _this.goToTimeline(true, true)
                 // fixme: formerly here were just (optimal) view updates
                 _this.pushTimelineViewState()
 
@@ -873,7 +886,7 @@
         return null
     }
 
-    this.renderTagView = function () {
+    this.renderTagView = function (parent_selector) {
 
         // setup components _this.model
         var tagsToShow = undefined
@@ -886,38 +899,36 @@
             tagsToShow = sliceAboutFilteredTags(tagsToShow)
         }
         // in any case, show tag-view area
-        $('.eduzen .rendered #nav.info').show()
+        $('.eduzen #nav.info').show()
+        $('.tag-cloud-header').html('Filter Beitr&auml;ge nach Tags')
         // render ui/dialog
-        var html_label = "Filter alle Beitr&auml;ge nach Tags"
         if (tagsToShow.length > 0) {
 
             var $tagview = undefined
-            if ($('div.timeline .info div.tag-list').length == 0) {
+            if ($(parent_selector + ' .info div.tag-list').length == 0) {
                 // create ui/dialog
-                $tagview = $('<div class="tag-list"><span class="label">'+html_label+'</span></div>')
+                $tagview = $('<div class="tag-list">')
                 // place ui/dialog in info area of our timeline-view
-                $('div.timeline .info').append($tagview)
+                $(parent_selector + ' .info').append($tagview)
             } else {
                 // clean up ui/dialog
                 // $('div.timeline .info').empty()
-                $('div.timeline .info div.tag-list a').remove()
-                $tagview = $('div.timeline .info div.tag-list')
+                $(parent_selector + ' .info div.tag-list a').remove()
+                $tagview = $(parent_selector + ' .info div.tag-list')
             }
-            $('div.timeline .info div.tag-list span.label').html(html_label)
-            $('div.timeline .info div.tag-list').show()
+            $(parent_selector + ' .info div.tag-list').show()
             // render all tags as buttons into our ui/dialog
             showTagButtons($tagview, tagsToShow)
         } else {
             // clean up ui/dialog
-            $('div.timeline .info div.tag-list span.label').text("")
-            $('div.timeline .info div.tag-list a').remove()
-            $('div.timeline .info div.tag-list').hide()
+            $(parent_selector + ' .info div.tag-list a').remove()
+            $(parent_selector + ' .info div.tag-list').hide()
         }
 
     }
 
     this.hideTagView = function () {
-        $('div.timeline .info div.tag-list').hide()
+        $('.eduzen #nav.info').hide()
     }
 
     this.emptyTagfilterInfo = function () {
@@ -931,7 +942,7 @@
             return undefined
         }
         // fixme: hide login-dialog if present, cause these two overlap..
-        $('div.login-menu').hide()
+        $('div.login-menu').hide() // ### removal to be checked
         $('a.login-menu-button').removeClass('pressed')
         var tagsLength = _this.model.getAvailableResources().length
         var filterMessage = ""
@@ -948,24 +959,23 @@
                     var tagId = parseInt(e.target.id)
                     var tag = _this.model.getTagById(tagId)
                     _this.model.removeTagFromFilter(tag)
-                    _this.goToTimeline()
+                    _this.goToTimeline(true, true)
                     _this.pushTimelineViewState()
                 })
             var $tagButton = $('<a class="btn tag selected">' +tags[i].value+ '</a>')
                 $tagButton.append($closeButton)
             $filterButtons.append($tagButton)
         }
-        var $clearButton = $('<a class="btn" title="Alle Tags aus dem Filter entfernen">')
+        var $clearButton = $('<a class="reset btn" title="Alle Tags aus dem Filter entfernen">')
             .html('Filter zur&uuml;cksetzen')
             $clearButton.click(function(e) {
                 // prepare model
                 _this.model.setTagFilter([])
                 // go to new view
-                _this.goToTimeline()
+                _this.goToTimeline(true, true)
                 _this.pushTimelineViewState()
             })
-        $filterButtons.append($clearButton)
-        $('.tag-filter-info').html($filterMeta).append($filterButtons)
+        $('.tag-filter-info').html($filterMeta).append($clearButton).append($filterButtons)
 
         return null
     }
@@ -1080,7 +1090,7 @@
     }
 
     this.setupMathJaxRenderer = function () {
-        MathJax.Ajax.config.root = "http://localhost:8080/de.tu-berlin.eduzen.mathjax-renderer/script/vendor/mathjax"
+        MathJax.Ajax.config.root = "/de.tu-berlin.eduzen.mathjax-renderer/script/vendor/mathjax"
         MathJax.Hub.Config({
             "extensions": ["tex2jax.js", "mml2jax.js", "MathEvents.js", "MathZoom.js", "MathMenu.js", "toMathML.js",
             "TeX/noErrors.js","TeX/noUndefined.js","TeX/AMSmath.js","TeX/AMSsymbols.js", "FontWarnings.js"],
@@ -1112,6 +1122,8 @@
             // registering selection-handler on all visible formulas
             $('div.math-output').click(function(e) {
 
+                console.log("Clicked .. Formula ..")
+
                 var previous = _this.model.getSelectedFormula()
                 if (_this.model.getSelectedFormula() != undefined) {
                     _this.deselectEditableFormula(previous)
@@ -1136,26 +1148,11 @@
     this.deselectEditableFormula = function(element) {
         $(element).removeClass('selected')
         _this.model.setSelectedFormula(undefined)
-        console.log("clearing formula selection ...")
     }
 
     this.selectEditableFormula = function(element) {
         _this.model.setSelectedFormula(element)
         $(element).addClass('selected')
-        console.log("setting formula selection ...")
-    }
-
-    /** to be removed: never used **/
-    this.updateFormulas = function () {
-        var formulas = MathJax.Hub.getAllJax()
-        console.log(formulas)
-        for (var els in formulas) {
-            var formula = formulas[els]
-            formula.needsUpdate()
-            formula.Rerender()
-            formula.needsUpdate()
-            console.log(formula)
-        }
     }
 
 
@@ -1181,13 +1178,13 @@
 
             // update app-model
             _this.model.setTagFilter(pop.state.data.tags)
-            _this.goToTimeline()
+            _this.goToTimeline(true, true)
 
         } else if (pop.state.name == FULL_TIMELINE) {
 
             // update app-model
             _this.model.setTagFilter([])
-            _this.goToTimeline()
+            _this.goToTimeline(true, true)
 
         } else if (pop.state.name == PERSONAL_TIMELINE) {
 
@@ -1195,7 +1192,7 @@
             var user = dmc.get_topic_by_id(userId, true)
             // fixme: re-set tagfilter..
             _this.model.setTagFilter([])
-            _this.goToPersonalTimeline(user)
+            _this.goToPersonalTimeline(user, true, true)
 
         } else {
             console.log("unknown view.. ")
@@ -1413,7 +1410,7 @@
                 400, TIMELINE_AREA, '', 'slow')
         }
         // fixme: if we're adding a resource on our personal timeline, we currently return to the global one
-        _this.goToTimeline()
+        _this.goToTimeline(false)
     }
 
     this.doSaveResource = function () {
