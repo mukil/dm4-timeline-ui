@@ -316,30 +316,38 @@
         function doLogin() {
             var user = checkUserAuthorization() // login button handler
             if (user != null) {
-                _this.goToTimeline(false)
-                _this.pushTimelineViewState()
+                // _this.goToTimeline(false)
+                // _this.pushTimelineViewState()
+                // see checkUserAuthorization() for convenience
             }
         }
 
         function checkUserAuthorization (id, secret) {
+
             if (id === undefined && secret === undefined) {
                 id = $('input.username-input').val()
                 secret = $('input.secret').val()
             }
-            try {
-                var authorization = authorization()
-                if (authorization === undefined) return null
-                // throws 401 if login fails
-                dmc.request("POST", "/accesscontrol/login", undefined, undefined, {"Authorization": authorization})
-                // _this.renderNotification("Session started. Have fun thinking and be nice!", OK, TIMELINE)
-                return _this.checkLoggedInUser()
-            } catch (e) {
+
+            var authorization = authorization()
+            var response = null
+            if (authorization === undefined) return null
+
+            $.ajax({
+                type: "POST", url: "/accesscontrol/login", headers: {"Authorization": authorization}, async: false
+            }).done(function(e) {
+                _this.goToTimeline(false)
+                _this.pushTimelineViewState()
+                response = _this.checkLoggedInUser()
+            }).fail(function(e) {
                 $('div.login-menu .message').addClass("failed")
                 $('div.login-menu .message').text('Nutzername oder Passwort ist falsch.')
                 // _this.renderNotification("The application could not initiate a working session for you.", 403, TIMELINE)
                 // throw new Error("401 - Sorry, the application ccould not establish a user session.")
-                return null
-            }
+                response = null
+            }).always(function(e) {
+                return response
+            })
 
             /** Returns value for the "Authorization" header. */
             function authorization() {
@@ -512,13 +520,14 @@
     }
 
     this.setupTagFieldControls = function (identifier) {
-        $(identifier).bind( "keydown", function (event) {
-            if ( event.keyCode === $.ui.keyCode.TAB && $( this ).data( "ui-autocomplete" ).menu.active ) {
+        $(identifier).bind( "keydown" , function (event) {
+            if (event.keyCode === $.ui.keyCode.TAB && $( this ).data( "ui-autocomplete" ).menu.active ) {
                 event.preventDefault();
             } else if (event.keyCode === $.ui.keyCode.ENTER) {
                 // fixme: think of submitting posting through keyboard
             }
-        }).autocomplete({minLength: 0,
+        }).autocomplete({
+            minLength: 0,
             source: function ( request, response ) {
                 // delegate back to autocomplete, but extract the last term
                 response( $.ui.autocomplete.filter( _this.model.getAvailableTags(), extractLast( request.term ) ) );
@@ -1449,4 +1458,7 @@
         }
     }
 
-})(CKEDITOR, MathJax, jQuery, console, new RESTClient("/core"))
+})(CKEDITOR, MathJax, jQuery, console, new RESTClient("/core", {process_directives : function(directives, edit_mode) {
+        console.log("PROCESSING DIRECTIVES ... in editMode" + edit_mode)
+        console.log(directives)
+}}))

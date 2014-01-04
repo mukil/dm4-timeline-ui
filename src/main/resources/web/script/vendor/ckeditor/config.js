@@ -8,10 +8,10 @@ CKEDITOR.editorConfig = function( config ) {
 	// For the complete reference:
 	// http://docs.ckeditor.com/#!/api/CKEDITOR.config
     config.extraPlugins = 'mathjax,oembed'
-    config.filebrowserImageBrowseLinkUrl = '/de.deepamehta.images/browse.html'
-    config.filebrowserImageUploadUrl = '/images/upload'
+    config.filebrowserImageBrowseLinkUrl = '/de.tu-berlin.eduzen-images/browse.html'
+    config.filebrowserImageUploadUrl = '/eduzen/images/upload'
     // is used in "Bild-Info"-Tab to select an already uploaded image
-    config.filebrowserImageBrowseUrl = '/de.deepamehta.images/browse.html'
+    config.filebrowserImageBrowseUrl = '/de.tu-berlin.eduzen-images/browse.html'
     // config.filebrowserUploadUrl = '/images/upload'
 
     config.oembed_maxWidth = '560'

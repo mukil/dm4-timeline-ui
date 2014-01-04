@@ -14,7 +14,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.WebApplicationException;
 
 import de.deepamehta.core.Topic;
-import de.deepamehta.core.ResultSet;
 import de.deepamehta.core.model.TopicModel;
 import de.deepamehta.core.RelatedTopic;
 import de.deepamehta.core.model.CompositeValueModel;
@@ -30,11 +29,11 @@ import de.deepamehta.core.Association;
 import de.deepamehta.core.model.AssociationModel;
 import de.deepamehta.core.model.TopicRoleModel;
 import de.deepamehta.core.service.PluginService;
+import de.deepamehta.core.service.ResultList;
 import de.deepamehta.core.service.annotation.ConsumesService;
 import de.deepamehta.core.service.event.PreSendTopicListener;
 import de.deepamehta.plugins.accesscontrol.service.AccessControlService;
 import java.util.ArrayList;
-import java.util.Set;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.logging.Level;
@@ -207,7 +206,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         //
         JSONArray results = new JSONArray();
         try {
-            ResultSet<RelatedTopic> all_results = dms.getTopics(RESOURCE_URI, true, 0);
+            ResultList<RelatedTopic> all_results = dms.getTopics(RESOURCE_URI, true, 0);
             log.info("> fetching " +all_results.getSize()+ " resources.. for getting " + from + " to " + (from + size) );
             // build up sortable collection of all result-items (warning: in-memory copy of _all_ published soundposter)
             ArrayList<RelatedTopic> in_memory = getResultSetSortedByCreationTime(all_results, clientState);
@@ -238,7 +237,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         JSONArray results = new JSONArray();
         try {
             Topic user  = dms.getTopic(userId, true);
-            ResultSet<RelatedTopic> all_results = fetchAllContributionsByUser(user);
+            ResultList<RelatedTopic> all_results = fetchAllContributionsByUser(user);
             log.info("fetching " +all_results.getSize()+ " contributions by user " + user.getSimpleValue());
             for (RelatedTopic item : all_results) {
                 enrichTopicModelAboutCreator(item);
@@ -297,9 +296,9 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
                 new TopicRoleModel(user.getId(), CHILD_TYPE_URI)), clientState);
     }
 
-    private ResultSet<RelatedTopic> fetchAllContributionsByUser(Topic user) {
+    private ResultList<RelatedTopic> fetchAllContributionsByUser(Topic user) {
         //
-        ResultSet<RelatedTopic> all_resources = null;
+        ResultList<RelatedTopic> all_resources = null;
         all_resources = user.getRelatedTopics(CREATOR_EDGE_URI, CHILD_TYPE_URI,
                 PARENT_TYPE_URI, RESOURCE_URI, true, false, 0);
         all_resources.addAll(user.getRelatedTopics(CONTRIBUTOR_EDGE_URI, CHILD_TYPE_URI,
@@ -392,7 +391,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         return view("resource");
     }
 
-    private ArrayList<RelatedTopic> getResultSetSortedByCreationTime (ResultSet<RelatedTopic> all, ClientState clientState) {
+    private ArrayList<RelatedTopic> getResultSetSortedByCreationTime (ResultList<RelatedTopic> all, ClientState clientState) {
         // build up sortable collection of all result-items
         ArrayList<RelatedTopic> in_memory = new ArrayList<RelatedTopic>();
         for (RelatedTopic obj : all) {
@@ -420,7 +419,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     }
 
     private boolean associationExists(String edge_type, Topic item, Topic user) {
-        Set<Association> results = dms.getAssociations(item.getId(), user.getId(), edge_type);
+        List<Association> results = dms.getAssociations(item.getId(), user.getId(), edge_type);
         return (results.size() > 0) ? true : false;
     }
 
