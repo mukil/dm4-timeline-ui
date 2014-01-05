@@ -102,12 +102,18 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             for (TopicViewmodel topic : topicmap.getTopics()) {
                 if (topic.getTypeUri().equals(RESOURCE_URI)) {
                     String timestamp = topic.getSimpleValue().toString();
-                    long time = Long.parseLong(timestamp);
-                    Date date = new Date(time);
-                    String new_label = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT,
-                            new Locale("de", "DE")).format(date);
-                    topic.setSimpleValue("Notiz vom " + new_label.toString());
-                    // log.info("Rewriting label just for Resources in all Topicmaps to: " + topic.getSimpleValue());
+                    if (!timestamp.isEmpty()) {
+                        try {
+                            long time = Long.parseLong(timestamp);
+                            Date date = new Date(time);
+                            String new_label = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT,
+                                    new Locale("de", "DE")).format(date);
+                            topic.setSimpleValue("Notiz vom " + new_label.toString());
+                            // log.info("Rewriting label just for Resources in all Topicmaps to: " + topic.getSimpleValue());
+                        } catch (NumberFormatException nex) {
+                            log.warning("Resource label is no timestamp, skipping fancy label-rewrite.");
+                        }
+                    }
                 }
             }
         }
