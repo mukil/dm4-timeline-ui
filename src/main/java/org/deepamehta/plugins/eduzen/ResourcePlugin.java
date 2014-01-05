@@ -25,6 +25,7 @@ import de.deepamehta.plugins.webactivator.WebActivatorPlugin;
 import org.deepamehta.plugins.eduzen.service.ResourceService;
 
 import com.sun.jersey.api.view.Viewable;
+import com.sun.jersey.spi.container.ContainerResponse;
 import de.deepamehta.core.Association;
 import de.deepamehta.core.model.AssociationModel;
 import de.deepamehta.core.model.TopicRoleModel;
@@ -32,10 +33,13 @@ import de.deepamehta.core.service.PluginService;
 import de.deepamehta.core.service.ResultList;
 import de.deepamehta.core.service.annotation.ConsumesService;
 import de.deepamehta.core.service.event.PreSendTopicListener;
+import de.deepamehta.core.service.event.ServiceResponseFilterListener;
 import de.deepamehta.plugins.accesscontrol.service.AccessControlService;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import de.deepamehta.plugins.topicmaps.model.TopicViewmodel;
+import de.deepamehta.plugins.topicmaps.model.TopicmapViewmodel;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.util.*;
 import java.util.logging.Level;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
@@ -45,10 +49,12 @@ import org.codehaus.jettison.json.JSONObject;
 @Path("/")
 @Consumes("application/json")
 @Produces("text/html")
-public class ResourcePlugin extends WebActivatorPlugin implements ResourceService, PreSendTopicListener  {
+public class ResourcePlugin extends WebActivatorPlugin implements ResourceService, PreSendTopicListener,
+        ServiceResponseFilterListener {
 
     private Logger log = Logger.getLogger(getClass().getName());
 
+    private final static String TOPICMAP_URI = "dm4.topicmaps.topicmap";
     private final static String RESOURCE_URI = "org.deepamehta.resources.resource";
     private final static String RESOURCE_CONTENT_URI = "org.deepamehta.resources.content";
     private final static String RESOURCE_CREATED_AT_URI = "org.deepamehta.resources.created_at";
@@ -84,7 +90,26 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     public void preSendTopic(Topic topic, ClientState clientState) {
         // enrich a single resource-topic about creator and modifiers
         if (topic.getTypeUri().equals(RESOURCE_URI)) {
-            enrichTopicModelAboutCreator(topic);
+            enrichTopicModelAboutCreator(topic); // called for topic-detail request but not for a topic in a collection
+        }
+    }
+
+    @Override
+    public void serviceResponseFilter(ContainerResponse response) {
+        Object entity = response.getEntity();
+        if (entity instanceof TopicmapViewmodel ){
+            TopicmapViewmodel topicmap = (TopicmapViewmodel) entity;
+            for (TopicViewmodel topic : topicmap.getTopics()) {
+                if (topic.getTypeUri().equals(RESOURCE_URI)) {
+                    String timestamp = topic.getSimpleValue().toString();
+                    long time = Long.parseLong(timestamp);
+                    Date date = new Date(time);
+                    String new_label = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT,
+                            new Locale("de", "DE")).format(date);
+                    topic.setSimpleValue("Notiz vom " + new_label.toString());
+                    // log.info("Rewriting label just for Resources in all Topicmaps to: " + topic.getSimpleValue());
+                }
+            }
         }
     }
 

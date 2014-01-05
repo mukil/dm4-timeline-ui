@@ -58,6 +58,11 @@
             <artifactId>eduzen-images</artifactId>
             <version>0.0.3</version>
         </dependency>
+        <dependency>
+            <groupId>de.deepamehta</groupId>
+            <artifactId>deepamehta-topicmaps</artifactId>
+            <version>4.1.3</version>
+        </dependency>
         <!--dependency>
             <groupId>org.deepamehta</groupId>
             <artifactId>moodle-plugin</artifactId>
