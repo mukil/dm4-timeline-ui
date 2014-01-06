@@ -247,7 +247,6 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
                 // start of preparing page results
                 if (count >= from) {
                     item.loadChildTopics(RESOURCE_CONTENT_URI);
-                    item.loadChildTopics(RESOURCE_CREATED_AT_URI);
                     item.loadChildTopics(TAG_URI);
                     item.loadChildTopics(REVIEW_URI);
                     enrichTopicModelAboutCreator(item);
@@ -430,6 +429,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         // build up sortable collection of all result-items
         ArrayList<RelatedTopic> in_memory = new ArrayList<RelatedTopic>();
         for (RelatedTopic obj : all) {
+            obj.loadChildTopics(RESOURCE_CREATED_AT_URI);
             in_memory.add(obj);
         }
         // sort all result-items
