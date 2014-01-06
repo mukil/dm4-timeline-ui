@@ -54,7 +54,9 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
 
     private Logger log = Logger.getLogger(getClass().getName());
 
-    private final static String TOPICMAP_URI = "dm4.topicmaps.topicmap";
+    private final static String TAG_URI = "dm4.tags.tag";
+    private final static String REVIEW_URI = "org.deepamehta.reviews.score";
+
     private final static String RESOURCE_URI = "org.deepamehta.resources.resource";
     private final static String RESOURCE_CONTENT_URI = "org.deepamehta.resources.content";
     private final static String RESOURCE_CREATED_AT_URI = "org.deepamehta.resources.created_at";
@@ -225,7 +227,6 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     /**
      * Fetches all resources with one given <code>Tag</code>.
      *
-     * This method was never used, it's just a note that I should try to implement some sort of paging per user-session.
      */
 
     @GET
@@ -237,15 +238,18 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         //
         JSONArray results = new JSONArray();
         try {
-            ResultList<RelatedTopic> all_results = dms.getTopics(RESOURCE_URI, true, 0);
-            log.info("> fetching " +all_results.getSize()+ " resources.. for getting " + from + " to " + (from + size) );
-            // build up sortable collection of all result-items (warning: in-memory copy of _all_ published soundposter)
+            ResultList<RelatedTopic> all_results = dms.getTopics(RESOURCE_URI, false, 0);
+            log.info("> fetching " +all_results.getSize()+ " resources for getting " + from + " to " + (from + size) );
             ArrayList<RelatedTopic> in_memory = getResultSetSortedByCreationTime(all_results, clientState);
-            // throw error if page is unexpected high or NaN
+            // fixme: throw error if page is unexpected high or NaN
             int count = 0;
             for (RelatedTopic item : in_memory) {
                 // start of preparing page results
                 if (count >= from) {
+                    item.loadChildTopics(RESOURCE_CONTENT_URI);
+                    item.loadChildTopics(RESOURCE_CREATED_AT_URI);
+                    item.loadChildTopics(TAG_URI);
+                    item.loadChildTopics(REVIEW_URI);
                     enrichTopicModelAboutCreator(item);
                     results.put(item.toJSON());
                     if (results.length() == size) break;

@@ -342,7 +342,8 @@ body.eduzen.note {
     margin-bottom: 5px;
     margin-top: 5px;
     max-height: 15px;
-    border: 1px solid #f5f5f5;
+    /** border: 1px solid #f5f5f5; */
+    background-color: #f1f1f1;
 }
 
 .eduzen .btn.tag:hover {
