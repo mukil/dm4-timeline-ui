@@ -59,7 +59,7 @@ function User (controler, dict, emc, account) {
             var $edit = $('<a class="btn edit-profile">')
                 $edit.text("Bearbeite dein Profil")
                 $edit.click(function (e) {
-                    controler.goToProfileEditorView(_user.account)
+                    controler.initProfileEditorView(_user.account)
                 })
                 var $edit_area = $('<span class="edit-area">')
                     $edit_area.append($edit)
@@ -123,7 +123,7 @@ function User (controler, dict, emc, account) {
             $save_edits.click(function(e) {
                 _this.doSaveUserProfile()
                 // update gui
-                controler.goToPersonalTimeline(_user.account)
+                controler.initPersonalTimeline(_user.account)
             })
             $settings.append($save_edits)
         var profile_picture = emc.getFirstRelatedTopic(_user.account.id, PICTURE_EDGE_TYPE_URI, "dm4.files.file")

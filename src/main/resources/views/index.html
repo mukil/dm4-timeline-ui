@@ -31,9 +31,10 @@
         <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/vendor/eduzen_dictionary.js"></script>
         <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/vendor/ckeditor/ckeditor.js"></script>
         <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/model/AppModel.js"></script>
-        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/u.js"></script>
+        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/profile.js"></script>
         <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/emc.js"></script>
-        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/trt.js"></script>
+        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/timeline.js"></script>
+        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/timeline_item.js"></script>
         <!-- script type="text/javascript" src="/de.deepamehta.accesscontrol/script/vendor/sha256.js"></script-->
         <!--<script type="text/javascript" src="https://getfirebug.com/firebug-lite.js"></script>-->
         <!-- script type="text/javascript" src="http://modernizr.com/downloads/modernizr-latest.js"></script-->
@@ -55,6 +56,7 @@
 
         <script type="text/javascript">
             var dm4c = { fire_event : function(){} }
+            var ON_RESOURCE_HTML = false
             $(document).ready(function() {
             /** Initialize the our interactive page **/
                 initializePageView()
@@ -65,7 +67,7 @@
 
     <body class="eduzen notes">
 
-        <div class="timeline headline">
+        <div class="headline">
 
             <div id="menu">
                 <!-- a class="btn sort" id="most-popular">Sortierung nach Bewertung</a-->
@@ -125,6 +127,32 @@
         <div id="resources" class="results">
             <div id="list-message"></div>
             <ul class="list"></ul>
+        </div>
+
+        <div class="content-area">
+            <!-- i class="label">Educational resource</i-->
+            <b class="label">Erstellt von</b>
+            <span class="creator"></span>
+            <b class="label">am</b>
+            <b class="header-title"></b>
+            <br/>
+            <b class="label contributor"></b>
+            <span class="contributor"></span>
+            <br/>
+            <br/>
+            <label for="is-locked" class="lock">F&uuml;r &Auml;nderungen sperren</label>
+            <input name="is-locked" class="lock" type="checkbox" th:checked="${isLocked}"></input>
+            <b class="label">Inhalt:</b>
+            <div id="resource_input" contenteditable="false"></div> <!--  -->
+            <input type="button" value="Inhalt &auml;ndern" class="submit btn"></input>
+            <br/>
+            <br/>
+            <b class="label">Tags:</b>
+            <div id="tags"></div>
+            <!--
+                <b class="label">Weitere Tags hinzuf&uuml;gen:</b>
+                <input type="text" placeholder="Name des Tags" size="50" class="tag"></input>
+            -->
         </div>
 
 

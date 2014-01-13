@@ -5,9 +5,13 @@
         _this.skroller = undefined
 
     _this.model = AppModel()
-    var emc = new EMC(dmc, _this.model)
+    // ItemRendererImpl need access to this
+    _this.dict = new EduzenDictionary("DE")
+    _this.dmc = dmc
+    _this.emc = new EMC(dmc, _this.model)
+    _this.piwikTracker = (typeof piwikTracker !== "undefined") ? piwikTracker : undefined
+    //
     var profile = undefined
-    var dict = new EduzenDictionary("DE")
     var application_host = document.location.host
     //
     var current_view = "" // fixme: remove this helper
@@ -33,81 +37,31 @@
 
 
 
-    /** Main router to all views */
+    this.initDetailView = function (objectId) {
 
-    this.initializePageView = function () {
-
-        // parse requested location
-        var pathname = window.location.pathname
-        var attributes = pathname.split('/')
-        var noteId = attributes[2]
-
-        // initiate load-more-timeline
-        _this.skroller = skrollr.init( {forceHeight: false, render: function (info) {
-            if (current_view == FULL_TIMELINE) {
-                if (info.maxTop == 0) return
-                if (info.curTop > (info.maxTop - 200)) _this.renderLoadMoreButton()
-            }
-        }})
-
-        // setup page-controls (once!)
-        registerHistoryStates()
-        setupMathJaxRenderer()
-        setDefaultWorkspaceCookie()
-        setupPageControls()
-
-        // in any case
-        emc.loadAllTags()
-        sortTags()
-        // route to distinct views
-        if (noteId === undefined || noteId === "") {
-
-            _this.goToTimeline(true, false) // load timeline with no filter set
-            $(window).on('load', function(event) {_this.hideProgressBar()});
-
-        } else if (noteId === "tagged") {
-
-            var tags = attributes[3]
-                tags = (tags.indexOf('+') != -1) ? tags.split("+") : tags.split("%2B")
-            var selectedTag = undefined
-            for (var i=0; i < tags.length; i++) {
-                var label = decodeURIComponent(tags[i])
-                selectedTag = _this.model.getTagByName(label)
-                if (selectedTag != undefined) _this.model.addTagToFilter(selectedTag)
-            }
-            _this.goToTimeline(true, false) // call timeline after filter was set.
-            $(window).on('load', function(event) {_this.hideProgressBar()});
-
-        } else if (noteId === "user") {
-
-            var userId = attributes[3]
-            var user = dmc.get_topic_by_id(userId, true)
-            _this.goToPersonalTimeline(user, true, false)
-            $(window).on('load', function(event) {_this.hideProgressBar()});
-
-        } else {
-
-            current_view = DETAIL_VIEW
-            emc.loadResourceById(noteId) // initialize page-view detail model
-            setupDetailView() // route to detail view
-            // fixme: historyApi // _this.pushHistory("detailView", "Note Info: " + noteId, "/notes/" + noteId)
-
-        }
+        _this.emc.loadResourceById(objectId) // initialize page-view detail model
+        renderPage(undefined, objectId)
+        current_view = DETAIL_VIEW
+        //
+        showDetailElements()
+        _this.hideProgressBar()
 
     }
 
-    this.goToTimeline = function (render_progressbar, hide_progressbar) {
+    this.initTimeline = function (render_progressbar, hide_progressbar) {
 
         if (render_progressbar) _this.renderProgressBar()
         // prepare page model (according to filter)
         _this.loadResources() // optimize: maybe we dont need to load it again
         // render timeline view
-        renderView()
+        renderPage()
         if (hide_progressbar) _this.hideProgressBar() // this is needed when no DOM Load Event can hide our progressbar
+        //
+        showTimelineElements()
 
     }
 
-    this.goToPersonalTimeline = function (account, render_progressbar, hide_progressbar) {
+    this.initPersonalTimeline = function (account, render_progressbar, hide_progressbar) {
 
         if (render_progressbar) _this.renderProgressBar()
         // prepare page model
@@ -116,26 +70,27 @@
         // renderTagView('div.sidebar')
         hideTagView()
         // enforce (re-)loading of full composite user topic in preparation for personal-timeline rendering
-        var user_account = emc.getTopicById(account.id)
+        var user_account = _this.emc.getTopicById(account.id)
         // render profile-header first
-        profile = new User(_this, dict, emc, user_account)
+        profile = new User(_this, _this.dict, _this.emc, user_account)
         profile.setupView($('#profile'))
         // then load all the stuff according to user
         emc.loadAllContributions(user_account.id)
         sortCurrentResources()
         // render page view
-        renderView(user_account) // fixme: setup without tag-filter-dialog
+        renderPage(user_account) // fixme: setup without tag-filter-dialog
         //
         current_view = PERSONAL_TIMELINE
         if (hide_progressbar) _this.hideProgressBar()
+        showTimelineElements(true)
 
     }
 
-    this.goToProfileEditorView = function (account) {
+    this.initProfileEditorView = function (account) {
 
         // enforce (re-)loading of full composite user topic in preparation for personal-timeline rendering
-        var user_account = emc.getTopicById(account.id)
-        profile = new User(_this, dict, emc, user_account)
+        var user_account = _this.emc.getTopicById(account.id)
+        profile = new User(_this, _this.dict, _this.emc, user_account)
         profile.setupView($('#profile'))
         // clean up timeline-gui, where we've definitely coming from (here)
         $('#resources .list').empty()
@@ -144,6 +99,41 @@
         profile.renderSettingsEditor($profile_view)
         profile.renderAccountEditor($profile_view)
 
+    }
+
+    this.showTimelineElements = function (is_user_timeline) {
+
+        // in any case
+        $("div.content-area").hide()
+        $("body.eduzen").removeClass("note")
+
+        $("div#resources").show()
+        $("div.sidebar").show()
+
+        if (is_user_timeline) {
+            $("div#profile").show()
+        } else {
+            $("div#profile").hide()
+            showTagView()
+        }
+
+        if (CKEDITOR.instances.hasOwnProperty('add_resource')) {
+            CKEDITOR.instances['add_resource'].destroy()
+            console.log("Destroyed CKEditor instance for ADDs")
+        }
+        //
+        if (typeof _this.model.getCurrentUserName() !== 'undefined') {
+            setupCKEditorAdd()
+        }
+    }
+
+    this.showDetailElements = function () {
+        $("body.eduzen").addClass("note")
+        $("div#resources").hide()
+        $("div.sidebar").hide()
+        $("div#profile").hide()
+        $("div.content-area").show()
+        //
     }
 
     this.sortCurrentResources = function () {
@@ -178,24 +168,30 @@
      * Rendering our interactive page. Either "personal" or "ordinary" and either for "guests" or "authenticated users".
      */
 
-    this.renderView = function (user) {
+    this.renderPage = function (user, noteId) {
 
         // auth-check (potential doublette if setupPageControls was already called)
         var status = checkLoggedInUser()
-        renderUserInfo()
+        renderUserinfo()
 
         $('#progressbar').progressbar({value: 15});
         // fixme: render upper menu for either personal or ordinary timeline
         if (user) {
-            setupFrontpageButton()
+            renderTimelineButton(user)
             showTagfilterInfo() // this to clear tag-filter-info view (if this is called after from a filtered-timeline)
             $('.eduzen .options .tag-filter-info').html('<span class="meta">Alle Beitr&auml;ge von <b>' + user.value + '</b></span>')
             $('.eduzen .rendered #nav.info').hide()
             $('.eduzen.notes').addClass('personal')
             if (user.value === emc.getCurrentUser()) $('.eduzen #menu .username a.btn.my').addClass('pressed')
             hideTagView()
+
+        } else if (noteId) {
+            //
+            renderTimelineButton(null, noteId)
+            showDetailView() // render detail view
+            //
         } else {
-            removeFrontpageButton()
+            removeTimelineButton()
             $('.eduzen #menu .username a.btn.my').removeClass('pressed')
             $('.eduzen.notes').removeClass('personal')
             // $('.eduzen .rendered #nav.info').show()
@@ -209,7 +205,7 @@
         if (status !== null) {
             setupUserPage()
             showResultsetView(false)
-            setupCKEditor() // needs to get called after result-set is initialized because ckeditor is now part of that
+            // setupCKEditorAdd()
             setupTagFieldControls(TAGGING_FIELD_SELECTOR)
             $('.eduzen #input input.submit').bind('click', _this.doSubmitResource)
         } else {
@@ -238,29 +234,27 @@
         }
     }
 
-    this.setupFrontpageButton = function (on_detail_view) {
+    this.renderTimelineButton = function (user_profile, note_id) {
         var $homeButton = undefined
-        if (!on_detail_view) {
+            //
             $homeButton = $('<a class="home-menu-button btn" title="Zur&uuml;ck zur Timeline-Ansicht">Timeline</a>')
+            if (ON_RESOURCE_HTML) $homeButton.attr("href", "/notes")
+            //
             $homeButton.click(function (e) {
-                // fixme: doing some internal gui foo here
-                removeFrontpageButton()
-                $('.eduzen.notes').removeClass('personal')
-                // prepare model
-                _this.model.setTagFilter([])
-                // go to
-                _this.goToTimeline(false)
-                _this.pushTimelineViewState()
+                if (typeof note_id === "undefined") {
+                    _this.pushDetailViewState(_this.model.getCurrentResource())
+                } else if (typeof user_profile === "undefined") {
+                    _this.pushPersonalViewState(user_profile)
+                } else {
+                    _this.pushTimelineViewState()
+                }
+                _this.initTimeline(true, true)
+                // window.history.back()
             })
             $('#menu').append($homeButton)
-        } else {
-            $homeButton = $('<a class="home-menu-button btn"'
-                + ' "title="Zur&uuml;ck zur Timeline-Ansicht" href="/notes">Timeline</a>')
-            $('#menu').append($homeButton)
-        }
     }
 
-    this.removeFrontpageButton = function () {
+    this.removeTimelineButton = function () {
         $('#menu .home-menu-button').remove()
     }
 
@@ -316,7 +310,7 @@
         function doLogin() {
             var user = checkUserAuthorization() // login button handler
             if (user != null) {
-                // _this.goToTimeline(false)
+                // _this.initTimeline(false)
                 // _this.pushTimelineViewState()
                 // see checkUserAuthorization() for convenience
             }
@@ -336,7 +330,7 @@
             $.ajax({
                 type: "POST", url: "/accesscontrol/login", headers: {"Authorization": authorization}, async: false
             }).done(function(e) {
-                _this.goToTimeline(false)
+                _this.initTimeline(false)
                 _this.pushTimelineViewState()
                 response = _this.checkLoggedInUser()
             }).fail(function(e) {
@@ -356,7 +350,7 @@
         }
     }
 
-    this.setupDetailView = function () {
+    this.showDetailView = function () {
         // set page-data
         var creator = _this.getRelatedUserAccount(_this.model.getCurrentResource().id)
         var display_name = creator.value
@@ -396,12 +390,16 @@
         $('input.lock').hide()
         $('label.lock').hide()
         //
-        renderUserInfo()
-        setupFrontpageButton(true)
+        renderUserinfo()
         renderDetailView()
 
         function setupEditDetailView () {
             //
+            if (CKEDITOR.instances.hasOwnProperty('resource_input')) {
+                CKEDITOR.instances['resource_input'].destroy()
+                console.log("Destroyed CKEditor instance for EDITs")
+                console.log(CKEDITOR.instances)
+            }
             setupCKEditor()
             renderEditDetailView()
             // todo: add "cancel" button
@@ -440,8 +438,7 @@
         // finally request resources (by tagIds) for a tag-specific timeline
         if (_this.model.getTagFilter().length > 1) {
             // for more than 1 tag
-            var parameter = {tags: _this.model.getTagFilter()}
-            emc.loadAllResourcesByTags(parameter)
+            emc.loadAllResourcesByTags({tags: _this.model.getTagFilter()})
             current_view = FILTERED_TIMELINE
         } else if (_this.model.getTagFilter().length == 1) {
             // for exactly 1 tag
@@ -480,7 +477,7 @@
         _this.model.setCurrentUserTopic(userTopic)
     }
 
-    this.renderUserInfo = function () {
+    this.renderUserinfo = function () {
 
         var $username = $('.username')
         var name = _this.model.getCurrentUserName()
@@ -496,7 +493,7 @@
                 $my.attr("href", "/notes/user/" + user.id)
             } else {
                 $my.click(function (e) {
-                    _this.goToPersonalTimeline(user, true, true)
+                    _this.initPersonalTimeline(user, true, true)
                     _this.pushPersonalViewState(user)
                 })
             }
@@ -512,7 +509,7 @@
                     } else {
                         _this.model.setCurrentUserTopic(undefined)
                         _this.model.setCurrentUserName(undefined)
-                        renderView()
+                        renderPage()
                     }
                 })
             $username.append($logout)
@@ -672,7 +669,7 @@
         //
         var $resultlist = $('#resources .list')
         if (!guest) {
-            $resultlist.html(_this.createInputListItem())
+            $resultlist.html(_this.setupInputListItem())
         } else {
             $resultlist.empty()
         }
@@ -700,7 +697,7 @@
 
     }
 
-    this.createInputListItem = function () {
+    this.setupInputListItem = function () {
         return ''
         + '<li id="input">'
             + '<div class="header">'
@@ -713,8 +710,8 @@
                     + 'Wir wollen diesen Editor-Bereich st&auml;ndig weiter verbessern, ein robusteres PDF-Feature wollen wir dabei mit als n&auml;chstes angehen.<br/>'
                     + '<br/><br/>'
                 + '</div>'
-                + '<div class="content-area">'
-                    + '<div id="resource_input" contenteditable="false"></div>'
+                + '<div class="input-area">'
+                    + '<div id="add_resource" contenteditable="false"></div>'
                     + '<br/>'
                     + '<span class="header-title label">Tags hinzuf&uuml;gen</span><br/>'
                     + '<input type="text" placeholder="..." class="tagging" title="Notiz verschlagworten"></input>'
@@ -722,6 +719,15 @@
                 + '</div>'
             + '</div>'
         + '</li>'
+    }
+
+    this.setupResultListItem = function (item) {
+
+        var $item_dom = $("li#" + item.id) // creates a new DOMElement
+        return new NoteItemRenderer(item, _this).create($item_dom) // sets up new item in DOMElement
+        // and the caller appends newly set up item in DOM?
+        // new MoodleItemRenderer(item).render($item_dom)
+
     }
 
     this.quickfixPDFImageRendering = function () {
@@ -737,136 +743,118 @@
         })
     }
 
-    this.setupResultListItem = function (item) {
+    this.setupCKEditor = function () {
 
-        var score = (item.composite[REVIEW_SCORE_URI] != undefined) ? item.composite[REVIEW_SCORE_URI].value : 0
-        var tags = (item.composite[TAG_URI] != undefined) ? item.composite[TAG_URI] : []
-        var content = (item.composite[NOTE_CONTENT_URI] != undefined) ? item.composite[NOTE_CONTENT_URI].value : ""
-        // construct list item, header and content-area first
-        var title = (item.composite[CREATED_AT_URI] != undefined) ? new Date(parseInt(item.composite[CREATED_AT_URI].value)) : new Date()
+        // setup cK-Editor help
+        $('.header a.help').click(function (e) {
+            $('.header .help.info').toggle()
+            $('.header .help.info').click(function (e) {
+                $('.header .help.info').toggle()
+            })
+        })
+        // upload-fallback: $(".button.upload").click(this.open_upload_dialog(uploadPath, this.handleUploadResponse))
+        // mathjax preview handling
+        var $input = $('#resource_input')
+            $input.attr('contenteditable', true)
 
-        var $topic = $("li#" + item.id) // we have an id triple in this "component"
-        if ($topic.length <= 0) $topic = $('<li id="' +item.id+ '">') // create the new gui-"component"
-        //
-        // var creator = _this.getRelatedUserAccount(item.id)
-        var creator = _this.getAccountTopic(item)
-        var display_name = creator.value
-        //
-        if (creator.composite.hasOwnProperty('org.deepamehta.identity.display_name')) {
-            display_name = creator.composite['org.deepamehta.identity.display_name'].value
+        if (!CKEDITOR.instances.hasOwnProperty('resource_input')) { // initialize if not present
+            CKEDITOR.inline( document.getElementById( 'resource_input' ) )
+            console.log("initializing CKEditor for EDITs")
+        } else {
+            console.warn("CKEditor was already setup for EDITs")
+            console.log(CKEDITOR.instances)
         }
-        var creator_name = (creator == null) ? "Anonymous" : display_name
-        var $creator_link = $('<a id="user-' +creator.id+ '" title="Zeige '+creator_name+'s Timeline" class="profile btn"></a>')
-            $creator_link.text(creator_name)
-            $creator_link.click(function(e) {
-                _this.goToPersonalTimeline(creator, true, true)
-                _this.pushPersonalViewState(creator)
+        // extend/back the global CKEditor instance with a reference to our application model
+        CKEDITOR.app_model = _this.model
+    }
+
+    this.setupCKEditorAdd = function () {
+
+        // setup cK-Editor help
+        $('.header a.help').click(function (e) {
+            $('.header .help.info').toggle()
+            $('.header .help.info').click(function (e) {
+                $('.header .help.info').toggle()
             })
+        })
+        // mathjax preview handling
+        var $input = $('#add_resource')
+            $input.attr('contenteditable', true)
 
-        //
-        var headline = 'Bewertung: <span class="score-info">' + score + '</span><span class="creation-date">Erstellt am ' + title.getDate() + '.'
-                + dict.monthNames[title.getMonth()] + ' ' + title.getFullYear() + ' um ' + title.getHours() + ':'
-                + title.getMinutes() + ' Uhr</span>'
+        // check if initialization was successfull
+        if (!CKEDITOR.instances.hasOwnProperty('add_resource')) { // initialize if not present
+            console.log("initializing CKEditor for ADDs")
+            CKEDITOR.inline( document.getElementById( 'add_resource' ) )
+        } else {
+            console.warn("CKEditor was already setup for ADDs")
+            console.log(CKEDITOR.instances)
+        }
+        // extend/back the global CKEditor instance with a reference to our application model
+        CKEDITOR.app_model = _this.model
+    }
 
-        var $body = $('<div class="item-content">' + content + '</div>');
-        // bottom area, tag and score info area
-        var $toolbar = $('<div class="toolbar"></div>')
-        // tag info area
-        var $tagInfo = $('<span>Tags: </span>')
-            renderTagInfo($tagInfo, tags)
-        // create edit and add buttons per result-list item
-        var $addDialog = $('<div class="add-tag-dialog"></div>')
-        var $addTag = $('<a class="add-tag btn">Tags hinzu</a>')
-            $addTag.click(function (e) {
-                var clickedListItem = parseInt(e.target.parentNode.parentNode.id)
-                // check if there is already one add-tag dialog for this list-item
-                if ($addTag.hasClass('selected')) {
-                    // remove dialog on click again
-                    $addDialog.remove()
-                    $addTag.removeClass("selected")
-                    return undefined
+    this.setupMathJaxRenderer = function () {
+        MathJax.Ajax.config.root = "/de.tu-berlin.eduzen.mathjax-renderer/script/vendor/mathjax"
+        MathJax.Hub.Config({
+            "extensions": ["tex2jax.js", "mml2jax.js", "MathEvents.js", "MathZoom.js", "MathMenu.js", "toMathML.js",
+            "TeX/noErrors.js","TeX/noUndefined.js","TeX/AMSmath.js","TeX/AMSsymbols.js", "FontWarnings.js"],
+            "jax": ["input/TeX", "output/HTML-CSS"], // "input/MathML", , "output/NativeMML", "output/SVG"
+            "tex2jax": {"inlineMath": [["$","$"],["\\(","\\)"]]},
+            "menuSettings": {
+                "mpContext": true, "mpMouse": true, "zscale": "200%", "texHints": true
+            },
+            "errorSettings": {
+                "message": ["[Math Error]"]
+            },
+            "displayAlign": "left",
+            "HTML-CSS": {"scale": 110},
+            // "SVG": {"blacker": 8, "scale": 110},
+            "v1.0-compatible": false,
+            "skipStartupTypeset": false,
+            "elements": ["resource_input, add_resource, math-live-preview, resources"]
+        });
+        // console.log("testing to get at an iframe.. into mathJax rendering")
+        // console.log($(".cke_wysiwyg_frame").context.childNodes[1].childNodes[2])
+        MathJax.Hub.Configured() // bootstrap mathjax.js lib now
+        MathJax.Hub.Typeset()
+    }
+
+    this.renderMathInArea = function (identifier, editable) {
+        // typeset all elements containing TeX to SVG or HTML in designated area
+        MathJax.Hub.Queue(["Typeset", MathJax.Hub, identifier]);
+        if (editable) {
+            // registering selection-handler on all visible formulas
+            $('div.math-output').click(function(e) {
+
+                var previous = _this.model.getSelectedFormula()
+                if (_this.model.getSelectedFormula() != undefined) {
+                    _this.deselectEditableFormula(previous)
                 }
-                // manipulat gui and dialog
-                $addTag.addClass("selected")
-                $addDialog.empty()
-                // construct new dialog
-                var $newField = $('<input type="text" placeholder="..." '
-                    + 'class="new-tag ui-autocomplete"></input>')
-                var $saveBtn = $('<a class="btn save-tag">Speichern</a>')
-                    $saveBtn.click(function () {
-                        // save tags, if not yet associated to this resource
-                        var tagFieldId = 'li#' +clickedListItem+ ' .toolbar div.add-tag-dialog input.new-tag'
-                        var qualifiedTags = getTagsSubmitted(tagFieldId)
-                        var existingTags = item.composite[TAG_URI]
-                        var tagsToAssociate = getTagTopicsToReference(qualifiedTags)
-                        var tagsToPossiblyCreate = getTagTopicsToCreate(qualifiedTags, tagsToAssociate)
-                        var tagsToCreateAndAssociate = getTagTopicsToCreate(tagsToPossiblyCreate, existingTags)
-                        emc.createResourceTagAssociations(item, tagsToAssociate)
-                        emc.createNewTagsForResource(item, tagsToCreateAndAssociate)
-                        // track "added tag"-goal
-                        if (typeof piwikTracker !== 'undefined') piwikTracker.trackGoal(4)
-                        // re-render both views
-                        renderTagView('div.sidebar')
-                        setupResultListItem(item)
-                        // update gui, remove dialog
-                        $addDialog.remove()
-                        $addTag.removeClass("selected")
-                    })
-                var $cancelBtn = $('<a class="btn close-tag">Abbrechen</a>')
-                    $cancelBtn.click(function () {
-                        $addDialog.remove()
-                        $addTag.removeClass("selected")
-                    })
-                $addDialog.append($newField).append($saveBtn).append($cancelBtn)
-                // place dialog in the dom
-                $addDialog.hide()
-                $addDialog.insertAfter('li#' +clickedListItem+ ' .toolbar a.add-tag.btn')
-                setupTagFieldControls('li#' +clickedListItem+ ' .toolbar div.add-tag-dialog input.new-tag')
-                $addDialog.show("slow")
-            })
-        var $edit = $('<a class="edit-item btn" href="/notes/' +item.id+ '"'
-            + ' title="Öffne Detailansicht dieser Notiz">zur Detailansicht dieses Beitrags</a>.')
-        // score info area
-        var $votes = $('<div class="votes">Bewerte diesen Inhalt </div>')
-        var $upvote = $('<a id="' +item.id+ '" class="btn vote">+</a>') // we have an id triple in this "component"
-            $upvote.click(function (e) {
-                var updatedTopic = dmc.request("GET", "/review/upvote/" + e.target.id)
-                _this.model.updateAvailableResource(updatedTopic)
-                // track "voted resource" goal
-                if (typeof piwikTracker !== 'undefined') piwikTracker.trackGoal(3)
-                // todo: update our result-set view immedieatly after upvoting
-                setupResultListItem(updatedTopic)
-            })
-        var $downvote = $('oder <a id="' +item.id+ '" class="btn vote">-</a>') // id triple in this "component"
-            $downvote.click(function (e) {
-                var updatedTopic = dmc.request("GET", "/review/downvote/" + e.target.id)
-                _this.model.updateAvailableResource(updatedTopic)
-                // track "voted resource" goal
-                if (typeof piwikTracker !== 'undefined') piwikTracker.trackGoal(3)
-                // todo: update our result-set view immedieatly after upvoting
-                setupResultListItem(updatedTopic)
-            })
-
-        // finally append votebar, tagbar and body to list-item
-        $votes.append($upvote).append($downvote)
-        $toolbar.append(' f&uuml;ge').append($addTag).append(" oder gehe ")
-        $toolbar.append($edit)
-        // $toolbar.append($tagInfo)
-
-        $topic.html($votes).append($toolbar).append($body).append('Autor: ').append($creator_link).append(headline)
-        // out tag listing before body
-        if (tags.length > 0) $tagInfo.insertAfter($creator_link)
-        return $topic
-
-            function renderTagInfo($tagInfoArea, givenTags) {
-                var commaCounter = 0
-                for (var ri=0; ri < givenTags.length; ri++) {
-                    // use tag icon..
-                    $tagInfoArea.append('<i class="tag">' +givenTags[ri].value+ '</i>')
-                    commaCounter++
-                    (commaCounter < givenTags.length) ? $tagInfoArea.append(', ') : $tagInfoArea.append('&nbsp;&nbsp;&nbsp;')
+                // select new, if not the identical
+                if ($(previous).attr('data-tex') !== $(this).attr('data-tex')) {
+                    _this.selectEditableFormula(this)
                 }
-            }
+                //
+                CKEDITOR.instances[identifier].selectionChange()
+
+            })
+
+            $('div.math-output').dblclick(function(e) {
+                _this.selectEditableFormula(this)
+                CKEDITOR.instances[identifier].openDialog('mathjaxDialog')
+            })
+
+        }
+    }
+
+    this.deselectEditableFormula = function(element) {
+        $(element).removeClass('selected')
+        _this.model.setSelectedFormula(undefined)
+    }
+
+    this.selectEditableFormula = function(element) {
+        _this.model.setSelectedFormula(element)
+        $(element).addClass('selected')
     }
 
     this.showTagButtons = function ($parent, tags) {
@@ -885,7 +873,7 @@
                 var selectedTag = _this.model.getTagById(tagId)
                 _this.model.addTagToFilter(selectedTag)
                 // go to updated view
-                _this.goToTimeline(true, true)
+                _this.initTimeline(true, true)
                 // fixme: formerly here were just (optimal) view updates
                 _this.pushTimelineViewState()
 
@@ -940,6 +928,10 @@
         $('.eduzen #nav.info').hide()
     }
 
+    this.showTagView = function () {
+        $('.eduzen #nav.info').show()
+    }
+
     this.emptyTagfilterInfo = function () {
         $('.tag-filter-info').empty()
     }
@@ -968,7 +960,7 @@
                     var tagId = parseInt(e.target.id)
                     var tag = _this.model.getTagById(tagId)
                     _this.model.removeTagFromFilter(tag)
-                    _this.goToTimeline(true, true)
+                    _this.initTimeline(true, true)
                     _this.pushTimelineViewState()
                 })
             var $tagButton = $('<a class="btn tag selected">' +tags[i].value+ '</a>')
@@ -981,7 +973,7 @@
                 // prepare model
                 _this.model.setTagFilter([])
                 // go to new view
-                _this.goToTimeline(true, true)
+                _this.initTimeline(true, true)
                 _this.pushTimelineViewState()
             })
         $('.tag-filter-info').html($filterMeta).append($clearButton).append($filterButtons)
@@ -1070,100 +1062,6 @@
         return restOfTags
     }
 
-    this.setupCKEditor = function () {
-        // setup cK-Editor help
-        $('.header a.help').click(function (e) {
-            $('.header .help.info').toggle()
-            $('.header .help.info').click(function (e) {
-                $('.header .help.info').toggle()
-            })
-        })
-        // upload-fallback: $(".button.upload").click(this.open_upload_dialog(uploadPath, this.handleUploadResponse))
-        // mathjax preview handling
-        var $input = $('#resource_input')
-            $input.attr('contenteditable', true)
-        /** $input.keyup(function (e) {
-            renderMathInArea('resource_input')
-            return function (){}
-        })**/
-
-        CKEDITOR.inline( document.getElementById( 'resource_input' ) )
-        // check if initialization was successfull
-        if (!CKEDITOR.instances.hasOwnProperty('resource_input')) {
-            _this.renderNotification("Hinweis: Wir haben in diesem Web-Browser seit neuestem das Problem dir einen "
-                + " Rich-Text-Editor  zur Verfügung stellen. Wir arbeiten bereits an einer Lösung.   ",
-                500, UNDER_THE_TOP, "", 3000, undefined)
-        }
-        // extend/back the global CKEditor instance with a reference to our application model
-        CKEDITOR.app_model = _this.model
-    }
-
-    this.setupMathJaxRenderer = function () {
-        MathJax.Ajax.config.root = "/de.tu-berlin.eduzen.mathjax-renderer/script/vendor/mathjax"
-        MathJax.Hub.Config({
-            "extensions": ["tex2jax.js", "mml2jax.js", "MathEvents.js", "MathZoom.js", "MathMenu.js", "toMathML.js",
-            "TeX/noErrors.js","TeX/noUndefined.js","TeX/AMSmath.js","TeX/AMSsymbols.js", "FontWarnings.js"],
-            "jax": ["input/TeX", "output/HTML-CSS"], // "input/MathML", , "output/NativeMML", "output/SVG"
-            "tex2jax": {"inlineMath": [["$","$"],["\\(","\\)"]]},
-            "menuSettings": {
-                "mpContext": true, "mpMouse": true, "zscale": "200%", "texHints": true
-            },
-            "errorSettings": {
-                "message": ["[Math Error]"]
-            },
-            "displayAlign": "left",
-            "HTML-CSS": {"scale": 110},
-            // "SVG": {"blacker": 8, "scale": 110},
-            "v1.0-compatible": false,
-            "skipStartupTypeset": false,
-            "elements": ["resource_input, math-live-preview, resources"]
-        });
-        // console.log("testing to get at an iframe.. into mathJax rendering")
-        // console.log($(".cke_wysiwyg_frame").context.childNodes[1].childNodes[2])
-        MathJax.Hub.Configured() // bootstrap mathjax.js lib now
-        MathJax.Hub.Typeset()
-    }
-
-    this.renderMathInArea = function (identifier, editable) {
-        // typeset all elements containing TeX to SVG or HTML in designated area
-        MathJax.Hub.Queue(["Typeset", MathJax.Hub, identifier]);
-        if (editable) {
-            // registering selection-handler on all visible formulas
-            $('div.math-output').click(function(e) {
-
-                console.log("Clicked .. Formula ..")
-
-                var previous = _this.model.getSelectedFormula()
-                if (_this.model.getSelectedFormula() != undefined) {
-                    _this.deselectEditableFormula(previous)
-                }
-                // select new, if not the identical
-                if ($(previous).attr('data-tex') !== $(this).attr('data-tex')) {
-                    _this.selectEditableFormula(this)
-                }
-                //
-                CKEDITOR.instances['resource_input'].selectionChange()
-
-            })
-
-            $('div.math-output').dblclick(function(e) {
-                _this.selectEditableFormula(this)
-                CKEDITOR.instances['resource_input'].openDialog('mathjaxDialog')
-            })
-
-        }
-    }
-
-    this.deselectEditableFormula = function(element) {
-        $(element).removeClass('selected')
-        _this.model.setSelectedFormula(undefined)
-    }
-
-    this.selectEditableFormula = function(element) {
-        _this.model.setSelectedFormula(element)
-        $(element).addClass('selected')
-    }
-
 
 
     /** HTML5 History API utility methods **/
@@ -1187,13 +1085,13 @@
 
             // update app-model
             _this.model.setTagFilter(pop.state.data.tags)
-            _this.goToTimeline(true, true)
+            _this.initTimeline(true, true)
 
         } else if (pop.state.name == FULL_TIMELINE) {
 
             // update app-model
             _this.model.setTagFilter([])
-            _this.goToTimeline(true, true)
+            _this.initTimeline(true, true)
 
         } else if (pop.state.name == PERSONAL_TIMELINE) {
 
@@ -1201,7 +1099,11 @@
             var user = dmc.get_topic_by_id(userId, true)
             // fixme: re-set tagfilter..
             _this.model.setTagFilter([])
-            _this.goToPersonalTimeline(user, true, true)
+            _this.initPersonalTimeline(user, true, true)
+
+        } else if (pop.state.name == DETAIL_VIEW) {
+
+            _this.initDetailView(pop.state.data.id)
 
         } else {
             console.log("unknown view.. ")
@@ -1228,6 +1130,12 @@
         // say we've visited personal timeline..
         var view_state = {"name": PERSONAL_TIMELINE, "data": {"tags": _this.model.getTagFilter(), "userid": creator.id}}
         _this.pushHistory(view_state, "Personal Timeline", "/notes/user/" + creator.id)
+    }
+
+    this.pushDetailViewState = function (note) {
+        // say we've seen a note in detail
+        var view_state = {"name": DETAIL_VIEW, "data": note}
+        _this.pushHistory(view_state, "Note Detail View", "/notes/" + note.id)
     }
 
     /** Internal helper method to push view_state to the browser, if supported. */
@@ -1387,8 +1295,7 @@
 
     this.doSubmitResource = function () {
         // TODO: clean up this mixed up method.
-        // var pageContent = $('#resource_input').val()
-        var valueToSubmit = getTeXAndHTMLSource(document.getElementById("resource_input"))
+        var valueToSubmit = getTeXAndHTMLSource(document.getElementById("add_resource"))
         var qualifiedTags = getTagsSubmitted(TAGGING_FIELD_SELECTOR)
         // differentiate in tags to create and existing tags in db (which need to be associated)
         var tagsToReference = getTagTopicsToReference(qualifiedTags)
@@ -1408,7 +1315,7 @@
                 }
                 // track "added resource" goal
                 if (typeof piwikTracker !== 'undefined') piwikTracker.trackGoal(5)
-                $('#resource_input').html("")
+                $('#add_resource').html("")
                 $(TAGGING_FIELD_SELECTOR).val("")
                 $('div.header').css("opacity", "1")
                 // rendering notifications
@@ -1419,7 +1326,7 @@
                 400, TIMELINE_AREA, '', 'slow')
         }
         // fixme: if we're adding a resource on our personal timeline, we currently return to the global one
-        _this.goToTimeline(false)
+        _this.initTimeline(false)
     }
 
     this.doSaveResource = function () {
@@ -1445,10 +1352,11 @@
                     // _this.pushHistory("timelineView", "Notes Timeline", "/notes")
                 // })
                 _this.model.updateAvailableResource(resource)
+                // destroy the CKEditor instance (if present)
                 if (CKEDITOR.instances.hasOwnProperty('resource_input')) {
                     CKEDITOR.instances['resource_input'].destroy()
                 }
-                setupDetailView()
+                renderPage(undefined, updated.id)
             } else {
                 _this.renderNotification("Sorry! Wir konnten die Notiz nicht aktualisieren.", 500, UNDER_THE_TOP, '', 'fast')
             }
@@ -1458,7 +1366,65 @@
         }
     }
 
-})(CKEDITOR, MathJax, jQuery, console, new RESTClient("/core", {process_directives : function(directives, edit_mode) {
-        console.log("PROCESSING DIRECTIVES ... in editMode" + edit_mode)
-        console.log(directives)
-}}))
+    /** Main router to all views */
+
+    this.initializePageView = function () {
+
+        // parse requested location
+        var pathname = window.location.pathname
+        var attributes = pathname.split('/')
+        var noteId = attributes[2]
+
+        // initiate load-more-timeline
+        _this.skroller = skrollr.init( {forceHeight: false, render: function (info) {
+            if (current_view == FULL_TIMELINE) {
+                if (info.maxTop == 0) return
+                if (info.curTop > (info.maxTop - 200)) _this.renderLoadMoreButton()
+            }
+        }})
+
+        // setup page-controls (once!)
+        registerHistoryStates()
+        setupMathJaxRenderer()
+        setDefaultWorkspaceCookie()
+        setupPageControls()
+
+        // in any case
+        emc.loadAllTags()
+        sortTags()
+        // route to distinct views
+        if (noteId === undefined || noteId === "") {
+
+            _this.initTimeline(true, false) // load timeline with no filter set
+            $(window).on('load', function(event) {_this.hideProgressBar()});
+
+        } else if (noteId === "tagged") {
+
+            var tags = attributes[3]
+                tags = (tags.indexOf('+') != -1) ? tags.split("+") : tags.split("%2B")
+            var selectedTag = undefined
+            for (var i=0; i < tags.length; i++) {
+                var label = decodeURIComponent(tags[i])
+                selectedTag = _this.model.getTagByName(label)
+                if (selectedTag != undefined) _this.model.addTagToFilter(selectedTag)
+            }
+            _this.initTimeline(true, false) // call timeline after filter was set.
+            $(window).on('load', function(event) {_this.hideProgressBar()});
+
+        } else if (noteId === "user") {
+
+            var userId = attributes[3]
+            var user = dmc.get_topic_by_id(userId, true)
+            _this.initPersonalTimeline(user, true, false)
+            $(window).on('load', function(event) {_this.hideProgressBar()});
+
+        } else {
+
+            _this.initDetailView(noteId)
+            // fixme: historyApi // _this.pushHistory("detailView", "Note Info: " + noteId, "/notes/" + noteId)
+
+        }
+
+    }
+
+})(CKEDITOR, MathJax, jQuery, console, new RESTClient("/core"))

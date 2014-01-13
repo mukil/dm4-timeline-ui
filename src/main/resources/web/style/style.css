@@ -81,13 +81,15 @@ body.eduzen.note {
     z-index: 114;
 }
 
-.eduzen.note .username {
+/** resource.html and index.html */
+.eduzen.note .username,
+.eduzen.note .headline .username {
     position: absolute;
     left: 120px;
     top: 0px;
     padding-left: 7px;
     border: 1px solid #f5f5f5;
-    border-top: 0px solid transparent;
+    border-top: 1px solid transparent;
     color: #a9a9a9;
     background-color: #fff;
 }
@@ -118,9 +120,12 @@ body.eduzen.note {
 }
 
 .eduzen .headline {
+    z-index: 100;
+    width: 100%;
+    min-height: 40px;
     border-bottom: 1px solid #FFC700;
     position: fixed;
-    top: 0px;
+    top: 0px; left: 0px;
     background-color: #fff;
 }
 
@@ -312,13 +317,6 @@ body.eduzen.note {
     padding-top: 9px;
     background-color: #fff;
     z-index: 115;
-}
-
-.eduzen .timeline {
-    z-index: 100;
-    width: 100%;
-    min-height: 40px;
-    left: 0px;
 }
 
 .eduzen.note .tag,
@@ -542,6 +540,7 @@ textarea#math-input-dialog {
 
 .eduzen.note .content-area {
     margin-top: 60px;
+    margin-bottom: 60px;
 }
 
 .eduzen .cke_dialog_page_contents a {
@@ -573,6 +572,7 @@ textarea#math-input-dialog {
     background-color: #f1f1f1;
 }
 
+.eduzen.notes #add_resource,
 .eduzen.notes #resource_input,
 .eduzen.notes.note #resource_input.cke_editable{
     background-color: #f1f1f1;
@@ -834,12 +834,8 @@ textarea#math-input-dialog {
     display: none;
 }
 
-.eduzen.note .home-menu-button {
-    left: 40px !important;
-}
-
 .eduzen.note .home-menu-button,
-.eduzen.personal .timeline .home-menu-button {
+.eduzen.personal .headline .home-menu-button {
     position: absolute;
     top: 0px; left: 35px;
     padding: 7px;
@@ -851,11 +847,11 @@ textarea#math-input-dialog {
     background-color: #fff;
 }
 
-.eduzen.personal .timeline .login-menu-button {
-    left: 120px;
+.eduzen.note .home-menu-button {
+    left: 40px; /** Override previous value */
 }
 
-.eduzen .timeline .login-menu-button {
+.eduzen.notes.guest .headline .login-menu-button {
     position: absolute;
     top: 0px; left: 35px;
     padding: 7px;
@@ -865,22 +861,28 @@ textarea#math-input-dialog {
     border-top: 1px solid transparent;
     text-decoration: none;
     background-color: #fff;
+}
+
+.eduzen.notes.note.guest .headline .login-menu-button,
+.eduzen.notes.personal.guest .headline .login-menu-button {
+    position: absolute;
+    top: 0px; left: 130px;
 }
 
 .eduzen.note .home-menu-button:hover,
 .eduzen.note .home-menu-button:focus,
-.eduzen.personal .timeline .home-menu-button:hover,
-.eduzen.personal .timeline .home-menu-button:focus,
-.eduzen .timeline .login-menu-button:hover,
-.eduzen .timeline .login-menu-button:focus {
+.eduzen.personal .headline .home-menu-button:hover,
+.eduzen.personal .headline .home-menu-button:focus,
+.eduzen .headline .login-menu-button:hover,
+.eduzen .headline .login-menu-button:focus {
     border: 1px solid #0782C1;
     border-top: 1px solid transparent;
     color: #0782C1;
 }
 
-.eduzen .timeline .login-menu-button.pressed:hover,
-.eduzen .timeline .login-menu-button.pressed:focus,
-.eduzen .timeline .login-menu-button.pressed {
+.eduzen .headline .login-menu-button.pressed:hover,
+.eduzen .headline .login-menu-button.pressed:focus,
+.eduzen .headline .login-menu-button.pressed {
     background-color: #ffc700;
     border: 1px solid #f1f1f1;
     border-top: 1px solid transparent;
@@ -897,6 +899,10 @@ textarea#math-input-dialog {
     position: relative;
     top: 11px; left: 95px;
     color: #a9a9a9;
+}
+
+.eduzen.notes.note.guest .headline div.about-login {
+    left: 185px;
 }
 
 .eduzen .headline div.about-login {
@@ -930,7 +936,7 @@ textarea#math-input-dialog {
     font-weight: 900;
 }
 
-.eduzen .login-menu {
+.eduzen.notes.guest .login-menu {
     display: none;
     position: absolute;
     top: 1px;
@@ -939,11 +945,8 @@ textarea#math-input-dialog {
     z-index: 99;
 }
 
-.eduzen.personal .login-menu {
-    left: 130px;
-}
-
-.eduzen.personal .login-menu {
+.eduzen.notes.note.guest .login-menu,
+.eduzen.notes.personal.guest .login-menu {
     left: 180px;
 }
 
@@ -951,12 +954,12 @@ textarea#math-input-dialog {
     margin-left: 4px;
 }
 
-.eduzen #resource_input input.secret,
+/** .eduzen #resource_input input.secret,
 .eduzen #resource_input input.username-input {
     background-color: #fff;
     margin-top: 10px;
     margin-left: 20px;
-}
+} **/
 
 .eduzen ul.list li#input div.content-area ul li {
     list-style-type: circle;
@@ -973,6 +976,7 @@ textarea#math-input-dialog {
     margin-bottom: 10px;
 }
 
+.eduzen #add_resource ul li,
 .eduzen #resource_input ul li {
     border: 0px solid transparent;
     margin: 0px;
@@ -1138,6 +1142,7 @@ input.cke_dialog_ui_input_text:focus {
 }
 
 .eduzen div.item-content li,
+.eduzen #add_resource li,
 .eduzen #resource_input li {
     color: #383838;
 }

@@ -24,11 +24,13 @@
         <script type="text/javascript" src="/de.deepamehta.webclient/script/util/gui_toolkit.js"></script>
         <script type="text/javascript" src="/de.deepamehta.webclient/script/util/js_utils.js"></script>
         <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/vendor/skrollr/skrollr.min.js"></script>
+        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/vendor/jquery-ui-widget.js"></script>
+        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/vendor/jquery-ui-progressbar.js"></script>
         <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/vendor/eduzen_dictionary.js"></script>
         <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/vendor/ckeditor/ckeditor.js"></script>
         <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/model/AppModel.js"></script>
         <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/emc.js"></script>
-        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/trt.js"></script>
+        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/timeline.js"></script>
         <!-- script type="text/javascript" src="/de.deepamehta.accesscontrol/script/vendor/sha256.js"></script-->
         <!-- script type="text/javascript" src="https://getfirebug.com/firebug-lite.js"></script-->
         <!-- script type="text/javascript" src="http://modernizr.com/downloads/modernizr-latest.js"></script-->
@@ -51,6 +53,7 @@
         <script type="text/javascript" th:inline="javascript">
             /*<![CDATA[*/
             var dm4c = { fire_event : function(){} }
+            var ON_RESOURCE_HTML = true // legacy page, to be removed
             $(document).ready(function() {
                 initializePageView()
             })
@@ -76,6 +79,9 @@
             </h3>
 
             <div id="message-top"></div>
+
+            <div id="progressbar"><div class="loading-label">Notizen werden geladen ... </div></div>
+
             <a href="/notes" class="back-to-front">zur&uuml;ck zur Timeline</a>
             <a href="#" class="print-view">Druckansicht</a>
 
