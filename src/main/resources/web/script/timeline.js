@@ -20,6 +20,9 @@
     var NOTES_URI = "org.deepamehta.resources.resource" // fixme: doublings
     var NOTE_CONTENT_URI = "org.deepamehta.resources.content" // fixme: doublings
     var NOTE_LOCKED_URI = "org.deepamehta.resources.blocked_for_edits" // fixme: doublings
+    var MOODLE_MODIFIED_URI = "org.deepamehta.moodle.item_modified"
+    var MOODLE_CREATED_URI = "org.deepamehta.moodle.item_created"
+    var MOODLE_ITEM_URI = "org.deepamehta.moodle.item"
     var NOTES_LIMIT = 15
     var OK = 200
     // Notification Areas
@@ -785,9 +788,12 @@
     this.create_result_item_view = function (item) {
 
         var $item_dom = $("li#" + item.id) // creates a new DOMElement
-        return new NoteItemRenderer(item, _this).render($item_dom) // sets up new item in DOMElement
-        // and the caller appends newly set up item in DOM?
-        // new MoodleItemRenderer(item).render($item_dom)
+        if (item.type_uri == NOTES_URI) {
+            return new NoteItemRenderer(item, _this).render($item_dom) // sets up new item in DOMElement
+        } else if (item.type_uri == MOODLE_ITEM_URI) {
+            return new MoodleItemRenderer(item, _this).render($item_dom)
+        }
+        return ""
 
     }
 
@@ -1053,6 +1059,10 @@
     this.created_at_sort_asc = function (a, b) {
         var scoreA = 0
         var scoreB = 0
+        // get last-modified value for moodle items
+        if (a.composite.hasOwnProperty(MOODLE_MODIFIED_URI)) scoreA = a.composite[MOODLE_MODIFIED_URI].value
+        if (b.composite.hasOwnProperty(MOODLE_MODIFIED_URI)) scoreB = b.composite[MOODLE_MODIFIED_URI].value
+        // get creation-date for resources (this should fail for moodle-items)
         if (a.composite.hasOwnProperty(CREATED_AT_URI)) scoreA = a.composite[CREATED_AT_URI].value
         if (b.composite.hasOwnProperty(CREATED_AT_URI)) scoreB = b.composite[CREATED_AT_URI].value
 

@@ -27,10 +27,8 @@ import org.deepamehta.plugins.eduzen.service.ResourceService;
 import com.sun.jersey.api.view.Viewable;
 import com.sun.jersey.spi.container.ContainerResponse;
 import de.deepamehta.core.Association;
-import de.deepamehta.core.model.AssociationModel;
-import de.deepamehta.core.model.TopicRoleModel;
-import de.deepamehta.core.service.PluginService;
-import de.deepamehta.core.service.ResultList;
+import de.deepamehta.core.model.*;
+import de.deepamehta.core.service.*;
 import de.deepamehta.core.service.annotation.ConsumesService;
 import de.deepamehta.core.service.event.PreSendTopicListener;
 import de.deepamehta.core.service.event.ServiceResponseFilterListener;
@@ -68,12 +66,29 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     private final static String RESOURCE_LICENSE_UNKNOWN_URI = "org.deepamehta.licenses.unknown";
     private final static String RESOURCE_LICENSE_AREA_URI = "org.deepamehta.resources.license_jurisdiction";
 
+    private static final String MOODLE_PARTICIPANT_EDGE = "org.deepamehta.moodle.course_participant";
+
+    private static final String MOODLE_COURSE_URI = "org.deepamehta.moodle.course";
+    private static final String MOODLE_SECTION_URI = "org.deepamehta.moodle.section";
+
+    private static final String MOODLE_ITEM_URI = "org.deepamehta.moodle.item";
+    private static final String MOODLE_ITEM_ICON_URI = "org.deepamehta.moodle.item_icon";
+    private static final String MOODLE_ITEM_REMOTE_URL_URI = "org.deepamehta.moodle.item_url";
+    private static final String MOODLE_ITEM_DESC_URI = "org.deepamehta.moodle.item_description";
+    private static final String MOODLE_ITEM_HREF_URI = "org.deepamehta.moodle.item_href";
+    private static final String MOODLE_ITEM_TYPE_URI = "org.deepamehta.moodle.item_type";
+    private static final String MOODLE_ITEM_MODIFIED_URI = "org.deepamehta.moodle.item_modified";
+    private static final String MOODLE_ITEM_CREATED_URI = "org.deepamehta.moodle.item_created";
+    private static final String MOODLE_ITEM_AUTHOR_URI = "org.deepamehta.moodle.item_author";
+    private static final String MOODLE_ITEM_LICENSE_URI = "org.deepamehta.moodle.item_license";
+
     private final static String CREATOR_EDGE_URI = "org.deepamehta.resources.creator_edge";
     private final static String CONTRIBUTOR_EDGE_URI = "org.deepamehta.resources.contributor_edge";
-    private final static String CHILD_TYPE_URI = "dm4.core.child";
-    private final static String PARENT_TYPE_URI = "dm4.core.parent";
+    private final static String CHILD_URI = "dm4.core.child";
+    private final static String PARENT_URI = "dm4.core.parent";
     private final static String DEFAULT_ROLE_TYPE_URI = "dm4.core.default";
     private final static String COMPOSITION_TYPE_URI = "dm4.core.composition";
+    private final static String AGGREGATION_TYPE_URI = "dm4.core.aggregation";
     private final static String ACCOUNT_TYPE_URI = "dm4.accesscontrol.user_account";
     private final static String IDENTITY_NAME_TYPE_URI = "org.deepamehta.identity.display_name";
     private final static String IDENTITY_INFOS_TYPE_URI = "org.deepamehta.identity.infos";
@@ -81,7 +96,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     private final static String DEEPAMEHTA_FILE_URI = "dm4.files.file";
     private final static String DEEPAMEHTA_FILE_PATH_URI = "dm4.files.path";
 
-    private AccessControlService acService = null;
+    private AccessControlService aclService = null;
 
     @Override
     public void init() {
@@ -125,15 +140,15 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @ConsumesService("de.deepamehta.plugins.accesscontrol.service.AccessControlService")
     public void serviceArrived(PluginService service) {
         if (service instanceof AccessControlService) {
-            acService = (AccessControlService) service;
+            aclService = (AccessControlService) service;
         }
     }
 
     @Override
     @ConsumesService("de.deepamehta.plugins.accesscontrol.service.AccessControlService")
     public void serviceGone(PluginService service) {
-        if (service == acService) {
-            acService = null;
+        if (service == aclService) {
+            aclService = null;
         }
     }
 
@@ -201,9 +216,6 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             boolean isLocked = topic.getCompositeValueModel().getBoolean(RESOURCE_LOCKED_URI);
             // update resource topic
             resource = dms.getTopic(topic.getId(), true);
-            // Directives updateDirective = dms.updateTopic(topic, clientState);
-            // dms.updateTopic() - most high-level model
-            // resource.update(topic, clientState, updateDirective); // id, overriding model
             resource.setCompositeValue(new CompositeValueModel().put(RESOURCE_CONTENT_URI, value),
                     clientState, new Directives()); // why new Directives on an AttachedObject
             resource.setCompositeValue(new CompositeValueModel().put(RESOURCE_LAST_MODIFIED_URI, modifiedAt),
@@ -213,7 +225,6 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             Association contributor = assignCoAuthorship(resource, user, clientState);
             if (contributor == null) log.info("Skipped adding co-authorship for resource ("
                     + resource.getId() + ") to author " + user.getSimpleValue());
-            // ### update timestamp of super-topic
             dms.updateTopic(resource.getModel(), clientState);
             tx.success();
             return resource;
@@ -238,13 +249,15 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         //
         JSONArray results = new JSONArray();
         try {
-            ResultList<RelatedTopic> all_results = dms.getTopics(RESOURCE_URI, false, 0);
-            log.info("> fetching " +all_results.getSize()+ " resources for getting " + from + " to " + (from + size) );
-            ArrayList<RelatedTopic> in_memory = getResultSetSortedByCreationTime(all_results, clientState);
+            // 1) Fetch Resultset of Resources
+            ResultList<RelatedTopic> all_resources = dms.getTopics(RESOURCE_URI, false, 0);
+            log.info("> ResourcePlugin fetchs" +all_resources.getSize()+ " resources (" +from+ " to "+(from+size)+")");
+            // 2) Sort and fetch resources
+            ArrayList<RelatedTopic> in_memory_resources = getResultSetSortedByCreationTime(all_resources, clientState);
             // fixme: throw error if page is unexpected high or NaN
             int count = 0;
-            for (RelatedTopic item : in_memory) {
-                // start of preparing page results
+            for (RelatedTopic item : in_memory_resources) { // 2) prepare resource items
+                // 3) start preparing page results
                 if (count >= from) {
                     item.loadChildTopics(RESOURCE_CONTENT_URI);
                     item.loadChildTopics(TAG_URI);
@@ -254,12 +267,73 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
                     if (results.length() == size) break;
                 }
                 count++;
-                // finished preparing page results
+            }
+            // 4) Check if Moodle-Plugin is present
+            if (dms.getPlugin("org.deepamehta.moodle-plugin") != null) {
+                log.info("> ResourcePlugin ACKs that MoodlePlugin is present...");
+                // 5) Fetch Resultset of \"Moodle Items\"
+                ResultList<RelatedTopic> all_moodle_items = getAllMyMoodleItems(); // restrict to current user + courses
+                if (all_moodle_items == null) return results.toString(); // user is most probably not logged in
+                ArrayList<RelatedTopic> all_items = getResultSetSortedByModificationTime(all_moodle_items, clientState);
+                // 6) Sort and fetch moodle-items
+                count = 0;
+                for (RelatedTopic moodle_item : all_items) { // 7) prepare (some size*2) fetched moodle items
+                    // if (count >= from) {
+                        // prepare SIZE moodle items
+                        moodle_item.loadChildTopics(MOODLE_ITEM_ICON_URI);
+                        moodle_item.loadChildTopics(MOODLE_ITEM_MODIFIED_URI);
+                        // moodle_item.loadChildTopics(MOODLE_ITEM_TYPE_URI);
+                        // moodle_item.loadChildTopics(MOODLE_ITEM_CREATED_URI);
+                        // moodle_item.loadChildTopics(MOODLE_ITEM_LICENSE_URI);
+                        moodle_item.loadChildTopics(MOODLE_ITEM_HREF_URI);
+                        moodle_item.loadChildTopics(MOODLE_ITEM_DESC_URI);
+                        moodle_item.loadChildTopics(MOODLE_ITEM_REMOTE_URL_URI);
+                        moodle_item.loadChildTopics(TAG_URI);
+                        moodle_item.loadChildTopics(REVIEW_URI);
+                        // enrichTopicModelAboutCreator(moodle_item);
+                        results.put(moodle_item.toJSON());
+                        if (results.length() == size * 3) break;
+                    // }
+                    // count++;
+                }
             }
             return results.toString();
         } catch (Exception e) {
             throw new WebApplicationException(new RuntimeException("something went wrong", e));
         }
+    }
+
+    /**
+     * TODO: Fetch all Topics (Moodle Items) tagged with one or more specific tags
+     * a particular (logged-in) user is allowed to see
+     */
+
+    /** Fetch all Topics (Moodle Items) a particular (logged-in) user is allowed to see. */
+    private ResultList<RelatedTopic> getAllMyMoodleItems () {
+        String username = aclService.getUsername();
+        log.info("Fetching all Moodle Items for logged in user ...");
+        if (username == null) return null;
+        Topic user = dms.getTopic("dm4.accesscontrol.username", new SimpleValue(username), false);
+        Topic account = user.getRelatedTopic(COMPOSITION_TYPE_URI, CHILD_URI, PARENT_URI,
+                "dm4.accesscontrol.user_account", false, false);
+        log.info("Fetching all Moodle Items for user \""+account.getSimpleValue()+"\" (" +account.getId()+ ")");
+        ResultList<RelatedTopic> enroled_courses = account.getRelatedTopics(MOODLE_PARTICIPANT_EDGE,
+                DEFAULT_ROLE_TYPE_URI, DEFAULT_ROLE_TYPE_URI, MOODLE_COURSE_URI, false, false, 0);
+        ResultList<RelatedTopic> resultset = new ResultList<RelatedTopic>();
+        for (RelatedTopic course : enroled_courses) {
+            log.info(" in Moodle Course \""+course.getSimpleValue()+"\"");
+            ResultList<RelatedTopic> sections = course.getRelatedTopics(AGGREGATION_TYPE_URI, PARENT_URI, CHILD_URI,
+                    MOODLE_SECTION_URI, false, false, 0);
+            if (sections != null) {
+                for (RelatedTopic section : sections) {
+                    ResultList<RelatedTopic> items = section.getRelatedTopics(AGGREGATION_TYPE_URI, PARENT_URI,
+                            CHILD_URI, MOODLE_ITEM_URI, false, false, 0);
+                    if (items != null) resultset.addAll(items);
+                }
+            }
+        }
+        //
+        return resultset;
     }
 
     @GET
@@ -311,32 +385,33 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
 
     private Topic fetchCreator(Topic resource) {
         //
-        return resource.getRelatedTopic(CREATOR_EDGE_URI, PARENT_TYPE_URI,
-                CHILD_TYPE_URI, ACCOUNT_TYPE_URI, true, false);
+        return resource.getRelatedTopic(CREATOR_EDGE_URI, PARENT_URI,
+                CHILD_URI, ACCOUNT_TYPE_URI, true, false);
     }
 
+    /**  todo: provide this method as a service for the MoodleServiceClient..*/
     private Association assignAuthorship(Topic resource, Topic user, ClientState clientState) {
         if (associationExists(CREATOR_EDGE_URI, resource, user)) return null;
         return dms.createAssociation(new AssociationModel(CREATOR_EDGE_URI,
-                new TopicRoleModel(resource.getId(), PARENT_TYPE_URI),
-                new TopicRoleModel(user.getId(), CHILD_TYPE_URI)), clientState);
+                new TopicRoleModel(resource.getId(), PARENT_URI),
+                new TopicRoleModel(user.getId(), CHILD_URI)), clientState);
     }
 
     private Association assignCoAuthorship(Topic resource, Topic user, ClientState clientState) {
         if (associationExists(CREATOR_EDGE_URI, resource, user) ||
             associationExists(CONTRIBUTOR_EDGE_URI, resource, user)) return null;
         return dms.createAssociation(new AssociationModel(CONTRIBUTOR_EDGE_URI,
-                new TopicRoleModel(resource.getId(), PARENT_TYPE_URI),
-                new TopicRoleModel(user.getId(), CHILD_TYPE_URI)), clientState);
+                new TopicRoleModel(resource.getId(), PARENT_URI),
+                new TopicRoleModel(user.getId(), CHILD_URI)), clientState);
     }
 
     private ResultList<RelatedTopic> fetchAllContributionsByUser(Topic user) {
         //
         ResultList<RelatedTopic> all_resources = null;
-        all_resources = user.getRelatedTopics(CREATOR_EDGE_URI, CHILD_TYPE_URI,
-                PARENT_TYPE_URI, RESOURCE_URI, true, false, 0);
-        all_resources.addAll(user.getRelatedTopics(CONTRIBUTOR_EDGE_URI, CHILD_TYPE_URI,
-                PARENT_TYPE_URI, RESOURCE_URI, true, false, 0));
+        all_resources = user.getRelatedTopics(CREATOR_EDGE_URI, CHILD_URI,
+                PARENT_URI, RESOURCE_URI, true, false, 0);
+        all_resources.addAll(user.getRelatedTopics(CONTRIBUTOR_EDGE_URI, CHILD_URI,
+                PARENT_URI, RESOURCE_URI, true, false, 0));
         return all_resources;
     }
 
@@ -451,11 +526,31 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         return in_memory;
     }
 
+    private ArrayList<RelatedTopic> getResultSetSortedByModificationTime (ResultList<RelatedTopic> all, ClientState clientState) {
+        // build up sortable collection of all result-items
+        ArrayList<RelatedTopic> in_memory = new ArrayList<RelatedTopic>();
+        for (RelatedTopic obj : all) {
+            obj.loadChildTopics(MOODLE_ITEM_MODIFIED_URI);
+            in_memory.add(obj);
+        }
+        // sort all result-items
+        Collections.sort(in_memory, new Comparator<RelatedTopic>() {
+            public int compare(RelatedTopic t1, RelatedTopic t2) {
+                long one = t1.getCompositeValue().getLong(MOODLE_ITEM_MODIFIED_URI, 0);
+                long two = t2.getCompositeValue().getLong(MOODLE_ITEM_MODIFIED_URI, 0);
+                if ( one < two ) return 1;
+                if ( one > two ) return -1;
+                return 0;
+            }
+        });
+        return in_memory;
+    }
+
     private Topic getAuthorizedUser() {
-        String logged_in_user = acService.getUsername();
+        String logged_in_user = aclService.getUsername();
         if (logged_in_user.equals("")) throw new WebApplicationException(401);
-        Topic username = acService.getUsername(logged_in_user);
-        return username.getRelatedTopic(COMPOSITION_TYPE_URI, CHILD_TYPE_URI, PARENT_TYPE_URI,
+        Topic username = aclService.getUsername(logged_in_user);
+        return username.getRelatedTopic(COMPOSITION_TYPE_URI, CHILD_URI, PARENT_URI,
                 ACCOUNT_TYPE_URI, true, false);
     }
 

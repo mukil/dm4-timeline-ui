@@ -14,7 +14,6 @@ public class Migration5 extends Migration {
 
     private String REVIEW_SCORE = "org.deepamehta.reviews.score";
 
-    private String WEB_RESOURCE_URI = "dm4.webbrowser.web_resource";
     private String WS_DEFAULT_URI = "de.workspaces.deepamehta";
 
     @Override

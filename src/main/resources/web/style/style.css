@@ -1095,6 +1095,7 @@ input.cke_dialog_ui_input_text:focus {
     padding-top: 8px;
 }
 
+.eduzen ul.list .moodle-item .item-content,
 .eduzen ul.list .item-content {
     color: #383838;
     background-color: #f1f1f1;
@@ -1106,6 +1107,18 @@ input.cke_dialog_ui_input_text:focus {
     margin-top: 0px;
     margin-left: 0px;
     margin-right: 0px;
+}
+
+.eduzen ul.list .moodle-item .item-content {
+    font-size: 125%;
+    color: #a9a9a9;
+    cursor: pointer;
+    margin-bottom: 5px;
+}
+
+.eduzen ul.list .moodle-item .item-content img {
+    position: relative; top: 5px;
+    padding-right: 10px;
 }
 
 .eduzen object {
