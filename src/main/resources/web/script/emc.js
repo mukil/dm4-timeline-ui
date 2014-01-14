@@ -40,9 +40,10 @@ function EMC (dmc, model) {
         //
         var all_contributions = dmc.request("GET", "/notes/fetch/contributions/" + userId)
         if (all_contributions.length > 0) {
-            _this.model.setAvailableResources(all_contributions)
+            _this.model.setProfileResources(all_contributions)
+            _this.model.setProfileResourcesId(userId)
         } else {
-            _this.model.setAvailableResources([])
+            _this.model.setProfileResources([])
         }
     }
 
@@ -118,6 +119,7 @@ function EMC (dmc, model) {
             var resourceTopic = dmc.request("POST", "/notes/resource/create", topicModel)
             if (resourceTopic == undefined) throw new Error("Something mad happened.")
             var updated = model.addToAvailableResources(resourceTopic)
+            // ### possibly addToProfileResources too
             // dont forget to add our new tags to the client-side AppModel
             var new_tags = resourceTopic.composite['dm4.tags.tag']
             if (typeof new_tags !== 'undefined') {
@@ -147,6 +149,7 @@ function EMC (dmc, model) {
         var resourceTopic = dmc.request("POST", "/notes/resource/update", resource)
         if (resourceTopic == undefined) throw new Error("Something mad happened.")
         var updated = model.addToAvailableResources(resourceTopic)
+        // ### possibly addToProfileResources too
         if (updated == undefined) {
             throw new Error("Something mad happened while updating client side application cache.")
         }
@@ -266,8 +269,7 @@ function EMC (dmc, model) {
 
     this.getCurrentUserTopic = function () {
         if (typeof _this.getCurrentUser() === 'undefined') throw Error("Not logged in.")
-        var userTopic = dmc.get_topic_by_value("dm4.accesscontrol.user_account", _this.username)
-        return userTopic
+        return dmc.get_topic_by_value("dm4.accesscontrol.user_account", _this.username)
     }
 
     this.associationExists = function (topicOne, topicTwo, assocType) {
@@ -294,7 +296,7 @@ function EMC (dmc, model) {
     }
 
     this.getCurrentUser = function () {
-        if (_this.username == undefined || _this.username == "") {
+        if (typeof _this.username === "undefined" || _this.username === "") {
             _this.username = dmc.request("GET", "/accesscontrol/user", undefined, undefined, undefined, "text")
             if (_this.username == null) return ""
         }

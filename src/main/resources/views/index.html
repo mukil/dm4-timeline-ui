@@ -3,7 +3,7 @@
 
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <title>Notizen Timeline - eduZEN - v0.2.3</title>
+        <title th:text="${name}">Notizen Timeline - eduZEN - v0.2.3</title>
         <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0"/>
         <meta property="og:title" th:content="${name}" />
         <meta property="og:url" th:content="'http://notizen.eduzen.tu-berlin.de' + ${path}" />
@@ -11,7 +11,7 @@
         <meta property="og:type" content="website" />
         <meta property="og:image" th:content="${picture}"/>
 
-        <link rel="stylesheet" href="/org.deepamehta.eduzen-tagging-notes/style/style.css"/>
+        <link rel="stylesheet" th:href="'/org.deepamehta.eduzen-tagging-notes/style/' + ${style}"/>
         <link rel="stylesheet" href="/org.deepamehta.eduzen-tagging-notes/script/vendor/ckeditor/contents.css"/>
         <!-- link rel="stylesheet" href="/de.deepamehta.webclient/script/vendor/jquery/css/custom-theme/jquery-ui-1.10.3.custom.min.css"/-->
         <link rel="stylesheet" href="/org.deepamehta.eduzen-tagging-notes/script/vendor/jquery-ui-1.8.21.custom.css"/>
@@ -21,25 +21,8 @@
         <script type="text/javascript" src="/de.deepamehta.webclient/script/vendor/jquery/jquery-ui-1.10.3.custom.min.js"></script-->
         <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/vendor/jquery-1.7.2.min.js"></script>
         <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/vendor/jquery-ui-1.8.21.custom.min.js"></script>
-        <script type="text/javascript" src="/de.deepamehta.accesscontrol/script/vendor/sha256.js"></script> <!-- ### load dynamically -->
-        <script type="text/javascript" src="/de.deepamehta.webclient/script/util/rest_client.js"></script>
-        <script type="text/javascript" src="/de.deepamehta.webclient/script/util/gui_toolkit.js"></script>
-        <script type="text/javascript" src="/de.deepamehta.webclient/script/util/js_utils.js"></script>
-        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/vendor/skrollr/skrollr.min.js"></script>
-        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/vendor/jquery-ui-widget.js"></script>
-        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/vendor/jquery-ui-progressbar.js"></script>
-        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/vendor/eduzen_dictionary.js"></script>
-        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/vendor/ckeditor/ckeditor.js"></script>
-        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/model/AppModel.js"></script>
-        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/profile.js"></script>
-        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/emc.js"></script>
-        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/timeline.js"></script>
-        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/timeline_item.js"></script>
-        <!-- script type="text/javascript" src="/de.deepamehta.accesscontrol/script/vendor/sha256.js"></script-->
-        <!--<script type="text/javascript" src="https://getfirebug.com/firebug-lite.js"></script>-->
-        <!-- script type="text/javascript" src="http://modernizr.com/downloads/modernizr-latest.js"></script-->
 
-        <!-- Note: We are proudly build on free and open source tools, namely jQuery, skrollr, Piwik and DeepaMehta 4. -->
+        <!-- Note: We are proudly build on free and open source tools, namely: jQuery, Piwik and DeepaMehta 4. -->
 
         <!-- Piwik
         <script type="text/javascript">
@@ -56,10 +39,9 @@
 
         <script type="text/javascript">
             var dm4c = { fire_event : function(){} }
-            var ON_RESOURCE_HTML = false
             $(document).ready(function() {
             /** Initialize the our interactive page **/
-                initializePageView()
+                page_route()
             })
         </script>
 
@@ -90,6 +72,8 @@
         <div id="message-top"></div>
 
         <div id="progressbar"><div class="loading-label">Notizen werden geladen ... </div></div>
+
+        <a href="#" class="print-view">Druckansicht</a>
 
         <!--placeholder div to prevent jumpy content when nav gets pinned -->
         <div style="padding:2em;" data-0="display:none;" data-top-top="display:block;"
@@ -139,7 +123,6 @@
             <b class="label contributor"></b>
             <span class="contributor"></span>
             <br/>
-            <br/>
             <label for="is-locked" class="lock">F&uuml;r &Auml;nderungen sperren</label>
             <input name="is-locked" class="lock" type="checkbox" th:checked="${isLocked}"></input>
             <b class="label">Inhalt:</b>
@@ -149,10 +132,6 @@
             <br/>
             <b class="label">Tags:</b>
             <div id="tags"></div>
-            <!--
-                <b class="label">Weitere Tags hinzuf&uuml;gen:</b>
-                <input type="text" placeholder="Name des Tags" size="50" class="tag"></input>
-            -->
         </div>
 
 
@@ -165,6 +144,19 @@
             <img src="http://research.eduzen.tu-berlin.de/analytics/piwik.php?idsite=2" style="border:0" alt="" />
         </p></noscript>
 
+        <script type="text/javascript" src="/de.deepamehta.accesscontrol/script/vendor/sha256.js"></script> <!-- ### load dynamically -->
+        <script type="text/javascript" src="/de.deepamehta.webclient/script/util/rest_client.js"></script>
+        <script type="text/javascript" src="/de.deepamehta.webclient/script/util/gui_toolkit.js"></script>
+        <script type="text/javascript" src="/de.deepamehta.webclient/script/util/js_utils.js"></script>
+        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/vendor/jquery-ui-widget.js"></script>
+        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/vendor/jquery-ui-progressbar.js"></script>
+        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/vendor/eduzen_dictionary.js"></script>
+        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/vendor/ckeditor/ckeditor.js"></script>
+        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/model/AppModel.js"></script>
+        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/profile.js"></script>
+        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/emc.js"></script>
+        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/timeline.js"></script>
+        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/timeline_item.js"></script>
 
     </body>
 

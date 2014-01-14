@@ -2,7 +2,6 @@
 (function (CKEDITOR, MathJax, $, console, dmc) {
 
     var _this = this
-        _this.skroller = undefined
 
     _this.model = AppModel()
     // ItemRendererImpl need access to this
@@ -12,7 +11,6 @@
     _this.piwikTracker = (typeof piwikTracker !== "undefined") ? piwikTracker : undefined
     //
     var profile = undefined
-    var application_host = document.location.host
     //
     var current_view = "" // fixme: remove this helper
     var TAG_URI = "dm4.tags.tag" // fixme: doublings
@@ -32,325 +30,82 @@
     var FILTERED_TIMELINE = "filtered-timeline"
     var FULL_TIMELINE = "timeline"
     var DETAIL_VIEW= "detail-view"
-
+    // Tag Input Field
     var TAGGING_FIELD_SELECTOR = "input.tagging"
 
 
 
-    this.initDetailView = function (objectId) {
-
-        _this.emc.loadResourceById(objectId) // initialize page-view detail model
-        renderPage(undefined, objectId)
+    this.prepare_detail_page = function (objectId) {
+        // 0) keep track of current view-state
         current_view = DETAIL_VIEW
-        //
-        showDetailElements()
-        _this.hideProgressBar()
-
+        // 1) initialize page-view detail model
+        _this.emc.loadResourceById(objectId)
+        // 3) render detail-page-view
+        _this.render_toolbar()
+        _this.prepare_detail_view()
+        _this.render_detail_view()
+        _this.hide_progress_bar()
+        _this.show_detail_elements()
     }
 
-    this.initTimeline = function (render_progressbar, hide_progressbar) {
-
-        if (render_progressbar) _this.renderProgressBar()
-        // prepare page model (according to filter)
-        _this.loadResources() // optimize: maybe we dont need to load it again
-        // render timeline view
-        renderPage()
-        if (hide_progressbar) _this.hideProgressBar() // this is needed when no DOM Load Event can hide our progressbar
-        //
-        showTimelineElements()
-
+    this.prepare_index_page = function (render_progressbar, hide_progressbar) {
+        if (render_progressbar) _this.show_progress_bar()
+        // 1) prepare timeline page model (according to filter) and keep track of current view-state
+        // ### optimize: maybe we dont need to load it again
+        _this.load_resources() // note: is where current_view is set to either FILTERED- or FULL_TIMELINE
+        _this.sort_available_resources()
+        // ..) setup timeline controls (on_profile)
+        _this.setup_timeline_controls(false)
+        // 2) render timeline page view
+        _this.render_toolbar()
+        $('.eduzen .rendered #nav.info').show()
+        _this.render_tag_filter_info() // render tag specific filter-info header
+        _this.render_tag_items('div.sidebar')
+        _this.render_result_view(false) // false == without contributions
+        // 3) hide and show
+        if (hide_progressbar) _this.hide_progress_bar() // this we need when no DOM Load Event can hide our progressbar
+        _this.show_timeline_elements()
     }
 
-    this.initPersonalTimeline = function (account, render_progressbar, hide_progressbar) {
-
-        if (render_progressbar) _this.renderProgressBar()
-        // prepare page model
-        _this.model.setTagFilter([])
-        // render update before we load all the stuff
-        // renderTagView('div.sidebar')
-        hideTagView()
-        // enforce (re-)loading of full composite user topic in preparation for personal-timeline rendering
-        var user_account = _this.emc.getTopicById(account.id)
-        // render profile-header first
-        profile = new User(_this, _this.dict, _this.emc, user_account)
-        profile.setupView($('#profile'))
-        // then load all the stuff according to user
-        emc.loadAllContributions(user_account.id)
-        sortCurrentResources()
-        // render page view
-        renderPage(user_account) // fixme: setup without tag-filter-dialog
-        //
+    this.prepare_profile_page = function (account, render_progressbar, hide_progressbar) {
+        // 1) keep track of current view-state
         current_view = PERSONAL_TIMELINE
-        if (hide_progressbar) _this.hideProgressBar()
-        showTimelineElements(true)
-
+        if (render_progressbar) _this.show_progress_bar()
+        // 2) prepare page model
+        _this.model.setTagFilter([])
+        // ..) setup timeline controls (on profile)
+        _this.setup_timeline_controls(true)
+        // 4) enforce (re-)loading of full composite user topic in preparation for personal-timeline rendering
+        var user_model = _this.emc.getTopicById(account.id)
+        // 5) render custom profile-header first
+            profile = new User(_this, _this.dict, _this.emc, user_model)
+            profile.setupView($('#profile'))
+        // 6) then load all the stuff according to user
+        _this.load_contributions(user_model.id)
+        _this.sort_contributed_resources()
+        // 7) render profile page content
+        _this.render_toolbar()
+        _this.render_tag_filter_info() // render tag specific filter-info header
+        // ..) Prepare (for) Timeline View Render ResultList (true == with contributions)
+        _this.render_result_view(true)
+       if (hide_progressbar) _this.hide_progress_bar()
+        _this.show_timeline_elements(true)
     }
 
-    this.initProfileEditorView = function (account) {
-
-        // enforce (re-)loading of full composite user topic in preparation for personal-timeline rendering
-        var user_account = _this.emc.getTopicById(account.id)
-        profile = new User(_this, _this.dict, _this.emc, user_account)
-        profile.setupView($('#profile'))
+    this.prepare_profile_editor_view = function (account) {
         // clean up timeline-gui, where we've definitely coming from (here)
         $('#resources .list').empty()
+        // enforce (re-)loading of full composite user topic in preparation for personal-timeline rendering
+        var user_account = _this.emc.getTopicById(account.id)
+        profile = new User(_this, _this.dict, _this.emc, user_account)
+        profile.setupView($('#profile'))
         //
         var $profile_view = $('#profile')
         profile.renderSettingsEditor($profile_view)
         profile.renderAccountEditor($profile_view)
-
     }
 
-    this.showTimelineElements = function (is_user_timeline) {
-
-        // in any case
-        $("div.content-area").hide()
-        $("body.eduzen").removeClass("note")
-
-        $("div#resources").show()
-        $("div.sidebar").show()
-
-        if (is_user_timeline) {
-            $("div#profile").show()
-        } else {
-            $("div#profile").hide()
-            showTagView()
-        }
-
-        if (CKEDITOR.instances.hasOwnProperty('add_resource')) {
-            CKEDITOR.instances['add_resource'].destroy()
-            console.log("Destroyed CKEditor instance for ADDs")
-        }
-        //
-        if (typeof _this.model.getCurrentUserName() !== 'undefined') {
-            setupCKEditorAdd()
-        }
-    }
-
-    this.showDetailElements = function () {
-        $("body.eduzen").addClass("note")
-        $("div#resources").hide()
-        $("div.sidebar").hide()
-        $("div#profile").hide()
-        $("div.content-area").show()
-        //
-    }
-
-    this.sortCurrentResources = function () {
-        // initially load and sort
-        if (_this.model.isSortedByScore) {
-            _this.model.getAvailableResources().sort(_this.score_sort_asc)
-        } else {
-            _this.model.getAvailableResources().sort(_this.created_at_sort_asc)
-        }
-    }
-
-    this.sortTags = function () {
-        // initially load and sort
-        _this.model.getAvailableTags().sort(_this.name_sort_asc)
-    }
-
-    this.renderProgressBar = function () {
-        var $progressbar = $( "#progressbar" ).progressbar( "widget" );
-            $progressbar.progressbar( "enable" );
-            $progressbar.show()
-            $progressbar.progressbar({value: 10, max: 100});
-    }
-
-    this.hideProgressBar = function () {
-        var $progressbar = $('#progressbar')
-            $progressbar.progressbar({value: 100});
-            $progressbar.progressbar( "disable" );
-            $progressbar.hide()
-    }
-
-    /**
-     * Rendering our interactive page. Either "personal" or "ordinary" and either for "guests" or "authenticated users".
-     */
-
-    this.renderPage = function (user, noteId) {
-
-        // auth-check (potential doublette if setupPageControls was already called)
-        var status = checkLoggedInUser()
-        renderUserinfo()
-
-        $('#progressbar').progressbar({value: 15});
-        // fixme: render upper menu for either personal or ordinary timeline
-        if (user) {
-            renderTimelineButton(user)
-            showTagfilterInfo() // this to clear tag-filter-info view (if this is called after from a filtered-timeline)
-            $('.eduzen .options .tag-filter-info').html('<span class="meta">Alle Beitr&auml;ge von <b>' + user.value + '</b></span>')
-            $('.eduzen .rendered #nav.info').hide()
-            $('.eduzen.notes').addClass('personal')
-            if (user.value === emc.getCurrentUser()) $('.eduzen #menu .username a.btn.my').addClass('pressed')
-            hideTagView()
-
-        } else if (noteId) {
-            //
-            renderTimelineButton(null, noteId)
-            showDetailView() // render detail view
-            //
-        } else {
-            removeTimelineButton()
-            $('.eduzen #menu .username a.btn.my').removeClass('pressed')
-            $('.eduzen.notes').removeClass('personal')
-            // $('.eduzen .rendered #nav.info').show()
-            // render tag specific filter-info header
-            showTagfilterInfo()
-            // render avaialble tag-filter buttons
-            renderTagView('div.sidebar')
-        }
-        $('#progressbar').progressbar({value: 50});
-        //
-        if (status !== null) {
-            setupUserPage()
-            showResultsetView(false)
-            // setupCKEditorAdd()
-            setupTagFieldControls(TAGGING_FIELD_SELECTOR)
-            $('.eduzen #input input.submit').bind('click', _this.doSubmitResource)
-        } else {
-            setupGuestPage()
-            showResultsetView(true)
-        }
-        //
-        $('#progressbar').progressbar({value: 80});
-        _this.skroller.refresh()
-    }
-
-    this.renderLoadMoreButton = function () {
-        var $load_more = undefined
-        if ($('.list .load-more').length == 0) {
-            // create new one
-            $load_more = $('<input type="button" class="load-more" value="Ältere Notizen ..." />')
-            $load_more.click(function(e) {
-                _this.model.page_nr = _this.model.page_nr + 1
-                var offset = _this.model.page_nr * NOTES_LIMIT
-                var resources = emc.loadSomeResources(NOTES_LIMIT, offset, true)
-                $load_more.remove()
-                _this.addToResultList(resources)
-            })
-            //
-            $('#resources .list').append($load_more)
-        }
-    }
-
-    this.renderTimelineButton = function (user_profile, note_id) {
-        var $homeButton = undefined
-            //
-            $homeButton = $('<a class="home-menu-button btn" title="Zur&uuml;ck zur Timeline-Ansicht">Timeline</a>')
-            if (ON_RESOURCE_HTML) $homeButton.attr("href", "/notes")
-            //
-            $homeButton.click(function (e) {
-                if (typeof note_id === "undefined") {
-                    _this.pushDetailViewState(_this.model.getCurrentResource())
-                } else if (typeof user_profile === "undefined") {
-                    _this.pushPersonalViewState(user_profile)
-                } else {
-                    _this.pushTimelineViewState()
-                }
-                _this.initTimeline(true, true)
-                // window.history.back()
-            })
-            $('#menu').append($homeButton)
-    }
-
-    this.removeTimelineButton = function () {
-        $('#menu .home-menu-button').remove()
-    }
-
-    this.setupUserPage = function() {
-        $('.eduzen.notes').removeClass('guest')
-        $('.log-in-message').hide()
-        $('li#input div.header').show()
-        $('div.login-menu').hide()
-        $('a.login-menu-button').hide()
-    }
-
-    this.setupGuestPage = function() {
-        // hide input area
-        $('li#input div.header').hide()
-        $('.log-in-message').show()
-        $('.eduzen.notes').addClass('guest')
-        $('.eduzen .content-area input.submit.btn').unbind('click')
-        _this.model.setCurrentUserName(undefined)
-        _this.model.setCurrentUserTopic(undefined)
-        setupLoginDialog() // fixme: setupGuest avoid duplicates
-    }
-
-    this.setupLoginDialog= function() {
-        $('div.login-menu').remove()
-        $('a.login-menu-button').remove()
-        var $loginMenu = $('<div class="login-menu">')
-        var $username = $('<input type="text" placeholder="Username">')
-            $username.addClass('username-input')
-        var $secret = $('<input type="password" placeholder="Password">')
-            $secret.addClass('secret')
-            $secret.keyup(function (event) {
-                if (event.keyCode === $.ui.keyCode.ENTER) doLogin()
-                return function (e) {}
-            })
-        var $button = $('<input type="button" class="btn login" value="Login">')
-            $button.click(doLogin)
-        var $menuToggle = $('<a class="login-menu-button btn" href="#login">Login</a>')
-            $menuToggle.click(function (e) {
-                $('div.login-menu').toggle()
-                $menuToggle.toggleClass('pressed')
-            })
-
-        $loginMenu.append($username).append($secret).append($button)
-            .append('<span class="message">'
-                + '<a href="http://www.eduzen.tu-berlin.de/zur-notizen-webanwendung#account">Account?</a>'
-                + '</span>')
-        $($menuToggle).insertBefore('a#info')
-        //
-        $('.about-login').html('Um Beitr&auml;ge zu verfassen musst du eingeloggt sein.</div>')
-        //
-        $($loginMenu).insertBefore('a#info')
-
-        function doLogin() {
-            var user = checkUserAuthorization() // login button handler
-            if (user != null) {
-                // _this.initTimeline(false)
-                // _this.pushTimelineViewState()
-                // see checkUserAuthorization() for convenience
-            }
-        }
-
-        function checkUserAuthorization (id, secret) {
-
-            if (id === undefined && secret === undefined) {
-                id = $('input.username-input').val()
-                secret = $('input.secret').val()
-            }
-
-            var authorization = authorization()
-            var response = null
-            if (authorization === undefined) return null
-
-            $.ajax({
-                type: "POST", url: "/accesscontrol/login", headers: {"Authorization": authorization}, async: false
-            }).done(function(e) {
-                _this.initTimeline(false)
-                _this.pushTimelineViewState()
-                response = _this.checkLoggedInUser()
-            }).fail(function(e) {
-                $('div.login-menu .message').addClass("failed")
-                $('div.login-menu .message').text('Nutzername oder Passwort ist falsch.')
-                // _this.renderNotification("The application could not initiate a working session for you.", 403, TIMELINE)
-                // throw new Error("401 - Sorry, the application ccould not establish a user session.")
-                response = null
-            }).always(function(e) {
-                return response
-            })
-
-            /** Returns value for the "Authorization" header. */
-            function authorization() {
-                return "Basic " + btoa(id + ":" + secret)   // ### FIXME: btoa() might not work in IE
-            }
-        }
-    }
-
-    this.showDetailView = function () {
+    this.prepare_detail_view = function () {
         // set page-data
         var creator = _this.getRelatedUserAccount(_this.model.getCurrentResource().id)
         var display_name = creator.value
@@ -366,10 +121,8 @@
             // is most probably an old resource and in any case not locked
             isLocked = false
         }
-        // initalize add tags field
-        // setupTagFieldControls(TAGGING_FIELD_SELECTOR)
-        setupMathJaxRenderer()
         var status = checkLoggedInUser()
+        // ..) Resource is Locked Check
         var $editButton = $('input.submit.btn')
         if (status !== null) {
             var is_author = (creator_name === status) ? true : false
@@ -386,21 +139,15 @@
         } else {
             $editButton.hide()
         }
-        // just got traction when coming from edit view
         $('input.lock').hide()
         $('label.lock').hide()
         //
-        renderUserinfo()
-        renderDetailView()
-
         function setupEditDetailView () {
             //
             if (CKEDITOR.instances.hasOwnProperty('resource_input')) {
                 CKEDITOR.instances['resource_input'].destroy()
-                console.log("Destroyed CKEditor instance for EDITs")
-                console.log(CKEDITOR.instances)
             }
-            setupCKEditor()
+            _this.setup_ckeditor('resource_input')
             renderEditDetailView()
             // todo: add "cancel" button
             var $save = $('input.submit.btn') // save button handler
@@ -418,7 +165,7 @@
                 } else {
                     $('#resource_input').html(sourceData)
                 }
-                if (creator_name === emc.getCurrentUser()) {
+                if (creator_name === _this.emc.getCurrentUser()) {
                     var $check = $('input.lock')
                         $check.attr("checked", isLocked)
                         $check.show()
@@ -427,43 +174,460 @@
                 // skip tags, they are already setup for this resource
                 quickfixPDFImageRendering() // hacketi hack
                 // formula needs to be rendered to be edited..
-                setTimeout(function() {renderMathInArea('resource_input', true)}, 500)
+                setTimeout(function() {process_math_in_area('resource_input', true)}, 500)
             }
         }
 
     }
 
-    this.loadResources = function (pageNr) {
-        // todo: optimize this, maybe we already have all necessary resources here!
-        // finally request resources (by tagIds) for a tag-specific timeline
-        if (_this.model.getTagFilter().length > 1) {
-            // for more than 1 tag
-            emc.loadAllResourcesByTags({tags: _this.model.getTagFilter()})
-            current_view = FILTERED_TIMELINE
-        } else if (_this.model.getTagFilter().length == 1) {
-            // for exactly 1 tag
-            var selectedTag = _this.model.getTagFilter()[0]
-            emc.loadAllResourcesByTagId(selectedTag.id)
-            current_view = FILTERED_TIMELINE
-        } else {
-            // load all resources, could not identify any tag given
-            var offset = (pageNr == undefined) ? offset = 0 : offset = (pageNr * NOTES_LIMIT)
-            emc.loadSomeResources(NOTES_LIMIT, offset, false)
-            current_view = FULL_TIMELINE
+    /** fix: document.location.host */
+    this.render_detail_view = function () {
+
+        var $input_area = $('#resource_input')
+            $input_area.attr("contenteditable", false)
+            // fixme: catch notes without content
+            $input_area.html(_this.model.getCurrentResource().composite[NOTE_CONTENT_URI].value)
+        //
+        $('a.print-view').attr('href', '/notes/' + _this.model.getCurrentResource().id + '/print')
+        var creator = _this.getAccountTopic(_this.model.getCurrentResource())
+        var display_name = creator.value
+        //
+        if (creator.composite.hasOwnProperty('org.deepamehta.identity.display_name')) {
+            display_name = creator.composite['org.deepamehta.identity.display_name'].value
+        }
+        // ### creator-link: now relies on baseUrl (for print-view)
+        var creator_name = (creator == null) ? "Anonymous" : display_name
+        var $creator_link = $('<a title="Gehe zur Timeline von  ' +creator_name+ '" class="btn link">'+creator_name+'</a>')
+            $creator_link.click(function (e) {
+                _this.prepare_profile_page(creator, true, true)
+                _this.pushPersonalViewState(creator)
+            })
+
+        var contributor = _this.emc.getAllContributor(_this.model.getCurrentResource().id)
+        if (contributor != null) {
+            $('b.contributor.label').text("Mitwirkende:")
+            var $contribs = $('span.contributor')
+                $contribs.empty()
+            for (var key in contributor) {
+                var user = contributor[key]
+                // ### contributor-link: now relies on baseUrl (for print-view)
+                var $contributor_link = $('<a id="' +user.id+ '" title="Besuche ' + user.value + 's Timeline" '
+                     + 'class="btn link">' +user.value+ '</a>').append("&nbsp;")
+                    $contributor_link.click(function (e) {
+                        var profile_id = e.target.id
+                        var profile = _this.emc.getTopicById(profile_id)
+                        _this.prepare_profile_page(profile, true, true)
+                        _this.pushPersonalViewState(profile)
+                    })
+                $contribs.append($contributor_link)
+            }
         }
         //
-        sortCurrentResources()
+        var created_at = new Date(_this.model.getCurrentResource().composite[CREATED_AT_URI].value)
+        var last_modified_at  = new Date(_this.model.getCurrentResource().composite[LAST_MODIFIED_URI].value)
+        if (created_at) {
+            $('b.header-title').text(
+                created_at.getDate() + "." + dict.monthNames[created_at.getMonth()] +" "+ created_at.getFullYear()
+            )
+        }
+        if ($creator_link) {
+            $('.content-area .creator').html($creator_link)
+        }
+        if (last_modified_at) {
+            $('b.header-title').append(', <b class="label">zuletzt bearbeitet am</b> ' +
+                last_modified_at.getDate() + "." + dict.monthNames[last_modified_at.getMonth()] +" "+ last_modified_at.getFullYear()
+            )
+        }
+        // show tags for resource
+        // tag-link: now relies on baseUrl (for print-view)
+        var currentTags = _this.model.getCurrentResource().composite[TAG_URI]
+        $('#tags').empty()
+        if (currentTags != undefined) {
+            for (var i=0; i < currentTags.length; i++) {
+                var tag = currentTags[i]
+                $('#tags').append('<a class="btn tag" title="Browse all notes tagged with ' +tag.value+ '" '
+                    + 'href="http://' +document.location.host+ '/notes/tagged/' +tag.value+ '">' +tag.value+ '</a>&nbsp;')
+                // <img src="/de.deepamehta.tags/images/tag_32.png" width="20"' + 'alt="Tag: '+tag.value+'">'
+            }
+        }
+        process_math_in_area("resource_input", false)
+        quickfixPDFImageRendering() // hacketi hack
     }
 
+    this.render_result_view = function (is_profile_view) {
+
+        $('#list-message').html('<br/><br/><b class="label">Calculating results</b>')
+        var results = _this.model.getAvailableResources()
+        if (is_profile_view) {
+            results = _this.model.getProfileResources()
+        }
+        //
+        if (results.length > 0) {
+            $('#list-message').html("")
+            var $resultlist = $('#resources .list')
+            // .. ) insert or remove input-aarea item
+            if (_this.is_logged_in()) {
+                $resultlist.html(_this.create_input_item_view())
+                // ..) create input view
+                setup_ckeditor('add_resource')
+                setupTagFieldControls(TAGGING_FIELD_SELECTOR)
+                $('.eduzen #input input.submit').bind('click', _this.doSubmitResource)
+            } else {
+                $resultlist.empty()
+            }
+            // ..) insert complete resultset
+            $.each(results, function (e, item) {
+                var $topic = _this.create_result_item_view(item)
+                $resultlist.append($topic)
+            })
+            // ..) render math elements in html-resultset
+            process_math_in_area("resources")
+            quickfixPDFImageRendering() // hacketi hack
+            _this.render_load_more_button()
+        } else {
+            $('#list-message').html('<br/><br/><b class="label">No posts to show.</b>')
+            $('.result-text').text('')
+        }
+
+    }
+
+    this.render_load_more_button = function () {
+        // render just on this view
+        if (current_view == FULL_TIMELINE) {
+            var $load_more = undefined
+            if ($('.list .load-more').length == 0) {
+                // create new one
+                $load_more = $('<input type="button" class="load-more" value="Ältere Notizen ..." />')
+                $load_more.click(function(e) {
+                    _this.append_page_to_result_view()
+                })
+                $('#resources .list').append($load_more)
+            }
+        }
+    }
+
+    _this.append_page_to_result_view = function () {
+        $('.list .load-more').remove()
+        _this.model.page_nr = _this.model.page_nr + 1
+        var offset = _this.model.page_nr * NOTES_LIMIT
+        console.log("Appending page " + _this.model.page_nr + " to current result_set, offset is " + offset)
+        _this.show_progress_bar()
+        var resources = _this.emc.loadSomeResources(NOTES_LIMIT, offset, true) // true == append
+        _this.add_to_resultlist_view(resources)
+        _this.hide_progress_bar()
+    }
+
+    this.render_toolbar = function () {
+
+        _this.render_user_info()
+
+        if (current_view == DETAIL_VIEW ||
+            current_view == PERSONAL_TIMELINE) {
+            var $homeButton = undefined
+                //
+                $homeButton = $('<a class="home-menu-button btn" title="Zur&uuml;ck zur Timeline-Ansicht">Timeline</a>')
+                $homeButton.click(function (e) {
+                    _this.prepare_index_page(true, true)
+                    _this.pushTimelineViewState()
+                })
+            $('#menu').append($homeButton)
+        } else {
+            $('#menu .home-menu-button').remove()
+        }
+    }
+
+    this.render_tag_filter_info = function () {
+        var tags = _this.model.getTagFilter()
+        if (tags.length == 0) {
+            $('.tag-filter-info').empty()
+            return undefined
+        }
+        // fixme: hide login-dialog if present, cause these two overlap..
+        $('div.login-menu').hide() // ### removal to be checked
+        $('a.login-menu-button').removeClass('pressed')
+        var tagsLength = _this.model.getAvailableResources().length
+        var filterMessage = ""
+        if (tagsLength > 1) {
+            filterMessage = '<b>' + tagsLength +'</b> Beitr&auml;ge getagged mit'
+        } else {
+            filterMessage = '<b>' + tagsLength +'</b> Beitrag getagged mit'
+        }
+        var $filterMeta = $('<span class="meta">'+ filterMessage +'</span>')
+        var $filterButtons = $('<span class="buttons"></span>')
+        for (var i=0; i < tags.length; i++) {
+            var $closeButton = $('<a id="' +tags[i].id+ '" class="close" title="Tag aus dem Filter entfernen">x</a>')
+                $closeButton.click(function (e) {
+                    var tagId = parseInt(e.target.id)
+                    var tag = _this.model.getTagById(tagId)
+                    _this.model.removeTagFromFilter(tag)
+                    // ### find better solution than to reald if this was the last tag in our filter
+                    if (_this.model.getTagFilter().length == 0) {
+                        _this.model.setAvailableResources([]) // this forces a re-initialization of main-timeline
+                    }
+                    _this.prepare_index_page(true, true)
+                    _this.pushTimelineViewState()
+                })
+            var $tagButton = $('<a class="btn tag selected">' +tags[i].value+ '</a>')
+                $tagButton.append($closeButton)
+            $filterButtons.append($tagButton)
+        }
+        var $clearButton = $('<a class="reset btn" title="Alle Tags aus dem Filter entfernen">')
+            .html('Filter zur&uuml;cksetzen')
+            $clearButton.click(function(e) {
+                // prepare model
+                _this.model.setTagFilter([])
+                // ### find better solution than to reset allAvailableResources
+                // cause: if application is initialized with a tagged timeline
+                //        allAvailableResources are very limited, thus we need to reset it to fetch at least latest 15
+                _this.model.setAvailableResources([]) // this forces a re-initialization of main-timeline
+                _this.prepare_index_page(true, true)
+                _this.pushTimelineViewState()
+            })
+        $('.tag-filter-info').html($filterMeta).append($clearButton).append($filterButtons)
+        return null
+    }
+
+    this.render_tag_items = function (parent_selector) {
+        // setup components _this.model
+        var tagsToShow = undefined
+        if (_this.model.getTagFilter().length == 0) {
+            // filter not set, list all available tags as filter-options
+            tagsToShow = _this.model.getAvailableTags()
+        } else {
+            // filter set, render all tags in current results
+            tagsToShow = getAllTagsInCurrentResults()
+            tagsToShow = sliceAboutFilteredTags(tagsToShow)
+        }
+        // in any case, show tag-view area
+        // ### $('.eduzen #nav.info').show()
+        $('.tag-cloud-header').html('Filter Beitr&auml;ge nach Tags')
+        // render tag ui/dialog
+        if (tagsToShow.length > 0) {
+            var $tagview = undefined
+            if ($(parent_selector + ' .info div.tag-list').length == 0) {
+                // create ui/dialog
+                $tagview = $('<div class="tag-list">')
+                // place ui/dialog in info area of our timeline-view
+                $(parent_selector + ' .info').append($tagview)
+            } else {
+                // clean up ui/dialog
+                // $('div.timeline .info').empty()
+                $(parent_selector + ' .info div.tag-list a').remove()
+                $tagview = $(parent_selector + ' .info div.tag-list')
+            }
+            $(parent_selector + ' .info div.tag-list').show()
+            // render all tags as buttons into our ui/dialog
+            render_tag_buttons($tagview, tagsToShow)
+        } else {
+            // clean up ui/dialog
+            $(parent_selector + ' .info div.tag-list a').remove()
+            $(parent_selector + ' .info div.tag-list').hide()
+        }
+
+    }
+
+    this.render_tag_buttons = function ($parent, tags) {
+        //
+        if (tags == undefined) return undefined
+        for (var i=0; i < tags.length; i++) {
+            var element = tags[i]
+            var $tag = $('<a id="' +element.id+ '" class="btn tag" title="Filter Timeline nach '+element.value+'">'
+                + element.value + '</a>')
+            // the event handler, if a filter-request is made
+            $tag.click(function (e) {
+                var tagId = e.target.id
+                // remove the clicked button from the filter dialog
+                $("a#" + tagId).remove()
+                // prepare new page model
+                var selectedTag = _this.model.getTagById(tagId)
+                _this.model.addTagToFilter(selectedTag)
+                // go to updated view
+                _this.prepare_index_page(true, true)
+                // fixme: formerly here were just (optimal) view updates
+                _this.pushTimelineViewState()
+
+            })
+            $parent.append($tag)
+        }
+        return null
+    }
+
+
+
+    /** --- GUI Helpers --- **/
+
+    this.render_current_view = function () {
+        if (current_view == DETAIL_VIEW) {
+            _this.prepare_detail_page(_this.model.getCurrentResource().id);
+        } else if (current_view == PERSONAL_TIMELINE) {
+            var profile = _this.emc.getTopicById(_this.model.getCurrentProfileId())
+            _this.prepare_profile_page(profile);
+        } else if (current_view == FILTERED_TIMELINE ||
+                   current_view == FULL_TIMELINE) {
+            _this.prepare_index_page(false, false)
+        }
+    }
+
+    this.show_timeline_elements = function (is_user_timeline) {
+        $("div.content-area").hide()
+        $("div#resources").show()
+        $("div.sidebar").show()
+        $("body.eduzen").removeClass("note")
+        if (is_user_timeline) {
+            $("body.eduzen").addClass("personal")
+            $("div#profile").show()
+            $('.eduzen #nav.info').hide()
+        } else {
+            $("body.eduzen").removeClass("personal")
+            $("div#profile").hide()
+            $('.eduzen #nav.info').show()
+        }
+    }
+
+    this.show_detail_elements = function () {
+        $("body.eduzen").addClass("note")
+        $("body.eduzen").removeClass("personal")
+        $("div#resources").hide()
+        $("div.sidebar").hide()
+        $("div#profile").hide()
+        $('.eduzen #nav.info').hide()
+        $("div.content-area").show()
+    }
+
+    this.show_progress_bar = function () {
+        var $progressbar = $( "#progressbar" ).progressbar( "widget" );
+            $progressbar.progressbar( "enable" );
+            $progressbar.show()
+            $progressbar.progressbar({value: 10, max: 100});
+    }
+
+    this.hide_progress_bar = function () {
+        var $progressbar = $('#progressbar')
+            $progressbar.progressbar({value: 100});
+            $progressbar.progressbar( "disable" );
+            $progressbar.hide()
+    }
+
+    this.create_login_view = function() {
+        $('div.login-menu').remove()
+        $('a.login-menu-button').remove()
+        var $loginMenu = $('<div class="login-menu">')
+        var $username = $('<input type="text" placeholder="Username">')
+            $username.addClass('username-input')
+        var $secret = $('<input type="password" placeholder="Password">')
+            $secret.addClass('secret')
+            $secret.keyup(function (event) {
+                if (event.keyCode === $.ui.keyCode.ENTER) check_authorization()
+                return function (e) {}
+            })
+        var $button = $('<input type="button" class="btn login" value="Login">')
+            $button.click(check_authorization)
+        var $menuToggle = $('<a class="login-menu-button btn" href="#login">Login</a>')
+            $menuToggle.click(function (e) {
+                $('div.login-menu').toggle()
+                $menuToggle.toggleClass('pressed')
+            })
+        $loginMenu.append($username).append($secret).append($button)
+            .append('<span class="message">'
+                + '<a href="http://www.eduzen.tu-berlin.de/zur-notizen-webanwendung#account">Account?</a>'
+                + '</span>')
+        $menuToggle.insertBefore('div.pages')
+        $loginMenu.insertBefore('div.pages')
+        $('.about-login').html('Um Beitr&auml;ge zu verfassen musst du eingeloggt sein.</div>')
+
+        function check_authorization (id, secret) {
+
+            if (id === undefined && secret === undefined) {
+                id = $('input.username-input').val()
+                secret = $('input.secret').val()
+            }
+
+            var authorization = authorization()
+            var response = null
+            if (authorization === undefined) return null
+
+            $.ajax({
+                type: "POST", url: "/accesscontrol/login", headers: {"Authorization": authorization}, async: false
+            }).done(function(e) {
+                _this.render_current_view()
+                response = _this.checkLoggedInUser()
+            }).fail(function(e) {
+                $('div.login-menu .message').addClass("failed")
+                $('div.login-menu .message').text('Nutzername oder Passwort ist falsch.')
+                // _this.notify_browser("The application could not initiate a working session for you.", 403, TIMELINE)
+                // throw new Error("401 - Sorry, the application ccould not establish a user session.")
+                response = null
+            }).always(function(e) {
+                return response
+            })
+
+            /** Returns value for the "Authorization" header. */
+            function authorization() {
+                return "Basic " + btoa(id + ":" + secret)   // ### FIXME: btoa() might not work in IE
+            }
+        }
+    }
+
+    this.load_resources = function (pageNr) {
+        if (_this.model.getTagFilter().length > 1) {            // for more than 1 tag
+            _this.emc.loadAllResourcesByTags({tags: _this.model.getTagFilter()})
+            current_view = FILTERED_TIMELINE
+        } else if (_this.model.getTagFilter().length == 1) {    // for exactly 1 tag
+            var selectedTag = _this.model.getTagFilter()[0]
+            _this.emc.loadAllResourcesByTagId(selectedTag.id)
+            current_view = FILTERED_TIMELINE
+        } else {
+            // load first page of resources (but just if no resources are avaiable..)
+            if (_this.model.getAvailableResources().length <= 1) { // 1 it is if initial view was a (saved) detail-view
+                _this.emc.loadSomeResources(NOTES_LIMIT, 0, false) // false == append
+            }
+            current_view = FULL_TIMELINE
+        }
+    }
+
+    this.load_contributions = function (userId) {
+        // load contributed resources (but just if no resources are avaiable..) for this user
+        if (_this.model.getProfileResources().length == 0 ||
+            _this.model.getProfileResourcesId() != userId) {
+            _this.emc.loadAllContributions(userId)
+        }
+    }
+
+    /** --- Page Model Helpers ---**/
+
+    this.sort_available_resources = function () {
+        if (_this.model.isSortedByScore) {
+            _this.model.getAvailableResources().sort(_this.score_sort_asc)
+        } else {
+            _this.model.getAvailableResources().sort(_this.created_at_sort_asc)
+        }
+    }
+
+    this.sort_contributed_resources = function () {
+        if (_this.model.isSortedByScore) {
+            _this.model.getProfileResources().sort(_this.score_sort_asc)
+        } else {
+            _this.model.getProfileResources().sort(_this.created_at_sort_asc)
+        }
+    }
+
+    this.sort_current_tags = function () {
+        _this.model.getAvailableTags().sort(_this.name_sort_asc)
+    }
+
+    /** @see 1. done of LOGIN, 2. to see if Resource is locked by current username */
     this.checkLoggedInUser = function () {
-        // var password = ""
-        // var username = "admin"
-        var loggedIn = emc.getCurrentUser()
+        var loggedIn = _this.emc.getCurrentUser() // gets current username ?
         if (loggedIn !== "") {
-            _this.getLoggedInUserTopic(loggedIn)
             return loggedIn
         }
         return null
+    }
+
+    /** checks if user is logged in and (if so) sets username of logged in user to*/
+    this.is_logged_in = function () {
+        var loggedIn = _this.emc.getCurrentUser()
+        return (loggedIn !== "") ? true : false
     }
 
     this.setDefaultWorkspaceCookie = function () {
@@ -471,45 +635,48 @@
         js.set_cookie("dm4_workspace_id", workspaceTopic.id)
     }
 
-    this.getLoggedInUserTopic = function (username) {
-        _this.model.setCurrentUserName(username)
-        var userTopic = emc.getCurrentUserTopic()
-        _this.model.setCurrentUserTopic(userTopic)
+    /** fixme: why do we need a username based account model? */
+    this.getLoggedInUserTopic = function () {
+        return _this.emc.getCurrentUserTopic()
     }
 
-    this.renderUserinfo = function () {
+    this.render_user_info = function () {
 
         var $username = $('.username')
-        var name = _this.model.getCurrentUserName()
+        if (!_this.is_logged_in()) {
 
-        if (typeof name === 'undefined') {
             $username.text('Willkommen')
-            if (current_view === DETAIL_VIEW) $username.hide()
+
+            // ..) hide input view
+            $('li#input div.header').hide()
+            $('.log-in-message').show()
+            $('.eduzen.notes').addClass('guest')
+            $('.eduzen .content-area input.submit.btn').unbind('click')
+            _this.create_login_view()
+
         } else {
-            var user = _this.model.getCurrentUserTopic()
-            // fixme: we have currently 2 different buttons, depending on the current view
-            var $my = $('<a class="btn my" title="Zeige meine Beitr&auml;ge">' + name+ '</a>')
-            if (current_view === DETAIL_VIEW ){
-                $my.attr("href", "/notes/user/" + user.id)
-            } else {
+
+            // ..) hide login view
+            $('.eduzen.notes').removeClass('guest')
+            $('.log-in-message').hide()
+            $('div.login-menu').hide()
+            $('a.login-menu-button').hide()
+            $('li#input div.header').show()
+
+            // create user-profile button for logged in user
+            var user = _this.emc.getCurrentUserTopic()
+            var $my = $('<a class="btn my" title="Zeige meine Beitr&auml;ge">' + user.value+ '</a>')
                 $my.click(function (e) {
-                    _this.initPersonalTimeline(user, true, true)
+                    _this.prepare_profile_page(user, true, true)
                     _this.pushPersonalViewState(user)
                 })
-            }
-            //
+            // create logout button
             $username.html('Hi').append($my)
-
             var $logout = $('<a class="btn logout" title="Session beenden">Logout</a>')
                 $logout.click(function (e) {
-                    if (emc.logout()) {
-                        _this.model.setCurrentUserTopic(undefined)
-                        _this.model.setCurrentUserName(undefined)
-                        $("body").html("You're logged out now. <br/><br/><a href=\"/\">Reload Application</a>")
-                    } else {
-                        _this.model.setCurrentUserTopic(undefined)
-                        _this.model.setCurrentUserName(undefined)
-                        renderPage()
+                    if (_this.emc.logout()) {
+                        $("body").html("<div class=\"logout-message\">You're logged out now.<br/>"
+                            + "<br/><a href=\"/\">Reload Application</a></div>")
                     }
                 })
             $username.append($logout)
@@ -552,152 +719,46 @@
 
     }
 
-    this.setupPageControls = function () {
-        // setting up sort-controls and input button
+    /** rneame: create_page_controls and move up? */
+    this.setup_timeline_controls = function (on_profile) {
+
+        // 1) setting up sort-controls and input button
+        $(".onoffswitch-label").unbind('click')
         $(".onoffswitch-label").click(function (e) {
-            if (_this.model.isSortedByScore) { // turn toggle-off
-                // $("a#most-popular").removeClass("selected")
-                _this.model.setAvailableResources(getAlphabeticalResources())
-                // _this.model.setTagFilter([]) // fixme: allow during filtering
-                _this.model.isSortedByScore = false // set resultset sorting flag
-            } else { // turn toggle-on
-                // $("a#most-popular").addClass("selected")  //
-                // just sort all currently existing resources (client-side)
-                _this.model.setAvailableResources(getHighestResources())
-                // _this.model.setTagFilter([]) // fixme: allow during filtering
-                _this.model.isSortedByScore = true // set resultset sorting flag
+            // define click-handler
+            if (_this.model.isSortedByScore) { // A) turn score-toggle OFF
+                if (on_profile) {
+                    _this.model.setProfileResources(getAlphabeticalContributions())
+                } else {
+                    _this.model.setAvailableResources(getAlphabeticalAvailable())
+                }
+                _this.model.isSortedByScore = false
+            } else { // B) turn score-toggle ON
+                if (on_profile) {
+                    _this.model.setProfileResources(getHighestContributions())
+                } else {
+                    _this.model.setAvailableResources(getHighestAvailable())
+                }
+                _this.model.isSortedByScore = true
             }
-            // fixme: this is a partial, more efficient page-update hack, which does not us our routing
-            if (checkLoggedInUser() !== null) {
-                // render loaded resources in timeline
-                showResultsetView(false)
-            } else {
-                // render loaded resources in timeline
-                showResultsetView(true)
-            }
+            // 2) re-paint sorted result-list fixme: this is a partial, more efficient page-update hack
+            _this.render_result_view(on_profile)
         })
-    }
-
-    /** fix: application_host in...
-     *  - meta property="og:url"
-     *  - a.source-info text
-     *  - a.source-info href
-     * */
-    this.renderDetailView = function () {
-
-        var $input_area = $('#resource_input')
-            $input_area.attr("contenteditable", false)
-            // set content of resource
-            // fixme: catch notes without content
-            $input_area.html(_this.model.getCurrentResource().composite[NOTE_CONTENT_URI].value)
-        //
-        $('a.print-view').attr('href', '/notes/' + _this.model.getCurrentResource().id + '/print')
-        var creator = _this.getAccountTopic(_this.model.getCurrentResource())
-        var display_name = creator.value
-        //
-        if (creator.composite.hasOwnProperty('org.deepamehta.identity.display_name')) {
-            display_name = creator.composite['org.deepamehta.identity.display_name'].value
-        }
-        // creator-link: now relies on baseUrl (for print-view)
-        var creator_name = (creator == null) ? "Anonymous" : display_name
-        var creator_link = '<a title="Gehe zur Timeline von  ' +creator_name+ '" href="http://' +application_host+ '/notes/user/' +creator.id+ '">'+creator_name+'</a>'
-
-        var contributor = emc.getAllContributor(_this.model.getCurrentResource().id)
-        if (contributor != null) {
-            $('b.contributor.label').text("Mitwirkende:")
-            var $contribs = $('span.contributor')
-                $contribs.empty()
-            for (var key in contributor) {
-                var user = contributor[key]
-                // contributor-link: now relies on baseUrl (for print-view)
-                var contributor_link = '<a title="Besuche '+user.value+'s Timeline" href="http://' +application_host+ '/notes/user/' +user.id+ '">'+user.value+'</a>&nbsp;'
-                $contribs.append(contributor_link)
-            }
-        }
-        //
-        var created_at = new Date(_this.model.getCurrentResource().composite[CREATED_AT_URI].value)
-        var last_modified_at  = new Date(_this.model.getCurrentResource().composite[LAST_MODIFIED_URI].value)
-        if (created_at) {
-            $('b.header-title').text(
-                created_at.getDate() + "." + dict.monthNames[created_at.getMonth()] +" "+ created_at.getFullYear()
-            )
-        }
-        if (creator_link) {
-            $('.content-area .creator').html(creator_link)
-        }
-        if (last_modified_at) {
-            $('b.header-title').append(', <b class="label">zuletzt bearbeitet am</b> ' +
-                last_modified_at.getDate() + "." + dict.monthNames[last_modified_at.getMonth()] +" "+ last_modified_at.getFullYear()
-            )
-        }
-        // show tags for resource
-        // tag-link: now relies on baseUrl (for print-view)
-        var currentTags = _this.model.getCurrentResource().composite[TAG_URI]
-        $('#tags').empty()
-        if (currentTags != undefined) {
-            for (var i=0; i < currentTags.length; i++) {
-                var tag = currentTags[i]
-                $('#tags').append('<a class="btn tag" title="Browse all notes tagged with ' +tag.value+ '" '
-                    + 'href="http://' +application_host+ '/notes/tagged/' +tag.value+ '">' +tag.value+ '</a>&nbsp;')
-                // <img src="/de.deepamehta.tags/images/tag_32.png" width="20"' + 'alt="Tag: '+tag.value+'">'
-            }
-        }
-        renderMathInArea("resource_input", false)
-        quickfixPDFImageRendering() // hacketi hack
-    }
-
-    this.showResultsetView = function (guest) {
-        // future needed variations showResultsetView will be:
-        // a) load the latest 30 resources b) load the 30 most popular resources
-        // c) load all resources with _one_ given tag d) load all resources with _two_ given tags
-        // e) load all resources with _three_ given tags
-
-        $('#list-message').html('<br/><br/><b class="label">Calculating results</b>')
-        if (_this.model.getAvailableResources().length > 0) {
-            $('#list-message').html("")
-        } else {
-            $('#list-message').html('<br/><br/><b class="label">No posts to show.</b>')
-            $('.result-text').text('')
-        }
-        renderResultList(guest)
-    }
-
-    this.renderResultList = function (guest) {
-        var results = _this.model.getAvailableResources()
-        /** $(".result-count").text(results.length + " Ergebnis/se ")
-        $('.result-text').text('sortiert') **/
-        //
-        var $resultlist = $('#resources .list')
-        if (!guest) {
-            $resultlist.html(_this.setupInputListItem())
-        } else {
-            $resultlist.empty()
-        }
-        $.each(results, function (e, item) {
-            var $topic = setupResultListItem(item)
-            $resultlist.append($topic)
-        })
-        // $('div.results').html($resultlist)
-        // render math in the whole page
-        renderMathInArea("resources")
-        quickfixPDFImageRendering() // hacketi hack
-        _this.skroller.refresh()
 
     }
 
-    this.addToResultList = function (items) {
+    this.add_to_resultlist_view = function (items) {
         var $resultlist = $('#resources .list')
         $.each(items, function (e, item) {
-            var $topic = setupResultListItem(item)
+            var $topic = _this.create_result_item_view(item)
             $resultlist.append($topic)
         })
-        renderMathInArea("resources")
+        _this.render_load_more_button()
+        process_math_in_area("resources")
         quickfixPDFImageRendering() // hacketi hack
-        // _this.skroller.refresh()
-
     }
 
-    this.setupInputListItem = function () {
+    this.create_input_item_view = function () {
         return ''
         + '<li id="input">'
             + '<div class="header">'
@@ -721,10 +782,10 @@
         + '</li>'
     }
 
-    this.setupResultListItem = function (item) {
+    this.create_result_item_view = function (item) {
 
         var $item_dom = $("li#" + item.id) // creates a new DOMElement
-        return new NoteItemRenderer(item, _this).create($item_dom) // sets up new item in DOMElement
+        return new NoteItemRenderer(item, _this).render($item_dom) // sets up new item in DOMElement
         // and the caller appends newly set up item in DOM?
         // new MoodleItemRenderer(item).render($item_dom)
 
@@ -743,33 +804,10 @@
         })
     }
 
-    this.setupCKEditor = function () {
-
-        // setup cK-Editor help
-        $('.header a.help').click(function (e) {
-            $('.header .help.info').toggle()
-            $('.header .help.info').click(function (e) {
-                $('.header .help.info').toggle()
-            })
-        })
-        // upload-fallback: $(".button.upload").click(this.open_upload_dialog(uploadPath, this.handleUploadResponse))
-        // mathjax preview handling
-        var $input = $('#resource_input')
-            $input.attr('contenteditable', true)
-
-        if (!CKEDITOR.instances.hasOwnProperty('resource_input')) { // initialize if not present
-            CKEDITOR.inline( document.getElementById( 'resource_input' ) )
-            console.log("initializing CKEditor for EDITs")
-        } else {
-            console.warn("CKEditor was already setup for EDITs")
-            console.log(CKEDITOR.instances)
+    this.setup_ckeditor = function (element_id) {
+        if (CKEDITOR.instances.hasOwnProperty(element_id)) {
+            CKEDITOR.instances[element_id].destroy()
         }
-        // extend/back the global CKEditor instance with a reference to our application model
-        CKEDITOR.app_model = _this.model
-    }
-
-    this.setupCKEditorAdd = function () {
-
         // setup cK-Editor help
         $('.header a.help').click(function (e) {
             $('.header .help.info').toggle()
@@ -777,17 +815,15 @@
                 $('.header .help.info').toggle()
             })
         })
-        // mathjax preview handling
-        var $input = $('#add_resource')
+        var $input = $('#'+element_id)
             $input.attr('contenteditable', true)
-
         // check if initialization was successfull
-        if (!CKEDITOR.instances.hasOwnProperty('add_resource')) { // initialize if not present
-            console.log("initializing CKEditor for ADDs")
-            CKEDITOR.inline( document.getElementById( 'add_resource' ) )
-        } else {
-            console.warn("CKEditor was already setup for ADDs")
-            console.log(CKEDITOR.instances)
+        if (!CKEDITOR.instances.hasOwnProperty(element_id)) { // initialize if not present
+            CKEDITOR.inline( document.getElementById(element_id) )
+            CKEDITOR.instances[element_id].selectionChange = function () {
+                // all formula needs to get an edit-handle .. setup mathjax preview handling
+                _this.process_math_in_area(element_id, true)
+            }
         }
         // extend/back the global CKEditor instance with a reference to our application model
         CKEDITOR.app_model = _this.model
@@ -813,19 +849,21 @@
             "skipStartupTypeset": false,
             "elements": ["resource_input, add_resource, math-live-preview, resources"]
         });
-        // console.log("testing to get at an iframe.. into mathJax rendering")
-        // console.log($(".cke_wysiwyg_frame").context.childNodes[1].childNodes[2])
+        MathJax.Hub.Register.StartupHook("TeX Jax Ready", function () {
+            _this.notify_browser("Die Mathe-TeX Umgebung wurde soeben geladen und kann jetzt benutzt werden.", OK)
+        })
         MathJax.Hub.Configured() // bootstrap mathjax.js lib now
         MathJax.Hub.Typeset()
     }
 
-    this.renderMathInArea = function (identifier, editable) {
+    this.process_math_in_area = function (identifier, editable) {
         // typeset all elements containing TeX to SVG or HTML in designated area
         MathJax.Hub.Queue(["Typeset", MathJax.Hub, identifier]);
         if (editable) {
             // registering selection-handler on all visible formulas
+            $('div.math-output').unbind('click')
+            $('div.math-output').unbind('dblclick')
             $('div.math-output').click(function(e) {
-
                 var previous = _this.model.getSelectedFormula()
                 if (_this.model.getSelectedFormula() != undefined) {
                     _this.deselectEditableFormula(previous)
@@ -836,7 +874,6 @@
                 }
                 //
                 CKEDITOR.instances[identifier].selectionChange()
-
             })
 
             $('div.math-output').dblclick(function(e) {
@@ -857,160 +894,26 @@
         $(element).addClass('selected')
     }
 
-    this.showTagButtons = function ($parent, tags) {
-        //
-        if (tags == undefined) return undefined
-        for (var i=0; i < tags.length; i++) {
-            var element = tags[i]
-            var $tag = $('<a id="' +element.id+ '" class="btn tag" title="Filter Timeline nach '+element.value+'">'
-                + element.value + '</a>')
-            // the event handler, if a filter-request is made
-            $tag.click(function (e) {
-                var tagId = e.target.id
-                // remove the clicked button from the filter dialog
-                $("a#" + tagId).remove()
-                // prepare new page model
-                var selectedTag = _this.model.getTagById(tagId)
-                _this.model.addTagToFilter(selectedTag)
-                // go to updated view
-                _this.initTimeline(true, true)
-                // fixme: formerly here were just (optimal) view updates
-                _this.pushTimelineViewState()
-
-            })
-            $parent.append($tag)
-        }
-        return null
+    this.notify_browser = function (message, errorCode, area, css_class, time, callback) {
+        (errorCode == OK) ? console.log(message) :  console.warn(message)
     }
 
-    this.renderTagView = function (parent_selector) {
-
-        // setup components _this.model
-        var tagsToShow = undefined
-        if (_this.model.getTagFilter().length == 0) {
-            // filter not set, list all available tags as filter-options
-            tagsToShow = _this.model.getAvailableTags()
-        } else {
-            // filter set, render all tags in current results
-            tagsToShow = getAllTagsInCurrentResults()
-            tagsToShow = sliceAboutFilteredTags(tagsToShow)
-        }
-        // in any case, show tag-view area
-        $('.eduzen #nav.info').show()
-        $('.tag-cloud-header').html('Filter Beitr&auml;ge nach Tags')
-        // render ui/dialog
-        if (tagsToShow.length > 0) {
-
-            var $tagview = undefined
-            if ($(parent_selector + ' .info div.tag-list').length == 0) {
-                // create ui/dialog
-                $tagview = $('<div class="tag-list">')
-                // place ui/dialog in info area of our timeline-view
-                $(parent_selector + ' .info').append($tagview)
-            } else {
-                // clean up ui/dialog
-                // $('div.timeline .info').empty()
-                $(parent_selector + ' .info div.tag-list a').remove()
-                $tagview = $(parent_selector + ' .info div.tag-list')
-            }
-            $(parent_selector + ' .info div.tag-list').show()
-            // render all tags as buttons into our ui/dialog
-            showTagButtons($tagview, tagsToShow)
-        } else {
-            // clean up ui/dialog
-            $(parent_selector + ' .info div.tag-list a').remove()
-            $(parent_selector + ' .info div.tag-list').hide()
-        }
-
-    }
-
-    this.hideTagView = function () {
-        $('.eduzen #nav.info').hide()
-    }
-
-    this.showTagView = function () {
-        $('.eduzen #nav.info').show()
-    }
-
-    this.emptyTagfilterInfo = function () {
-        $('.tag-filter-info').empty()
-    }
-
-    this.showTagfilterInfo = function () {
-        var tags = _this.model.getTagFilter()
-        if (tags.length == 0) {
-            $('.tag-filter-info').empty()
-            return undefined
-        }
-        // fixme: hide login-dialog if present, cause these two overlap..
-        $('div.login-menu').hide() // ### removal to be checked
-        $('a.login-menu-button').removeClass('pressed')
-        var tagsLength = _this.model.getAvailableResources().length
-        var filterMessage = ""
-        if (tagsLength > 1) {
-            filterMessage = '<b>' + tagsLength +'</b> Beitr&auml;ge getagged mit'
-        } else {
-            filterMessage = '<b>' + tagsLength +'</b> Beitrag getagged mit'
-        }
-        var $filterMeta = $('<span class="meta">'+ filterMessage +'</span>')
-        var $filterButtons = $('<span class="buttons"></span>')
-        for (var i=0; i < tags.length; i++) {
-            var $closeButton = $('<a id="' +tags[i].id+ '" class="close" title="Tag aus dem Filter entfernen">x</a>')
-                $closeButton.click(function (e) {
-                    var tagId = parseInt(e.target.id)
-                    var tag = _this.model.getTagById(tagId)
-                    _this.model.removeTagFromFilter(tag)
-                    _this.initTimeline(true, true)
-                    _this.pushTimelineViewState()
-                })
-            var $tagButton = $('<a class="btn tag selected">' +tags[i].value+ '</a>')
-                $tagButton.append($closeButton)
-            $filterButtons.append($tagButton)
-        }
-        var $clearButton = $('<a class="reset btn" title="Alle Tags aus dem Filter entfernen">')
-            .html('Filter zur&uuml;cksetzen')
-            $clearButton.click(function(e) {
-                // prepare model
-                _this.model.setTagFilter([])
-                // go to new view
-                _this.initTimeline(true, true)
-                _this.pushTimelineViewState()
-            })
-        $('.tag-filter-info').html($filterMeta).append($clearButton).append($filterButtons)
-
-        return null
-    }
-
-    this.renderNotification = function (message, errorCode, area, css_class, time, callback) {
-
-        // construct dialog
-        var $closeButton = $('<a class="btn hide-message">x</a>')
-            $closeButton.click(function (e) {$("#"+area).hide()})
-        // set message
-        if (errorCode == OK) {
-            $("#"+area).html(message).append($closeButton)
-        } else {
-            $("#"+area).html(message + "("+errorCode+")").append($closeButton)
-        }
-        // animation
-        $("#"+area).fadeIn(time, function () {
-            if (errorCode === OK) {
-                // render a nice message
-                $(this).removeClass().addClass(css_class).delay(2000).fadeOut(time, callback)
-            } else {
-                // render a nasty message
-                $(this).removeClass().addClass(css_class).delay(2000).fadeOut(time, callback)
-                console.log(message + "("+errorCode+")")
-            }
-        })
-    }
-
-    this.getHighestResources = function () {
+    this.getHighestAvailable = function () {
         var results = _this.model.getAvailableResources()
         return results.sort(score_sort_asc)
     }
 
-    this.getAlphabeticalResources = function () {
+    this.getAlphabeticalAvailable = function () {
+        var results = _this.model.getAvailableResources()
+        return results.sort(created_at_sort_asc)
+    }
+
+    this.getHighestContributions = function () {
+        var results = _this.model.getAvailableResources()
+        return results.sort(score_sort_asc)
+    }
+
+    this.getAlphabeticalContributions = function () {
         var results = _this.model.getAvailableResources()
         return results.sort(created_at_sort_asc)
     }
@@ -1073,38 +976,28 @@
 
     /** PopState Event Handler */
     this.popHistory = function (pop) {
-
         if (pop.state == null) {
             // fixme:
             // this event pops initially up in chromium-browsers and on returning to full timeline (after one click)
             // the next 3 lines are therefore necessary to maintain-deep-linkin functionality for such browser
             // these 2 cases can just be distinct by current url
             // if "/notes/tagged/" is set its a deep link else its a (resetting) back
-
         } else if (pop.state.name == FILTERED_TIMELINE) {
-
             // update app-model
             _this.model.setTagFilter(pop.state.data.tags)
-            _this.initTimeline(true, true)
-
+            _this.prepare_index_page(true, true)
         } else if (pop.state.name == FULL_TIMELINE) {
-
             // update app-model
             _this.model.setTagFilter([])
-            _this.initTimeline(true, true)
-
+            _this.prepare_index_page(true, true)
         } else if (pop.state.name == PERSONAL_TIMELINE) {
-
             var userId = pop.state.data.userid
             var user = dmc.get_topic_by_id(userId, true)
             // fixme: re-set tagfilter..
             _this.model.setTagFilter([])
-            _this.initPersonalTimeline(user, true, true)
-
+            _this.prepare_profile_page(user, true, true)
         } else if (pop.state.name == DETAIL_VIEW) {
-
-            _this.initDetailView(pop.state.data.id)
-
+            _this.prepare_detail_page(pop.state.data.id)
         } else {
             console.log("unknown view.. ")
             console.log(pop)
@@ -1112,8 +1005,6 @@
     }
 
     this.pushTimelineViewState = function () {
-
-        //  say where we're we are now, resp. what we've visited yet'
         var view_state = undefined
         if (_this.model.getTagFilter().length > 0) {
             view_state = {"name": FILTERED_TIMELINE, "data": {"tags": _this.model.getTagFilter(), "userid": 0}}
@@ -1123,7 +1014,6 @@
             view_state = {"name": FULL_TIMELINE, "data": {"tags": [], "userid": 0}}
             _this.pushHistory(view_state, "Notizen Timeline", "/notes/")
         }
-
     }
 
     this.pushPersonalViewState = function (creator) {
@@ -1144,10 +1034,6 @@
         var history_entry = {state: state, name: name, url: link}
         window.history.pushState(history_entry.state, name, history_entry.url)
     }
-
-
-
-    /** GUIToolkit Helper Methods copied among others from dm4-webclient module **/
 
     /** sorting asc by item.composite[model.REVIEW_SCORE_TYPE_URI].value */
     this.score_sort_asc = function (a, b) {
@@ -1190,8 +1076,8 @@
     }
 
     this.getRelatedUserAccount = function (topicId) {
-        var creator = emc.getFirstRelatedCreator(topicId)
-            creator = emc.getTopicById(creator.id)
+        var creator = _this.emc.getFirstRelatedCreator(topicId)
+            creator = _this.emc.getTopicById(creator.id)
         return creator
     }
 
@@ -1262,7 +1148,6 @@
      *  to save math-formulas as source data in our database and not as rendered-html
      */
     this.getTeXAndHTMLSource = function (body) {
-
         var objects = $('.math-output', body)
         var data = ""
         for (var i=0; i < objects.length; i++) {
@@ -1277,20 +1162,9 @@
                 // throw new Error ("MathJaxSourceNotFound for container => " + containerId)
             }
         }
-        // var data = CKEDITOR.instances.resource_input.getData();
-        // var data = $("" + body.innerHTML + "") // copy raw-data of ck-editor
         data = body.innerHTML
         MathJax.Hub.Typeset() // typeset ck-editor again
         return data
-            /** duplicate helperfunction in mathjax/dialogs/mathjax.js
-            function getInputSourceById(id) {
-                var allJax = MathJax.Hub.getAllJax()
-                for (var obj in allJax) {
-                    var jaxElement = allJax[obj]
-                    if (jaxElement.inputID === id) return jaxElement.originalText
-                }
-                return null
-            } */
     }
 
     this.doSubmitResource = function () {
@@ -1303,13 +1177,13 @@
         // creating the new resource, with aggregated new tags
         var resource = undefined
         if (valueToSubmit.match(/\S/) != null && valueToSubmit !== "<p><br></p>") { // no empty strings
-            resource = emc.createResourceTopic(valueToSubmit, tagsToCreate) // ### use catch here
+            resource = _this.emc.createResourceTopic(valueToSubmit, tagsToCreate) // ### use catch here
             if (resource != undefined) {
                 // an creating/associtating tags with this resource
                 /* createNewTagsForResource(resource, tagsToCreate) **/
                 for (var k=0; k < tagsToReference.length; k++) {
                     if (tagsToReference[k] != undefined) {
-                        var newAssoc = emc.createResourceTagAssociation(resource, tagsToReference[k])
+                        var newAssoc = _this.emc.createResourceTagAssociation(resource, tagsToReference[k])
                         if (!newAssoc) console.warn("We could not create a Resource <-> Tag association ..")
                     }
                 }
@@ -1319,14 +1193,14 @@
                 $(TAGGING_FIELD_SELECTOR).val("")
                 $('div.header').css("opacity", "1")
                 // rendering notifications
-                // _this.renderNotification("Note submitted.", OK,  UNDER_THE_TOP, '', 'fast')
+                // _this.notify_browser("Note submitted.", OK,  UNDER_THE_TOP, '', 'fast')
             }
         } else {
-            _this.renderNotification("Wir werden nur unfreiwillig inhaltsfreie Beitr&auml;ge speichern.",
+            _this.notify_browser("Wir werden nur unfreiwillig inhaltsfreie Beitr&auml;ge speichern.",
                 400, TIMELINE_AREA, '', 'slow')
         }
         // fixme: if we're adding a resource on our personal timeline, we currently return to the global one
-        _this.initTimeline(false)
+        _this.prepare_index_page(false)
     }
 
     this.doSaveResource = function () {
@@ -1342,64 +1216,50 @@
             var resource = _this.model.getCurrentResource()
                 resource.composite[NOTE_CONTENT_URI].value = valueToSubmit
                 resource.composite[NOTE_LOCKED_URI] = {"value": isLocked , "type_uri": NOTE_LOCKED_URI, "uri": ""}
-            // var updated = dmc.update_topic(resource)
-            var updated = emc.updateResourceTopic(resource)
+            var updated = _this.emc.updateResourceTopic(resource)
             if (updated != undefined) {
-                // rendering notifications
-                // _this.renderNotification("Note updated.", OK, UNDER_THE_TOP, "", 'fast', function() {
-                    // track "edited resource" goal
+                // track "edited resource" goal
                 if (typeof piwikTracker !== 'undefined') piwikTracker.trackGoal(1)
-                    // _this.pushHistory("timelineView", "Notes Timeline", "/notes")
-                // })
                 _this.model.updateAvailableResource(resource)
                 // destroy the CKEditor instance (if present)
                 if (CKEDITOR.instances.hasOwnProperty('resource_input')) {
                     CKEDITOR.instances['resource_input'].destroy()
                 }
-                renderPage(undefined, updated.id)
+                _this.prepare_detail_page(updated.id)
             } else {
-                _this.renderNotification("Sorry! Wir konnten die Notiz nicht aktualisieren.", 500, UNDER_THE_TOP, '', 'fast')
+                _this.notify_browser("Sorry! Wir konnten die Notiz nicht aktualisieren.", 500, UNDER_THE_TOP, '', 'fast')
             }
         } else {
-            _this.renderNotification("Wir werden nur unfreiwillig inhaltsfreie Postings speichern.",
+            _this.notify_browser("Wir werden nur unfreiwillig inhaltsfreie Postings speichern.",
                 400, UNDER_THE_TOP, '', 'slow')
         }
     }
 
     /** Main router to all views */
 
-    this.initializePageView = function () {
+    this.page_route = function () {
 
         // parse requested location
         var pathname = window.location.pathname
         var attributes = pathname.split('/')
         var noteId = attributes[2]
 
-        // initiate load-more-timeline
-        _this.skroller = skrollr.init( {forceHeight: false, render: function (info) {
-            if (current_view == FULL_TIMELINE) {
-                if (info.maxTop == 0) return
-                if (info.curTop > (info.maxTop - 200)) _this.renderLoadMoreButton()
-            }
-        }})
-
-        // setup page-controls (once!)
-        registerHistoryStates()
-        setupMathJaxRenderer()
-        setDefaultWorkspaceCookie()
-        setupPageControls()
+        _this.registerHistoryStates()
+        _this.setupMathJaxRenderer()
+        _this.setDefaultWorkspaceCookie()
 
         // in any case
-        emc.loadAllTags()
-        sortTags()
+        _this.emc.loadAllTags()
+        _this.sort_current_tags()
         // route to distinct views
         if (noteId === undefined || noteId === "") {
 
-            _this.initTimeline(true, false) // load timeline with no filter set
-            $(window).on('load', function(event) {_this.hideProgressBar()});
+            _this.prepare_index_page(true, false) // load timeline with no filter set
+            $(window).on('load', function(event) {_this.hide_progress_bar()});
 
         } else if (noteId === "tagged") {
 
+            // 2) setup filtered timeline-view
             var tags = attributes[3]
                 tags = (tags.indexOf('+') != -1) ? tags.split("+") : tags.split("%2B")
             var selectedTag = undefined
@@ -1408,23 +1268,24 @@
                 selectedTag = _this.model.getTagByName(label)
                 if (selectedTag != undefined) _this.model.addTagToFilter(selectedTag)
             }
-            _this.initTimeline(true, false) // call timeline after filter was set.
-            $(window).on('load', function(event) {_this.hideProgressBar()});
+            _this.prepare_index_page(true, false) // call timeline after filter was set.
+            $(window).on('load', function(event) {_this.hide_progress_bar()});
 
         } else if (noteId === "user") {
 
+            // 3) setup personal timeline view
             var userId = attributes[3]
             var user = dmc.get_topic_by_id(userId, true)
-            _this.initPersonalTimeline(user, true, false)
-            $(window).on('load', function(event) {_this.hideProgressBar()});
+            _this.prepare_profile_page(user, true, false)
+            $(window).on('load', function(event) {_this.hide_progress_bar()});
 
         } else {
 
-            _this.initDetailView(noteId)
+            // 4) setup detail view
+            _this.prepare_detail_page(noteId)
             // fixme: historyApi // _this.pushHistory("detailView", "Note Info: " + noteId, "/notes/" + noteId)
 
         }
-
     }
 
 })(CKEDITOR, MathJax, jQuery, console, new RESTClient("/core"))

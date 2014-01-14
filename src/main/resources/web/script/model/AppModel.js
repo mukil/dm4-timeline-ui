@@ -4,10 +4,12 @@ function AppModel () {
 
         var availableTags = []
         var availableResources = []
+        var profileResources = []
         var currentResource = undefined
         var currentUser = undefined
         var currentUserTopic = undefined
         var selectedFormula = undefined
+        var profileResourcesId = undefined
 
         var tagFilter = []
 
@@ -18,10 +20,10 @@ function AppModel () {
             getCurrentUserName: function () {
                 return currentUser
             },
-            setCurrentUserTopic: function (username) {
+            setCurrentUserProfile: function (username) {
                 currentUserTopic = username
             },
-            getCurrentUserTopic: function () {
+            getCurrentUserProfile: function () {
                 return currentUserTopic
             },
             setAvailableTags: function (elements) {
@@ -49,11 +51,37 @@ function AppModel () {
                 return availableResources.push(resource)
             },
             updateAvailableResource: function (newItem) {
-                for (i=0; i < availableResources.length; i++) {
+                for (var i=0; i < availableResources.length; i++) {
                     var oldItem = availableResources[i]
                     if (oldItem.id == newItem.id) {
                         availableResources[i] = newItem
                         return availableResources[i]
+                        break
+                    }
+                }
+                return undefined
+            },
+            setProfileResourcesId: function (profileId) {
+                profileResourcesId = profileId
+            },
+            getProfileResourcesId: function () {
+                return profileResourcesId
+            },
+            setProfileResources: function (elements) {
+                profileResources = elements
+            },
+            getProfileResources: function () {
+                return profileResources
+            },
+            addToProfileResources: function (resource) { // ### yet unused
+                return profileResources.push(resource)
+            },
+            updateProfileResource: function (newItem) { // ### yet unused
+                for (var i=0; i < profileResources.length; i++) {
+                    var oldItem = profileResources[i]
+                    if (oldItem.id == newItem.id) {
+                        profileResources[i] = newItem
+                        return profileResources[i]
                         break
                     }
                 }

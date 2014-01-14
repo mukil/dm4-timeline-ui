@@ -343,7 +343,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @GET
     @Produces("text/html")
     public Viewable getFrontView() {
-        return view("index");
+        return getTimelineView();
     }
 
     @GET
@@ -352,6 +352,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     public Viewable getTimelineView() {
         viewData("name", "Notizen Timeline");
         viewData("path", "/notes");
+        viewData("style", "style.css");
         viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
         return view("index");
     }
@@ -369,6 +370,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     public Viewable getFilteredeTimelineView(@PathParam("tags") String tagFilter,
         @HeaderParam("Cookie") ClientState clientState) {
         viewData("name", "Gefilterte Notizen Timeline, Tags: " + tagFilter);
+        viewData("style", "style.css");
         viewData("path", "/notes/tagged/" + tagFilter);
         viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
         return view("index");
@@ -384,6 +386,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         String display_name = getUserDisplayName(userId);
         viewData("name", display_name + "'s Notizen Timeline");
         viewData("description", description);
+        viewData("style", "style.css");
         String profile_picture = getUserProfilePicturePath(userId);
         viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
         if (profile_picture != null) {
@@ -401,13 +404,18 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     public Viewable getDetailView(@PathParam("id") long resourceId, @HeaderParam("Cookie") ClientState clientState) {
         Topic resource = dms.getTopic(resourceId, true);
         long lastModified = resource.getModel().getCompositeValueModel().getLong(RESOURCE_LAST_MODIFIED_URI);
-        viewData("resourceName", "Notiz, zuletzt bearbeitet: " + new Date(lastModified).toString());
-        viewData("relativePath", "/notes/" + resource.getId());
+        viewData("name", "Notiz, zuletzt bearbeitet: " + new Date(lastModified).toString());
         viewData("style", "style.css");
-        // boolean isLocked = resource.getModel().getCompositeValueModel().getBoolean(RESOURCE_LOCKED_URI);
-        // context.setVariable("isLocked", isLocked);
-        viewData("resourceId", resource.getId());
-        return view("resource");
+        String description = "";
+        if (resource.getCompositeValue().has(TAG_URI)) {
+            for (Topic element : resource.getCompositeValue().getTopics(TAG_URI)) {
+                description += element.getSimpleValue();
+            }
+        }
+        viewData("description", "Tagged: " + description);
+        viewData("path", "/notes/" + resource.getId());
+        viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
+        return view("index");
     }
 
     @GET
@@ -416,13 +424,11 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     public Viewable getDetailPrintView(@PathParam("id") long resourceId, @HeaderParam("Cookie") ClientState clientState) {
         Topic resource = dms.getTopic(resourceId, true);
         long lastModified = resource.getModel().getCompositeValueModel().getLong(RESOURCE_LAST_MODIFIED_URI);
-        viewData("resourceName", "Notiz, zuletzt bearbeitet: " + new Date(lastModified).toString());
-        viewData("relativePath", "/notes/" + resource.getId());
+        viewData("name", "Notiz, zuletzt bearbeitet: " + new Date(lastModified).toString());
         viewData("style", "detail-print.css");
-        // boolean isLocked = resource.getModel().getCompositeValueModel().getBoolean(RESOURCE_LOCKED_URI);
-        // context.setVariable("isLocked", isLocked);
-        viewData("resourceId", resource.getId());
-        return view("resource");
+        viewData("path", "/notes/" + resource.getId());
+        viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
+        return view("index");
     }
 
     private ArrayList<RelatedTopic> getResultSetSortedByCreationTime (ResultList<RelatedTopic> all, ClientState clientState) {

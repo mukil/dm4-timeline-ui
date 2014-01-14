@@ -152,6 +152,7 @@ body.eduzen.note {
     position: relative;
     top: 60px;
     width: 65%;
+    padding-bottom: 40px;
 }
 
 .eduzen #menu .btn.my:hover,
@@ -171,6 +172,10 @@ body.eduzen.note {
 
 .eduzen #menu .btn.logout {
     padding-right: 8px;
+}
+
+.eduzen div.logout-message {
+    padding: 20px;
 }
 
 .eduzen #menu .btn.my {
@@ -198,9 +203,6 @@ body.eduzen.note {
 .eduzen div.math-output {
     border: 1px solid #ffffff;
     padding-left: 5px; padding-right: 5px;
-}
-
-.eduzen.note div.math-output {
     cursor: pointer;
 }
 
@@ -290,15 +292,19 @@ body.eduzen.note {
     background-color: #fff;
 }
 
-.eduzen.note .print-view {
+.eduzen .print-view {
+    display: none;
+}
+
+.eduzen.notes.note .print-view {
     right: 270px;
 }
 
-.eduzen.note .back-to-front {
+.eduzen.notes.note .back-to-front {
     right: 380px;
 }
 
-.eduzen .print-view {
+.eduzen.notes.note .print-view {
     position: fixed;
     right: 80px; top: 0px;
 }
@@ -308,7 +314,7 @@ body.eduzen.note {
     right: 260px; top: 0px;
 }
 
-.eduzen .print-view,
+.eduzen.notes.note .print-view,
 .eduzen .back-to-front {
     display: inline-block;
     padding: 7px;
@@ -506,10 +512,15 @@ textarea#math-input-dialog {
     padding: 0px !important;
 }
 
-.eduzen .content-area {
-    /** border: 1px solid #f5f5f5;
-    padding: 5px 20px;  **/
+.eduzen.notes .content-area {
+    display: none;
     color: #383838;
+}
+
+.eduzen.notes.note .content-area {
+    margin-top: 20px;
+    margin-bottom: 60px;
+    display: block;
 }
 
 .eduzen .content-area ul li {
@@ -536,11 +547,6 @@ textarea#math-input-dialog {
 .eduzen.note .content-area,
 .eduzen.info .content-area {
     margin-left: 40px;
-}
-
-.eduzen.note .content-area {
-    margin-top: 60px;
-    margin-bottom: 60px;
 }
 
 .eduzen .cke_dialog_page_contents a {
@@ -1220,6 +1226,11 @@ input.cke_dialog_ui_input_text:focus {
     cursor:pointer;
     padding: 6px;
     margin-right: 4px;
+}
+
+.eduzen.notes.note .btn.link {
+    padding: 0px;
+    margin-right: 0px;
 }
 
 .eduzen .tags {

@@ -50,3 +50,8 @@ a.btn.tag,
 input.submit.btn {
     display: none !important;
 }
+
+.content-area a {
+    color: #000 !important;
+    text-decoration: underline;
+}

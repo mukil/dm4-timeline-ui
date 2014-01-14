@@ -3,7 +3,7 @@
 // Note: Every action declared in the class gets executed at the time of instantiation.
 function TimelineItemRenderer () {}
 
-TimelineItemRenderer.prototype.create = function ($parent) {
+TimelineItemRenderer.prototype.render = function ($parent) {
     console.log("Creating TimelineItem ..")
     console.log($parent)
 }
@@ -24,7 +24,7 @@ function MoodleItemRenderer (object, router, click_handler) {
 
     this.click = click_handler
 
-    this.create = function($parent) {
+    this.render = function($parent) {
         console.log("Rendering Moodle Timeline Item ..")
         console.log(this.model)
     }
@@ -41,23 +41,22 @@ function NoteItemRenderer (object, router, click_handler) {
 
     var model = object
     var controler = router
+    var _this = this
 
     this.click = click_handler
 
-    this.create = function($parent) {
+    this.render = function($parent) {
 
         // prepare view model
         var title = (model.composite[CREATED_AT_URI] != undefined) ? new Date(parseInt(model.composite[CREATED_AT_URI].value)) : new Date()
         var content = (model.composite[NOTE_CONTENT_URI] != undefined) ? model.composite[NOTE_CONTENT_URI].value : ""
         var score = (model.composite[REVIEW_SCORE_URI] != undefined) ? model.composite[REVIEW_SCORE_URI].value : 0
         var tags = (model.composite[TAG_URI] != undefined) ? model.composite[TAG_URI] : []
-
         // setup (the to be returned) item dom
         var $topic = $parent
         if ($topic.length <= 0) $topic = $('<li id="' +model.id+ '">') // create the new gui-"component"
         var creator = controler.getAccountTopic(model)
         var display_name = creator.value
-        //
         if (creator.composite.hasOwnProperty('org.deepamehta.identity.display_name')) {
             display_name = creator.composite['org.deepamehta.identity.display_name'].value
         }
@@ -65,15 +64,13 @@ function NoteItemRenderer (object, router, click_handler) {
         var $creator_link = $('<a id="user-' +creator.id+ '" title="Zeige '+creator_name+'s Timeline" class="profile btn"></a>')
             $creator_link.text(creator_name)
             $creator_link.click(function(e) {
-                controler.initPersonalTimeline(creator, true, true)
+                controler.prepare_profile_page(creator, true, true)
                 controler.pushPersonalViewState(creator)
             })
-
         //
         var headline = 'Bewertung: <span class="score-info">' + score + '</span><span class="creation-date">Erstellt am ' + title.getDate() + '.'
                 + controler.dict.monthNames[title.getMonth()] + ' ' + title.getFullYear() + ' um ' + title.getHours() + ':'
                 + title.getMinutes() + ' Uhr</span>'
-
         var $body = $('<div class="item-content">' + content + '</div>');
         // bottom area, tag and score info area
         var $toolbar = $('<div class="toolbar"></div>')
@@ -107,13 +104,14 @@ function NoteItemRenderer (object, router, click_handler) {
                         var tagsToAssociate = getTagTopicsToReference(qualifiedTags)
                         var tagsToPossiblyCreate = getTagTopicsToCreate(qualifiedTags, tagsToAssociate)
                         var tagsToCreateAndAssociate = getTagTopicsToCreate(tagsToPossiblyCreate, existingTags)
-                        emc.createResourceTagAssociations(model, tagsToAssociate)
-                        emc.createNewTagsForResource(model, tagsToCreateAndAssociate)
+                        controler.emc.createResourceTagAssociations(model, tagsToAssociate)
+                        controler.emc.createNewTagsForResource(model, tagsToCreateAndAssociate)
                         // track "added tag"-goal
                         if (typeof controler.piwikTracker !== 'undefined') controler.piwikTracker.trackGoal(4)
-                        // re-render both views
-                        renderTagView('div.sidebar')
-                        setupResultListItem(model)
+                        _this.render($topic)
+                        // re-render tag-view
+                        controler.sort_current_tags()
+                        controler.render_tag_items('div.sidebar')
                         // update gui, remove dialog
                         $addDialog.remove()
                         $addTag.removeClass("selected")
@@ -130,11 +128,11 @@ function NoteItemRenderer (object, router, click_handler) {
                 setupTagFieldControls('li#' +clickedListItem+ ' .toolbar div.add-tag-dialog input.new-tag')
                 $addDialog.show("slow")
             })
+            // ### maybe introduce a second, slightly bigger button to go to detail-view
         var $edit = $('<a class="edit-item btn" href="javascript:void(0)"'
             + ' title="Öffne Detailansicht dieser Notiz">zur Detailansicht dieses Beitrags</a>.')
             $edit.click(function(e) {
-                console.log("Show details for this item (" + model.id + ")")
-                controler.initDetailView(model.id)
+                controler.prepare_detail_page(model.id)
                 controler.pushDetailViewState(model)
             })
         // score info area
@@ -145,8 +143,8 @@ function NoteItemRenderer (object, router, click_handler) {
                 controler.model.updateAvailableResource(updatedTopic)
                 // track "voted resource" goal
                 if (typeof controler.piwikTracker !== 'undefined') controler.piwikTracker.trackGoal(3)
-                // todo: update our result-set view immedieatly after upvoting
-                setupResultListItem(updatedTopic)
+                model = updatedTopic
+                _this.render($topic)
             })
         var $downvote = $('oder <a id="' +model.id+ '" class="btn vote">-</a>') // id triple in this "component"
             $downvote.click(function (e) {
@@ -154,8 +152,8 @@ function NoteItemRenderer (object, router, click_handler) {
                 controler.model.updateAvailableResource(updatedTopic)
                 // track "voted resource" goal
                 if (typeof controler.piwikTracker !== 'undefined') controler.piwikTracker.trackGoal(3)
-                // todo: update our result-set view immedieatly after upvoting
-                setupResultListItem(updatedTopic)
+                model = updatedTopic
+                _this.render($topic)
             })
 
         // finally append votebar, tagbar and body to list-item
