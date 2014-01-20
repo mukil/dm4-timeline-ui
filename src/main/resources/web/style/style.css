@@ -1180,9 +1180,9 @@ input.cke_dialog_ui_input_text:focus {
 .eduzen ul.list li div.votes,
 .eduzen ul.list li div.toolbar {
     opacity: 0;
-    -webkit-transition: opacity 0.5s ease-out;
-    -moz-transition: opacity 0.5s ease-out;
-    -o-transition: opacity 0.5s ease-out;
+    -webkit-transition: opacity 1s ease-out;
+    -moz-transition: opacity 1s ease-out;
+    -o-transition: opacity 1s ease-out;
 }
 
 .eduzen ul.list li:hover div.votes,

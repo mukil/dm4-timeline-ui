@@ -41,9 +41,9 @@ function MoodleItemRenderer (object, router, click_handler) {
         // prepare value for view
         var score = (model.composite[REVIEW_SCORE_URI] != undefined) ? model.composite[REVIEW_SCORE_URI].value : 0
         var icon_url = model.composite[MOODLE_ICON_URI].value
-        var date_name = new Date(parseInt(model.composite[MOODLE_MODIFIED_URI].value))
+        var date_name = (model.composite.hasOwnProperty(MOODLE_MODIFIED_URI)) ? new Date(parseInt(model.composite[MOODLE_MODIFIED_URI].value)) : 0
         var tags = (model.composite[TAG_URI] != undefined) ? model.composite[TAG_URI] : []
-        // var remote_url = (model.composite[MOODLE_ITEM_REMOTE_URL_URI] != undefined) ? model.composite[MOODLE_ITEM_REMOTE_URL_URI].value : ""
+        var remote_url = (model.composite[MOODLE_ITEM_REMOTE_URL_URI] != undefined) ? model.composite[MOODLE_ITEM_REMOTE_URL_URI].value : ""
         var description = (model.composite[MOODLE_ITEM_DESC_URI] != undefined) ? model.composite[MOODLE_ITEM_DESC_URI].value : ""
         var href = (model.composite[MOODLE_ITEM_HREF_URI] != undefined) ? model.composite[MOODLE_ITEM_HREF_URI].value : ""
         // create item elements
@@ -58,10 +58,16 @@ function MoodleItemRenderer (object, router, click_handler) {
             }
             tagInfo += '</span>'
         }
-        var headline = tagInfo + 'Bewertung: <span class="score-info">' + score + '</span><span class="creation-date">'
-            + 'Zuletzt geändert am ' + date_name.getDate() + '.'
-            + controler.dict.monthNames[date_name.getMonth()] + ' ' + date_name.getFullYear() + ' um '
-            + date_name.getHours() + ':' + date_name.getMinutes() + ' Uhr</span>'
+        var headline = ""
+        if (date_name != 0) {
+            headline = tagInfo + 'Bewertung: <span class="score-info">' + score + '</span><span class="creation-date">'
+                + 'Zuletzt geändert am ' + date_name.getDate() + '.'
+                + controler.dict.monthNames[date_name.getMonth()] + ' ' + date_name.getFullYear() + ' um '
+                + date_name.getHours() + ':' + date_name.getMinutes() + ' Uhr</span>'
+        } else {
+            headline = tagInfo + 'Bewertung: <span class="score-info">' + score + '</span><span class="creation-date">'
+                + 'Zuletzt geändert ist unbekannt</span>'
+        }
         // tag info area
         // item-area
         var $icon = $('<img src="' +icon_url+ '">')
@@ -120,7 +126,20 @@ function MoodleItemRenderer (object, router, click_handler) {
             })
             // ### maybe introduce a second, slightly bigger button to go to detail-view
             // ### maybe retreive security key, if user is not logged into isis 2 ATM
-        var $edit = $('<a class="edit-item btn" href="' +href+ '" title="ISIS Material abrufen">zur Detailansicht</a>.')
+        var $edit = ""
+        if (remote_url.indexOf("youtube") != -1) {
+            $edit = $('<a class="edit-item btn" title="Video anschauen">Watch</a>.')
+            $edit.click(function(e) {
+                    var $content_area = $('li#' + model.id + ' .item-content')
+                    if ($('#youtube-' + model.id).length <= 0) {
+                        $content_area.append('<p><iframe id="youtube-'+model.id+'" src="'+remote_url+'" '
+                            + 'height="460" width="640" frameBorder="0"></iframe></p>')
+                    }
+            })
+        } else {
+            $edit = $('<a class="edit-item btn" href="' +href+ '" title="ISIS Material abrufen">View / Download</a>.')
+        }
+
         // score info area
         var $votes = $('<div class="votes">Bewerte diesen Inhalt </div>')
         var $upvote = $('<a id="' +model.id+ '" class="btn vote">+</a>') // we have an id triple in this "component"

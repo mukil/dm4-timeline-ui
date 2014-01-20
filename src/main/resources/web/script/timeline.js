@@ -401,6 +401,8 @@
             tagsToShow = getAllTagsInCurrentResults()
             tagsToShow = sliceAboutFilteredTags(tagsToShow)
         }
+        // sort current visible tags too
+        tagsToShow.sort(_this.name_sort_asc)
         // in any case, show tag-view area
         // ### $('.eduzen #nav.info').show()
         $('.tag-cloud-header').html('Filter Beitr&auml;ge nach Tags')
@@ -571,7 +573,7 @@
         }
     }
 
-    this.load_resources = function (pageNr) {
+    this.load_resources = function () {
         if (_this.model.getTagFilter().length > 1) {            // for more than 1 tag
             _this.emc.loadAllResourcesByTags({tags: _this.model.getTagFilter()})
             current_view = FILTERED_TIMELINE

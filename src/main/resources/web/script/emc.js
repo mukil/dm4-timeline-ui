@@ -59,19 +59,22 @@ function EMC (dmc, model) {
 
     this.loadAllResourcesByTagId = function (tagId) { // lazy, unsorted, possibly limited
         //
-        var all_tagged_resources = dmc.request("GET", "/tag/" +tagId+ "/" +NOTES_URI+ "/").items
-        if (all_tagged_resources.length > 0) {
-            // overriding previously set resultlist
-            _this.model.setAvailableResources(all_tagged_resources)
+        var all_tagged_resources = dmc.request("GET", "/resources/" +tagId)
+        if (all_tagged_resources != undefined) {
+            if (all_tagged_resources.length > 0) {
+                // overriding previously set resultlist
+                _this.model.setAvailableResources(all_tagged_resources)
+            } else {
+                _this.model.setAvailableResources([])
+            }
         } else {
-            _this.model.setAvailableResources([])
+            console.log(all_tagged_resources)
         }
     }
 
     this.loadAllResourcesByTags = function (tagList) { // lazy, unsorted, possibly limited
         //
-        var all_tagged_resources = dmc.request("POST",
-            "/tag/by_many/org.deepamehta.resources.resource", tagList).items
+        var all_tagged_resources = dmc.request("POST", "/resources/by_many", tagList)
         if (all_tagged_resources != undefined) {
             if (all_tagged_resources.length > 0) {
                 // overriding previously set resultlist

@@ -33,10 +33,10 @@ import de.deepamehta.core.service.annotation.ConsumesService;
 import de.deepamehta.core.service.event.PreSendTopicListener;
 import de.deepamehta.core.service.event.ServiceResponseFilterListener;
 import de.deepamehta.plugins.accesscontrol.service.AccessControlService;
+import de.deepamehta.plugins.tags.service.TaggingService;
 import de.deepamehta.plugins.topicmaps.model.TopicViewmodel;
 import de.deepamehta.plugins.topicmaps.model.TopicmapViewmodel;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.util.*;
 import java.util.logging.Level;
 import org.codehaus.jettison.json.JSONArray;
@@ -97,6 +97,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     private final static String DEEPAMEHTA_FILE_PATH_URI = "dm4.files.path";
 
     private AccessControlService aclService = null;
+    private TaggingService taggingService = null;
 
     @Override
     public void init() {
@@ -137,18 +138,28 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     }
 
     @Override
-    @ConsumesService("de.deepamehta.plugins.accesscontrol.service.AccessControlService")
+    @ConsumesService({
+        "de.deepamehta.plugins.accesscontrol.service.AccessControlService",
+        "de.deepamehta.plugins.tags.service.TaggingService"
+    })
     public void serviceArrived(PluginService service) {
         if (service instanceof AccessControlService) {
             aclService = (AccessControlService) service;
+        } else if (service instanceof TaggingService) {
+            taggingService = (TaggingService) service;
         }
     }
 
     @Override
-    @ConsumesService("de.deepamehta.plugins.accesscontrol.service.AccessControlService")
+    @ConsumesService({
+        "de.deepamehta.plugins.accesscontrol.service.AccessControlService",
+        "de.deepamehta.plugins.tags.service.TaggingService"
+    })
     public void serviceGone(PluginService service) {
         if (service == aclService) {
             aclService = null;
+        } else if (service == taggingService) {
+            taggingService = null;
         }
     }
 
@@ -236,8 +247,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     }
 
     /**
-     * Fetches all resources with one given <code>Tag</code>.
-     *
+     * Initializes the public main-timeline, fetching all public \"Resource\"-Topics.
      */
 
     @GET
@@ -272,9 +282,9 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             if (dms.getPlugin("org.deepamehta.moodle-plugin") != null) {
                 log.info("> ResourcePlugin ACKs that MoodlePlugin is present...");
                 // 5) Fetch Resultset of \"Moodle Items\"
-                ResultList<RelatedTopic> all_moodle_items = getAllMyMoodleItems(); // restrict to current user + courses
-                if (all_moodle_items == null) return results.toString(); // user is most probably not logged in
-                ArrayList<RelatedTopic> all_items = getResultSetSortedByModificationTime(all_moodle_items, clientState);
+                ResultList<RelatedTopic> my_moodle_items = getAllMyMoodleItems(); // restrict to current user + courses
+                if (my_moodle_items == null) return results.toString(); // user is most probably not logged in
+                ArrayList<RelatedTopic> all_items = getResultSetSortedByModificationTime(my_moodle_items, clientState);
                 // 6) Sort and fetch moodle-items
                 count = 0;
                 for (RelatedTopic moodle_item : all_items) { // 7) prepare (some size*2) fetched moodle items
@@ -303,25 +313,146 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         }
     }
 
-    /**
-     * TODO: Fetch all Topics (Moodle Items) tagged with one or more specific tags
-     * a particular (logged-in) user is allowed to see
-     */
+    @GET
+    @Path("/resources/{tagId}")
+    @Produces("application/json")
+    public ArrayList<RelatedTopic> getResourcesByTagAndTypeURI(@PathParam("tagId") long tagId,
+            @HeaderParam("Cookie") ClientState clientState) {
+        try {
+            ArrayList<RelatedTopic> response = new ArrayList<RelatedTopic>();
+            // 0)
+            if (dms.getPlugin("org.deepamehta.moodle-plugin") != null) {
+                log.info("      > ResourcePlugin ACKs that MoodlePlugin is present...");
+                // 1) Load all (personal) \"Moodle Items\" tagged with this tagId (if "user is logged in)
+                ResultList<RelatedTopic> my_moodle_items = getAllMyMoodleItems();
+                ArrayList<RelatedTopic> tagged_moodle_items = new ArrayList<RelatedTopic>();
+                if (my_moodle_items != null) {
+                    // 2) Check for each item if it has this (one) tag
+                    log.info("      > fetched " + my_moodle_items.getSize() + " \"Moodle Items\"");
+                    for (RelatedTopic moodle_item : my_moodle_items) {
+                        // 3) Load Tags of this composite
+                        moodle_item.loadChildTopics(TAG_URI);
+                        // 4) Now check for tags
+                        if (moodle_item.getCompositeValue().has(TAG_URI)) {
+                            List<Topic> tags = moodle_item.getCompositeValue().getTopics(TAG_URI);
+                            for (Topic tag : tags) {
+                                if (tag.getId() == tagId) {
+                                    // 5) prepare moodle items to become a prope notes result-list
+                                    moodle_item.loadChildTopics(MOODLE_ITEM_ICON_URI);
+                                    moodle_item.loadChildTopics(MOODLE_ITEM_MODIFIED_URI);
+                                    moodle_item.loadChildTopics(MOODLE_ITEM_HREF_URI);
+                                    moodle_item.loadChildTopics(MOODLE_ITEM_DESC_URI);
+                                    moodle_item.loadChildTopics(MOODLE_ITEM_REMOTE_URL_URI);
+                                    moodle_item.loadChildTopics(REVIEW_URI);
+                                    tagged_moodle_items.add(moodle_item);
+                                }
+                            }
+                        }
+                    }
+                    log.info("      > identified " + tagged_moodle_items.size() + " \"Moodle Items\" taggged");
+                    response.addAll(tagged_moodle_items);
+                } else {
+                    log.info("Skipping to identify \"Moodle Items\", user is most probably not logged in.");
+                }
+            }
+            // 0) Add all ordinary tagged \"Resources\" into our resultset too.
+            for (RelatedTopic resource : taggingService.getTopicsByTagAndTypeURI(tagId, RESOURCE_URI, clientState)) {
+                response.add(resource);
+            }
+            return response;
+        } catch (Exception e) {
+            throw new WebApplicationException(new RuntimeException("Something went wrong fetching tagged resources "
+                    + "(by one).", e));
+        }
+    }
+
+    @POST
+    @Path("/resources/by_many")
+    @Consumes("application/json")
+    @Produces("application/json")
+    public ArrayList<RelatedTopic> getResourcesByTagsAndTypeUri(String tag_body,
+            @HeaderParam("Cookie") ClientState clientState) {
+        try {
+            ResultList<RelatedTopic> my_moodle_items = null;
+            ArrayList<RelatedTopic> response = new ArrayList<RelatedTopic>();
+            JSONObject tagList = new JSONObject(tag_body);
+            if (tagList.has("tags")) {
+                JSONArray all_tags = tagList.getJSONArray("tags");
+                // 0) if this is called with more than 1 tag, we accept the request
+                if (all_tags.length() > 1) {
+                    // 1) Check if Moodle plugin is present
+                    if (dms.getPlugin("org.deepamehta.moodle-plugin") != null) {
+                        log.info("      > ResourcePlugin ACKs that MoodlePlugin is present...");
+                        // 2) Load all (personal) \"Moodle Items\" associtaed with ALL the given tags
+                        my_moodle_items = getAllMyMoodleItems();
+                        if (my_moodle_items != null) {
+                            Set<RelatedTopic> missmatches = new LinkedHashSet<RelatedTopic>();
+                            Iterator<RelatedTopic> iterator = my_moodle_items.iterator();
+                            while (iterator.hasNext()) {
+                                // mark each resource for removal which does not associate all given tags
+                                RelatedTopic resource = iterator.next();
+                                for (int i=1; i < all_tags.length(); i++) {
+                                    JSONObject tag = all_tags.getJSONObject(i);
+                                    long t_id = tag.getLong("id");
+                                    if (!hasRelatedTopicTag(resource, t_id)) { // if just one tag is missing, mark for removal
+                                        missmatches.add(resource);
+                                    }
+                                }
+                            }
+                            // 3) build up the final result set through removing any non-matching item
+                            for (Iterator<RelatedTopic> it = missmatches.iterator(); it.hasNext();) {
+                                RelatedTopic topic = it.next();
+                                my_moodle_items.getItems().remove(topic);
+                            }
+                            // 4) prepare moodle items to become a prope notes result-list
+                            for (RelatedTopic moodle_item : my_moodle_items) {
+                                moodle_item.loadChildTopics(MOODLE_ITEM_ICON_URI);
+                                moodle_item.loadChildTopics(MOODLE_ITEM_MODIFIED_URI);
+                                moodle_item.loadChildTopics(MOODLE_ITEM_HREF_URI);
+                                moodle_item.loadChildTopics(MOODLE_ITEM_DESC_URI);
+                                moodle_item.loadChildTopics(MOODLE_ITEM_REMOTE_URL_URI);
+                                moodle_item.loadChildTopics(REVIEW_URI);
+                                response.add(moodle_item);
+                            }
+                            log.info("      > identified " + my_moodle_items.getSize() + " \"Moodle Items\" tagged with ..");
+                        } else {
+                            log.info("Skipping to identify \"Moodle Items\", user is most probably not logged in.");
+                        }
+                    }
+                    // 5) Add all ordinary tagged \"Resources\" into our resultset too.
+                    for (RelatedTopic resource : taggingService.getTopicsByTagsAndTypeUri(tag_body, RESOURCE_URI, clientState)) {
+                        response.add(resource);
+                    }
+                    log.info("      > identified " + response.size() + " \"Resources\" tagged with ..");
+                    log.info("Fetched " + response.size() + " aggregated items tagged with \n" + tag_body);
+                    return response;
+                } else {
+                    // fixme: all_tags provided may be < 0
+                    JSONObject tagOne = all_tags.getJSONObject(0);
+                    long first_id = tagOne.getLong("id");
+                    return getResourcesByTagAndTypeURI(first_id, clientState); // and pass it on
+                }
+            }
+            throw new WebApplicationException(new RuntimeException("no tags given"));
+        } catch (Exception e) {
+            throw new WebApplicationException(new RuntimeException("Something went wrong fetching tagged resources "
+                    + "(by many).", e));
+        }
+    }
 
     /** Fetch all Topics (Moodle Items) a particular (logged-in) user is allowed to see. */
     private ResultList<RelatedTopic> getAllMyMoodleItems () {
         String username = aclService.getUsername();
-        log.info("Fetching all Moodle Items for logged in user ...");
         if (username == null) return null;
         Topic user = dms.getTopic("dm4.accesscontrol.username", new SimpleValue(username), false);
         Topic account = user.getRelatedTopic(COMPOSITION_TYPE_URI, CHILD_URI, PARENT_URI,
                 "dm4.accesscontrol.user_account", false, false);
-        log.info("Fetching all Moodle Items for user \""+account.getSimpleValue()+"\" (" +account.getId()+ ")");
+        // log.info("Fetching all Moodle Items for user \""+account.getSimpleValue()+"\" (" +account.getId()+ ")");
         ResultList<RelatedTopic> enroled_courses = account.getRelatedTopics(MOODLE_PARTICIPANT_EDGE,
                 DEFAULT_ROLE_TYPE_URI, DEFAULT_ROLE_TYPE_URI, MOODLE_COURSE_URI, false, false, 0);
         ResultList<RelatedTopic> resultset = new ResultList<RelatedTopic>();
         for (RelatedTopic course : enroled_courses) {
-            log.info(" in Moodle Course \""+course.getSimpleValue()+"\"");
+            // log.info(" in Moodle Course \""+course.getSimpleValue()+"\"");
             ResultList<RelatedTopic> sections = course.getRelatedTopics(AGGREGATION_TYPE_URI, PARENT_URI, CHILD_URI,
                     MOODLE_SECTION_URI, false, false, 0);
             if (sections != null) {
@@ -335,6 +466,13 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         //
         return resultset;
     }
+
+
+    /**
+     * TODO:
+     * Load a personal-timeline through fetching public \"Resource\"- AND private \"Moodle Item\"-Topics.
+     */
+
 
     @GET
     @Path("/notes/fetch/contributions/{userId}")
@@ -552,6 +690,18 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         Topic username = aclService.getUsername(logged_in_user);
         return username.getRelatedTopic(COMPOSITION_TYPE_URI, CHILD_URI, PARENT_URI,
                 ACCOUNT_TYPE_URI, true, false);
+    }
+
+    private boolean hasRelatedTopicTag(RelatedTopic resource, long tagId) {
+        CompositeValueModel topicModel = resource.getCompositeValue().getModel();
+        if (topicModel.has(TAG_URI)) {
+            List<TopicModel> tags = topicModel.getTopics(TAG_URI);
+            for (int i = 0; i < tags.size(); i++) {
+                TopicModel resourceTag = tags.get(i);
+                if (resourceTag.getId() == tagId) return true;
+            }
+        }
+        return false;
     }
 
     private boolean associationExists(String edge_type, Topic item, Topic user) {
