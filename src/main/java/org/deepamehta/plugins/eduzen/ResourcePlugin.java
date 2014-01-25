@@ -261,7 +261,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         try {
             // 1) Fetch Resultset of Resources
             ResultList<RelatedTopic> all_resources = dms.getTopics(RESOURCE_URI, false, 0);
-            log.info("> ResourcePlugin fetchs" +all_resources.getSize()+ " resources (" +from+ " to "+(from+size)+")");
+            log.info("> ResourcePlugin fetches " +all_resources.getSize()+ " resources (" +from+ " to "+(from+size)+")");
             // 2) Sort and fetch resources
             ArrayList<RelatedTopic> in_memory_resources = getResultSetSortedByCreationTime(all_resources, clientState);
             // fixme: throw error if page is unexpected high or NaN
@@ -280,7 +280,6 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             }
             // 4) Check if Moodle-Plugin is present
             if (dms.getPlugin("org.deepamehta.moodle-plugin") != null) {
-                log.info("> ResourcePlugin ACKs that MoodlePlugin is present...");
                 // 5) Fetch Resultset of \"Moodle Items\"
                 ResultList<RelatedTopic> my_moodle_items = getAllMyMoodleItems(); // restrict to current user + courses
                 if (my_moodle_items == null) return results.toString(); // user is most probably not logged in
@@ -307,9 +306,11 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
                     // count++;
                 }
             }
-            return results.toString();
-        } catch (Exception e) {
+        } catch (Exception e) { // e.g. a "RuntimeException" is thrown if the moodle-plugin is not installed
             throw new WebApplicationException(new RuntimeException("something went wrong", e));
+        } finally {
+            // Note: with or without moodle-plugin, return our json-array (resultset)
+            return results.toString();
         }
     }
 
@@ -318,17 +319,20 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Produces("application/json")
     public ArrayList<RelatedTopic> getResourcesByTagAndTypeURI(@PathParam("tagId") long tagId,
             @HeaderParam("Cookie") ClientState clientState) {
+        ArrayList<RelatedTopic> response = new ArrayList<RelatedTopic>();
         try {
-            ArrayList<RelatedTopic> response = new ArrayList<RelatedTopic>();
-            // 0)
+            // 1) Add all ordinary tagged \"Resources\" into our resultset
+            for (RelatedTopic resource : taggingService.getTopicsByTagAndTypeURI(tagId, RESOURCE_URI, clientState)) {
+                response.add(resource);
+            }
+            // 2) Fetch all tagged "Moodle Items" for our resultset
             if (dms.getPlugin("org.deepamehta.moodle-plugin") != null) {
-                log.info("      > ResourcePlugin ACKs that MoodlePlugin is present...");
-                // 1) Load all (personal) \"Moodle Items\" tagged with this tagId (if "user is logged in)
-                ResultList<RelatedTopic> my_moodle_items = getAllMyMoodleItems();
                 ArrayList<RelatedTopic> tagged_moodle_items = new ArrayList<RelatedTopic>();
+                // 1) Load all (personal) \"Moodle Items\" tagged with this tagId
+                ResultList<RelatedTopic> my_moodle_items = getAllMyMoodleItems();
+                // .. which are null if user is not logged in / has no moodle-security key/ moodle user id set
                 if (my_moodle_items != null) {
                     // 2) Check for each item if it has this (one) tag
-                    log.info("      > fetched " + my_moodle_items.getSize() + " \"Moodle Items\"");
                     for (RelatedTopic moodle_item : my_moodle_items) {
                         // 3) Load Tags of this composite
                         moodle_item.loadChildTopics(TAG_URI);
@@ -351,18 +355,13 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
                     }
                     log.info("      > identified " + tagged_moodle_items.size() + " \"Moodle Items\" taggged");
                     response.addAll(tagged_moodle_items);
-                } else {
-                    log.info("Skipping to identify \"Moodle Items\", user is most probably not logged in.");
                 }
             }
-            // 0) Add all ordinary tagged \"Resources\" into our resultset too.
-            for (RelatedTopic resource : taggingService.getTopicsByTagAndTypeURI(tagId, RESOURCE_URI, clientState)) {
-                response.add(resource);
-            }
-            return response;
         } catch (Exception e) {
             throw new WebApplicationException(new RuntimeException("Something went wrong fetching tagged resources "
                     + "(by one).", e));
+        } finally {
+            return response;
         }
     }
 
@@ -372,18 +371,32 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Produces("application/json")
     public ArrayList<RelatedTopic> getResourcesByTagsAndTypeUri(String tag_body,
             @HeaderParam("Cookie") ClientState clientState) {
+        ArrayList<RelatedTopic> response = new ArrayList<RelatedTopic>();
         try {
             ResultList<RelatedTopic> my_moodle_items = null;
-            ArrayList<RelatedTopic> response = new ArrayList<RelatedTopic>();
             JSONObject tagList = new JSONObject(tag_body);
+            // 0) Check parameters
             if (tagList.has("tags")) {
                 JSONArray all_tags = tagList.getJSONArray("tags");
-                // 0) if this is called with more than 1 tag, we accept the request
-                if (all_tags.length() > 1) {
-                    // 1) Check if Moodle plugin is present
+                // 1) in this case, pass the request on to a more simple implementation
+                if (all_tags.length() == 0) {
+                    throw new WebApplicationException(new RuntimeException("no tags given"));
+                } else if (all_tags.length() == 1) {
+                    // fixme: all_tags provided may be < 0
+                    JSONObject tagOne = all_tags.getJSONObject(0);
+                    long first_id = tagOne.getLong("id");
+                    response = getResourcesByTagAndTypeURI(first_id, clientState);
+                // 2) if this is called with more than 1 tag, we accept the request
+                } else {
+                    // 3) Add all ordinary tagged \"Resources\" into our resultset too.
+                    for (RelatedTopic resource : taggingService.getTopicsByTagsAndTypeUri(tag_body, RESOURCE_URI, clientState)) {
+                        response.add(resource);
+                    }
+                    log.info("      > identified " + response.size() + " \"Resources\" tagged with ..");
+                    log.info("Fetched " + response.size() + " aggregated items tagged with \n" + tag_body);
+                    // 4) Check if Moodle plugin is present
                     if (dms.getPlugin("org.deepamehta.moodle-plugin") != null) {
-                        log.info("      > ResourcePlugin ACKs that MoodlePlugin is present...");
-                        // 2) Load all (personal) \"Moodle Items\" associtaed with ALL the given tags
+                        // 5) Load all (personal) \"Moodle Items\" associtaed with ALL the given tags
                         my_moodle_items = getAllMyMoodleItems();
                         if (my_moodle_items != null) {
                             Set<RelatedTopic> missmatches = new LinkedHashSet<RelatedTopic>();
@@ -399,12 +412,12 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
                                     }
                                 }
                             }
-                            // 3) build up the final result set through removing any non-matching item
+                            // 6) build up the final result set through removing any non-matching item
                             for (Iterator<RelatedTopic> it = missmatches.iterator(); it.hasNext();) {
                                 RelatedTopic topic = it.next();
                                 my_moodle_items.getItems().remove(topic);
                             }
-                            // 4) prepare moodle items to become a prope notes result-list
+                            // 7) prepare moodle items to become a prope notes result-list
                             for (RelatedTopic moodle_item : my_moodle_items) {
                                 moodle_item.loadChildTopics(MOODLE_ITEM_ICON_URI);
                                 moodle_item.loadChildTopics(MOODLE_ITEM_MODIFIED_URI);
@@ -419,24 +432,12 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
                             log.info("Skipping to identify \"Moodle Items\", user is most probably not logged in.");
                         }
                     }
-                    // 5) Add all ordinary tagged \"Resources\" into our resultset too.
-                    for (RelatedTopic resource : taggingService.getTopicsByTagsAndTypeUri(tag_body, RESOURCE_URI, clientState)) {
-                        response.add(resource);
-                    }
-                    log.info("      > identified " + response.size() + " \"Resources\" tagged with ..");
-                    log.info("Fetched " + response.size() + " aggregated items tagged with \n" + tag_body);
-                    return response;
-                } else {
-                    // fixme: all_tags provided may be < 0
-                    JSONObject tagOne = all_tags.getJSONObject(0);
-                    long first_id = tagOne.getLong("id");
-                    return getResourcesByTagAndTypeURI(first_id, clientState); // and pass it on
                 }
             }
-            throw new WebApplicationException(new RuntimeException("no tags given"));
         } catch (Exception e) {
-            throw new WebApplicationException(new RuntimeException("Something went wrong fetching tagged resources "
-                    + "(by many).", e));
+            log.warning("" + e.getCause().toString() + ":" + e.getMessage().toString());
+        } finally {
+            return response;
         }
     }
 

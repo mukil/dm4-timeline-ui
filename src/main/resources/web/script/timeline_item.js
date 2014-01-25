@@ -36,6 +36,14 @@ function MoodleItemRenderer (object, router, click_handler) {
 
     this.render = function($parent) {
 
+        /**
+         * -- Moodle Item Renderer ---
+         *
+         * * PDFs' Direct Download Link (via Moodle Security Key)
+         * * Youtube Watch Feature is there experimentally (hacked)
+         *
+         **/
+
         var $moodle_item = $parent
         if ($moodle_item.length <= 0) $moodle_item = $('<li id="' +model.id+ '" class="moodle-item">') // create the new gui-"component"
         // prepare value for view

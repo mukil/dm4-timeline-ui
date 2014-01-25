@@ -857,7 +857,7 @@ textarea#math-input-dialog {
     left: 40px; /** Override previous value */
 }
 
-.eduzen.notes.guest .headline .login-menu-button {
+.eduzen .headline .login-menu-button {
     position: absolute;
     top: 0px; left: 35px;
     padding: 7px;

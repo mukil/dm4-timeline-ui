@@ -21,7 +21,7 @@
     var NOTE_CONTENT_URI = "org.deepamehta.resources.content" // fixme: doublings
     var NOTE_LOCKED_URI = "org.deepamehta.resources.blocked_for_edits" // fixme: doublings
     var MOODLE_MODIFIED_URI = "org.deepamehta.moodle.item_modified"
-    var MOODLE_CREATED_URI = "org.deepamehta.moodle.item_created"
+    // var MOODLE_CREATED_URI = "org.deepamehta.moodle.item_created"
     var MOODLE_ITEM_URI = "org.deepamehta.moodle.item"
     var NOTES_LIMIT = 15
     var OK = 200
