@@ -37,11 +37,12 @@ function EMC (dmc, model) {
     }
 
     this.loadAllContributions = function (userId) { // lazy, unsorted, possibly limited
-        //
+        // update client-side model
+        _this.model.setProfileResourcesId(userId)
+        // load and cache user related data
         var all_contributions = dmc.request("GET", "/notes/fetch/contributions/" + userId)
         if (all_contributions.length > 0) {
             _this.model.setProfileResources(all_contributions)
-            _this.model.setProfileResourcesId(userId)
         } else {
             _this.model.setProfileResources([])
         }

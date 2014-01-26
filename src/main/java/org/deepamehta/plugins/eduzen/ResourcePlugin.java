@@ -76,11 +76,11 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     private static final String MOODLE_ITEM_REMOTE_URL_URI = "org.deepamehta.moodle.item_url";
     private static final String MOODLE_ITEM_DESC_URI = "org.deepamehta.moodle.item_description";
     private static final String MOODLE_ITEM_HREF_URI = "org.deepamehta.moodle.item_href";
-    private static final String MOODLE_ITEM_TYPE_URI = "org.deepamehta.moodle.item_type";
+    // private static final String MOODLE_ITEM_TYPE_URI = "org.deepamehta.moodle.item_type";
     private static final String MOODLE_ITEM_MODIFIED_URI = "org.deepamehta.moodle.item_modified";
-    private static final String MOODLE_ITEM_CREATED_URI = "org.deepamehta.moodle.item_created";
-    private static final String MOODLE_ITEM_AUTHOR_URI = "org.deepamehta.moodle.item_author";
-    private static final String MOODLE_ITEM_LICENSE_URI = "org.deepamehta.moodle.item_license";
+    // private static final String MOODLE_ITEM_CREATED_URI = "org.deepamehta.moodle.item_created";
+    // private static final String MOODLE_ITEM_AUTHOR_URI = "org.deepamehta.moodle.item_author";
+    // private static final String MOODLE_ITEM_LICENSE_URI = "org.deepamehta.moodle.item_license";
 
     private final static String CREATOR_EDGE_URI = "org.deepamehta.resources.creator_edge";
     private final static String CONTRIBUTOR_EDGE_URI = "org.deepamehta.resources.contributor_edge";
@@ -127,7 +127,6 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
                             String new_label = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT,
                                     new Locale("de", "DE")).format(date);
                             topic.setSimpleValue("Notiz vom " + new_label.toString());
-                            // log.info("Rewriting label just for Resources in all Topicmaps to: " + topic.getSimpleValue());
                         } catch (NumberFormatException nex) {
                             log.warning("Resource label is no timestamp, skipping fancy label-rewrite.");
                         }
@@ -137,30 +136,95 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         }
     }
 
-    @Override
-    @ConsumesService({
-        "de.deepamehta.plugins.accesscontrol.service.AccessControlService",
-        "de.deepamehta.plugins.tags.service.TaggingService"
-    })
-    public void serviceArrived(PluginService service) {
-        if (service instanceof AccessControlService) {
-            aclService = (AccessControlService) service;
-        } else if (service instanceof TaggingService) {
-            taggingService = (TaggingService) service;
-        }
+    @GET
+    @Produces("text/html")
+    public Viewable getFrontView() {
+        return getTimelineView();
     }
 
-    @Override
-    @ConsumesService({
-        "de.deepamehta.plugins.accesscontrol.service.AccessControlService",
-        "de.deepamehta.plugins.tags.service.TaggingService"
-    })
-    public void serviceGone(PluginService service) {
-        if (service == aclService) {
-            aclService = null;
-        } else if (service == taggingService) {
-            taggingService = null;
+    @GET
+    @Path("/notes")
+    @Produces("text/html")
+    public Viewable getTimelineView() {
+        viewData("name", "Notizen Timeline");
+        viewData("path", "/notes");
+        viewData("style", "style.css");
+        viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
+        return view("index");
+    }
+
+    @GET
+    @Path("/notes/info")
+    @Produces("text/html")
+    public Viewable getInfoView() {
+        return view("info");
+    }
+
+    @GET
+    @Path("/notes/tagged/{tags}")
+    @Produces("text/html")
+    public Viewable getFilteredeTimelineView(@PathParam("tags") String tagFilter,
+        @HeaderParam("Cookie") ClientState clientState) {
+        viewData("name", "Gefilterte Notizen Timeline, Tags: " + tagFilter);
+        viewData("style", "style.css");
+        viewData("path", "/notes/tagged/" + tagFilter);
+        viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
+        return view("index");
+    }
+
+    @GET
+    @Path("/notes/user/{userId}")
+    @Produces("text/html")
+    public Viewable getPersonalTimelineView(@PathParam("userId") long userId,
+        @HeaderParam("Cookie") ClientState clientState) {
+        //
+        String description = getUsersDescription(userId);
+        String display_name = getUserDisplayName(userId);
+        viewData("name", display_name + "'s Notizen Timeline");
+        viewData("description", description);
+        viewData("style", "style.css");
+        String profile_picture = getUserProfilePicturePath(userId);
+        viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
+        if (profile_picture != null) {
+            viewData("picture", "http://notizen.eduzen.tu-berlin.de/filerepo" + profile_picture);
         }
+        viewData("path", "/notes/user" + userId);
+
+        //
+        return view("index");
+    }
+
+    @GET
+    @Path("/notes/{id}")
+    @Produces("text/html")
+    public Viewable getDetailView(@PathParam("id") long resourceId, @HeaderParam("Cookie") ClientState clientState) {
+        Topic resource = dms.getTopic(resourceId, true);
+        long lastModified = resource.getModel().getCompositeValueModel().getLong(RESOURCE_LAST_MODIFIED_URI);
+        viewData("name", "Notiz, zuletzt bearbeitet: " + new Date(lastModified).toString());
+        viewData("style", "style.css");
+        String description = "";
+        if (resource.getCompositeValue().has(TAG_URI)) {
+            for (Topic element : resource.getCompositeValue().getTopics(TAG_URI)) {
+                description += element.getSimpleValue();
+            }
+        }
+        viewData("description", "Tagged: " + description);
+        viewData("path", "/notes/" + resource.getId());
+        viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
+        return view("index");
+    }
+
+    @GET
+    @Path("/notes/{id}/print")
+    @Produces("text/html")
+    public Viewable getDetailPrintView(@PathParam("id") long resourceId) {
+        Topic resource = dms.getTopic(resourceId, true);
+        long lastModified = resource.getModel().getCompositeValueModel().getLong(RESOURCE_LAST_MODIFIED_URI);
+        viewData("name", "Notiz, zuletzt bearbeitet: " + new Date(lastModified).toString());
+        viewData("style", "detail-print.css");
+        viewData("path", "/notes/" + resource.getId());
+        viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
+        return view("index");
     }
 
     /**
@@ -254,16 +318,15 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Path("/notes/fetch/{count}/{offset}")
     @Produces("application/json")
     @Override
-    public String getResources(@PathParam("count") long size, @PathParam("offset") long from,
-            @HeaderParam("Cookie") ClientState clientState) {
+    public String getResources(@PathParam("count") long size, @PathParam("offset") long from) {
         //
         JSONArray results = new JSONArray();
         try {
             // 1) Fetch Resultset of Resources
             ResultList<RelatedTopic> all_resources = dms.getTopics(RESOURCE_URI, false, 0);
-            log.info("> ResourcePlugin fetches " +all_resources.getSize()+ " resources (" +from+ " to "+(from+size)+")");
+            log.info("> ResourcePlugin fetched " +all_resources.getSize()+ " resources (" +from+ ", "+(from+size)+")");
             // 2) Sort and fetch resources
-            ArrayList<RelatedTopic> in_memory_resources = getResultSetSortedByCreationTime(all_resources, clientState);
+            ArrayList<RelatedTopic> in_memory_resources = getResultSetSortedByCreationTime(all_resources);
             // fixme: throw error if page is unexpected high or NaN
             int count = 0;
             for (RelatedTopic item : in_memory_resources) { // 2) prepare resource items
@@ -283,7 +346,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
                 // 5) Fetch Resultset of \"Moodle Items\"
                 ResultList<RelatedTopic> my_moodle_items = getAllMyMoodleItems(); // restrict to current user + courses
                 if (my_moodle_items == null) return results.toString(); // user is most probably not logged in
-                ArrayList<RelatedTopic> all_items = getResultSetSortedByModificationTime(my_moodle_items, clientState);
+                ArrayList<RelatedTopic> all_items = getResultSetSortedByModificationTime(my_moodle_items);
                 // 6) Sort and fetch moodle-items
                 count = 0;
                 for (RelatedTopic moodle_item : all_items) { // 7) prepare (some size*2) fetched moodle items
@@ -353,7 +416,6 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
                             }
                         }
                     }
-                    log.info("      > identified " + tagged_moodle_items.size() + " \"Moodle Items\" taggged");
                     response.addAll(tagged_moodle_items);
                 }
             }
@@ -389,11 +451,11 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
                 // 2) if this is called with more than 1 tag, we accept the request
                 } else {
                     // 3) Add all ordinary tagged \"Resources\" into our resultset too.
-                    for (RelatedTopic resource : taggingService.getTopicsByTagsAndTypeUri(tag_body, RESOURCE_URI, clientState)) {
+                    ResultList<RelatedTopic> resources = taggingService.getTopicsByTagsAndTypeUri(tag_body,
+                            RESOURCE_URI, clientState);
+                    for (RelatedTopic resource : resources) {
                         response.add(resource);
                     }
-                    log.info("      > identified " + response.size() + " \"Resources\" tagged with ..");
-                    log.info("Fetched " + response.size() + " aggregated items tagged with \n" + tag_body);
                     // 4) Check if Moodle plugin is present
                     if (dms.getPlugin("org.deepamehta.moodle-plugin") != null) {
                         // 5) Load all (personal) \"Moodle Items\" associtaed with ALL the given tags
@@ -407,7 +469,8 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
                                 for (int i=1; i < all_tags.length(); i++) {
                                     JSONObject tag = all_tags.getJSONObject(i);
                                     long t_id = tag.getLong("id");
-                                    if (!hasRelatedTopicTag(resource, t_id)) { // if just one tag is missing, mark for removal
+                                    if (!hasRelatedTopicTag(resource, t_id)) {
+                                        // if just one tag is missing, mark for removal
                                         missmatches.add(resource);
                                     }
                                 }
@@ -427,9 +490,6 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
                                 moodle_item.loadChildTopics(REVIEW_URI);
                                 response.add(moodle_item);
                             }
-                            log.info("      > identified " + my_moodle_items.getSize() + " \"Moodle Items\" tagged with ..");
-                        } else {
-                            log.info("Skipping to identify \"Moodle Items\", user is most probably not logged in.");
                         }
                     }
                 }
@@ -441,7 +501,11 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         }
     }
 
-    /** Fetch all Topics (Moodle Items) a particular (logged-in) user is allowed to see. */
+    // --
+    // --- Private Helper Methods
+    // --
+
+    /** Fetch all Topics (Moodle Items) a particular (logged-in) user is allowed to see (via his/her Moodle Courses) */
     private ResultList<RelatedTopic> getAllMyMoodleItems () {
         String username = aclService.getUsername();
         if (username == null) return null;
@@ -467,13 +531,6 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         //
         return resultset;
     }
-
-
-    /**
-     * TODO:
-     * Load a personal-timeline through fetching public \"Resource\"- AND private \"Moodle Item\"-Topics.
-     */
-
 
     @GET
     @Path("/notes/fetch/contributions/{userId}")
@@ -554,98 +611,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         return all_resources;
     }
 
-    @GET
-    @Produces("text/html")
-    public Viewable getFrontView() {
-        return getTimelineView();
-    }
-
-    @GET
-    @Path("/notes")
-    @Produces("text/html")
-    public Viewable getTimelineView() {
-        viewData("name", "Notizen Timeline");
-        viewData("path", "/notes");
-        viewData("style", "style.css");
-        viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
-        return view("index");
-    }
-
-    @GET
-    @Path("/notes/info")
-    @Produces("text/html")
-    public Viewable getInfoView() {
-        return view("info");
-    }
-
-    @GET
-    @Path("/notes/tagged/{tags}")
-    @Produces("text/html")
-    public Viewable getFilteredeTimelineView(@PathParam("tags") String tagFilter,
-        @HeaderParam("Cookie") ClientState clientState) {
-        viewData("name", "Gefilterte Notizen Timeline, Tags: " + tagFilter);
-        viewData("style", "style.css");
-        viewData("path", "/notes/tagged/" + tagFilter);
-        viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
-        return view("index");
-    }
-
-    @GET
-    @Path("/notes/user/{userId}")
-    @Produces("text/html")
-    public Viewable getPersonalTimelineView(@PathParam("userId") long userId,
-        @HeaderParam("Cookie") ClientState clientState) {
-        //
-        String description = getUsersDescription(userId);
-        String display_name = getUserDisplayName(userId);
-        viewData("name", display_name + "'s Notizen Timeline");
-        viewData("description", description);
-        viewData("style", "style.css");
-        String profile_picture = getUserProfilePicturePath(userId);
-        viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
-        if (profile_picture != null) {
-            viewData("picture", "http://notizen.eduzen.tu-berlin.de/filerepo" + profile_picture);
-        }
-        viewData("path", "/notes/user" + userId);
-
-        //
-        return view("index");
-    }
-
-    @GET
-    @Path("/notes/{id}")
-    @Produces("text/html")
-    public Viewable getDetailView(@PathParam("id") long resourceId, @HeaderParam("Cookie") ClientState clientState) {
-        Topic resource = dms.getTopic(resourceId, true);
-        long lastModified = resource.getModel().getCompositeValueModel().getLong(RESOURCE_LAST_MODIFIED_URI);
-        viewData("name", "Notiz, zuletzt bearbeitet: " + new Date(lastModified).toString());
-        viewData("style", "style.css");
-        String description = "";
-        if (resource.getCompositeValue().has(TAG_URI)) {
-            for (Topic element : resource.getCompositeValue().getTopics(TAG_URI)) {
-                description += element.getSimpleValue();
-            }
-        }
-        viewData("description", "Tagged: " + description);
-        viewData("path", "/notes/" + resource.getId());
-        viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
-        return view("index");
-    }
-
-    @GET
-    @Path("/notes/{id}/print")
-    @Produces("text/html")
-    public Viewable getDetailPrintView(@PathParam("id") long resourceId, @HeaderParam("Cookie") ClientState clientState) {
-        Topic resource = dms.getTopic(resourceId, true);
-        long lastModified = resource.getModel().getCompositeValueModel().getLong(RESOURCE_LAST_MODIFIED_URI);
-        viewData("name", "Notiz, zuletzt bearbeitet: " + new Date(lastModified).toString());
-        viewData("style", "detail-print.css");
-        viewData("path", "/notes/" + resource.getId());
-        viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
-        return view("index");
-    }
-
-    private ArrayList<RelatedTopic> getResultSetSortedByCreationTime (ResultList<RelatedTopic> all, ClientState clientState) {
+    private ArrayList<RelatedTopic> getResultSetSortedByCreationTime (ResultList<RelatedTopic> all) {
         // build up sortable collection of all result-items
         ArrayList<RelatedTopic> in_memory = new ArrayList<RelatedTopic>();
         for (RelatedTopic obj : all) {
@@ -665,7 +631,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         return in_memory;
     }
 
-    private ArrayList<RelatedTopic> getResultSetSortedByModificationTime (ResultList<RelatedTopic> all, ClientState clientState) {
+    private ArrayList<RelatedTopic> getResultSetSortedByModificationTime (ResultList<RelatedTopic> all) {
         // build up sortable collection of all result-items
         ArrayList<RelatedTopic> in_memory = new ArrayList<RelatedTopic>();
         for (RelatedTopic obj : all) {
@@ -734,6 +700,36 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             return comp.getString(IDENTITY_INFOS_TYPE_URI);
         }
         return "&Ouml;ffentliche Notizen";
+    }
+
+    // --
+    // --- Service Listeners
+    // --
+
+    @Override
+    @ConsumesService({
+        "de.deepamehta.plugins.accesscontrol.service.AccessControlService",
+        "de.deepamehta.plugins.tags.service.TaggingService"
+    })
+    public void serviceArrived(PluginService service) {
+        if (service instanceof AccessControlService) {
+            aclService = (AccessControlService) service;
+        } else if (service instanceof TaggingService) {
+            taggingService = (TaggingService) service;
+        }
+    }
+
+    @Override
+    @ConsumesService({
+        "de.deepamehta.plugins.accesscontrol.service.AccessControlService",
+        "de.deepamehta.plugins.tags.service.TaggingService"
+    })
+    public void serviceGone(PluginService service) {
+        if (service == aclService) {
+            aclService = null;
+        } else if (service == taggingService) {
+            taggingService = null;
+        }
     }
 
 }

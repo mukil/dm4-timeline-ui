@@ -591,10 +591,10 @@
     }
 
     this.load_contributions = function (userId) {
-        // load contributed resources (but just if no resources are avaiable..) for this user
+        // load contributed resources (but just if current resources are empty.. or not for the user requested
         if (_this.model.getProfileResources().length == 0 ||
             _this.model.getProfileResourcesId() != userId) {
-            _this.emc.loadAllContributions(userId)
+            _this.emc.loadAllContributions(userId) // updates _this.model.profileResourcesId()
         }
     }
 
@@ -917,12 +917,12 @@
     }
 
     this.getHighestContributions = function () {
-        var results = _this.model.getAvailableResources()
+        var results = _this.model.getProfileResources()
         return results.sort(score_sort_asc)
     }
 
     this.getAlphabeticalContributions = function () {
-        var results = _this.model.getAvailableResources()
+        var results = _this.model.getProfileResources()
         return results.sort(created_at_sort_asc)
     }
 
