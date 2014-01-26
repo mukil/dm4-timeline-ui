@@ -39,6 +39,12 @@ The "Remove item"-icon was published "free for commercial use" and was designed 
 
 # Changelog
 
+0.2.3, 26 January 2014
+- Single-AJAX-Page Client
+- Compatible with DM 4.1.3
+- Integration of "Moodle Plugin" into Timeline-View
+- Improved code (structure and naming)
+
 0.2.1-SNAPSHOT, 2013
 
 - Personal timelines and user profiles

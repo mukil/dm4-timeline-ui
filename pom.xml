@@ -7,7 +7,7 @@
     <name>org.deepamehta Tagging Notes</name>
     <groupId>org.deepamehta</groupId>
     <artifactId>eduzen-tagging-notes</artifactId>
-    <version>0.2.3-SNAPSHOT</version>
+    <version>0.2.3</version>
     <packaging>bundle</packaging>
 
     <parent>

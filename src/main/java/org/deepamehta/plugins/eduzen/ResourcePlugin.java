@@ -44,6 +44,15 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 
+/**
+ * Notizen-Timeline Web-Application
+ * @version 0.2.3
+ * @author Malte Reißig <malte.reissig@tu-berlin.de>
+ * @since 26 January 2014
+ *
+ * @see http://www.eduzen.tu-berlin.de
+ */
+
 @Path("/")
 @Consumes("application/json")
 @Produces("text/html")
