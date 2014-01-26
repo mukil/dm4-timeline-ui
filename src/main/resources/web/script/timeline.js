@@ -465,7 +465,7 @@
         if (current_view == DETAIL_VIEW) {
             _this.prepare_detail_page(_this.model.getCurrentResource().id);
         } else if (current_view == PERSONAL_TIMELINE) {
-            var profile = _this.emc.getTopicById(_this.model.getCurrentProfileId())
+            var profile = _this.emc.getTopicById(_this.model.getProfileResourcesId())
             _this.prepare_profile_page(profile);
         } else if (current_view == FILTERED_TIMELINE ||
                    current_view == FULL_TIMELINE) {
