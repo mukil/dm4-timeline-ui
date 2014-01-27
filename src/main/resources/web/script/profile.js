@@ -173,22 +173,25 @@ function User (controler, dict, emc, account) {
             + "  <input type=\"button\" class=\"edit-pwd\" value=\"Edit\" />"
             + "  <input class=\"save-pwd\" type=\"button\" value=\"Speichern\" />"
             + "</form>"
-        var $account_settings = $('<div class="account-settings">')
-            $account_settings.html(html)
-        /** var moodle_html = "<br/><br/><span class=\"label\">Dein ISIS Sicherheitsschl&uuml;ssel</span><br/>"
+        var $account_settings = $('.account-settings')
+        if ($account_settings.length <= 0) {
+            $account_settings = $('<div class="account-settings">')
+        }
+        $account_settings.html(html)
+        var moodle_html = "<br/><br/><span class=\"label\">Dein ISIS Sicherheitsschl&uuml;ssel</span><br/>"
             + "<form id=\"moodle-key\" name=\"moodle-key\" action=\"javascript:void(0)\">"
             + "  <label for=\"security-key\">(wird aus Sicherheitsgr&uuml;nden hier nicht angezeigt)</label>"
             + "  <input name=\"security-key\" class=\"security-key\" type=\"password\" value=\"\" />"
             + "  <input class=\"save-key\" type=\"button\" value=\"Neuen Key Speichern\" />"
         var $moodle_settings = $('<div class="moodle-settings">')
-            $moodle_settings.html(moodle_html) **/
+            $moodle_settings.html(moodle_html)
         //
         $('.user-settings', $parent).append($account_settings)
-        // $('.user-settings', $parent).append($moodle_settings)
+        $('.user-settings', $parent).append($moodle_settings)
         // render initial state of this dialog
         $(".edit-pwd").click(_this.editPasswordHandler)
         $(".save-pwd").click(_this.submitPasswordHandler)
-        // $(".save-key").click(_this.submitKeyHandler)
+        $(".save-key").click(_this.submitKeyHandler)
         $(".save-pwd").hide()
     }
 
@@ -380,7 +383,25 @@ function User (controler, dict, emc, account) {
     this.submitKeyHandler = function (e) {
         var key = $(".security-key").val()
         if (key !== "" && key !== " ") {
-            emc.setMoodleKey({ "moodle_key" : key, "user_id" : _user.account.id }, _user.account.id)
+            try {
+                var response = emc.setMoodleKey({ "moodle_key" : key, "user_id" : _user.account.id }, _user.account.id)
+                if (response["result"] == "OK") {
+                    $('#moodle-key').remove()
+                    $('.moodle-settings').append('<br/><br/><span style="color:#00FF00;">Fine.</span><br/>'
+                        + '<br/>Your new ISIS Security key was saved.<br/><br/>'
+                        + 'All your ISIS courses (which we assigned a #hashtag) will be '
+                        + 'synchronized by your next login to Notizen.<br/><br/>')
+                }
+            } catch (error) {
+                $('#moodle-key').html('<span style="color:#FF0000;">Ups.</span><br/>Your input did not look '
+                    + 'like an ISIS Security Key.')
+                var $retry = $('<br/><br/><span class="btn">Try again</span>')
+                    $retry.click(function(e) {
+                        $('#moodle-key').empty()
+                        _this.renderAccountEditor($('#profile')) // fixme
+                    })
+                $('#moodle-key').append($retry)
+            }
         }
     }
 
