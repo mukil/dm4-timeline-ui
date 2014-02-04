@@ -960,13 +960,6 @@ textarea#math-input-dialog {
     margin-left: 4px;
 }
 
-/** .eduzen #resource_input input.secret,
-.eduzen #resource_input input.username-input {
-    background-color: #fff;
-    margin-top: 10px;
-    margin-left: 20px;
-} **/
-
 .eduzen ul.list li#input div.content-area ul li {
     list-style-type: circle;
     padding-top: 5px;
@@ -995,6 +988,7 @@ textarea#math-input-dialog {
 
 .eduzen input.secret,
 .eduzen input.username-input,
+.eduzen input.tag-input-filter,
 .eduzen input.new-tag,
 .eduzen input.tagging {
     padding-left: 7px;

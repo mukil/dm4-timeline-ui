@@ -1,4 +1,11 @@
 
+/**
+ * @author Malte Reißig <malte.reissig@tu-berlin.de>
+ * @website https://github.com/mukil/org.deepamehta-tagging-resources
+ * @license GPL Version 3.0
+ * @version 0.2.4-SNAPSHOT
+ */
+
 (function (CKEDITOR, MathJax, $, console, dmc) {
 
     var _this = this
@@ -64,6 +71,7 @@
         $('.eduzen .rendered #nav.info').show()
         _this.render_tag_filter_info() // render tag specific filter-info header
         _this.render_tag_items('div.sidebar')
+        _this.render_tag_header()
         _this.render_result_view(false) // false == without contributions
         // 3) hide and show
         if (hide_progressbar) _this.hide_progress_bar() // this we need when no DOM Load Event can hide our progressbar
@@ -273,7 +281,7 @@
                 $resultlist.html(_this.create_input_item_view())
                 // ..) create input view
                 setup_ckeditor('add_resource')
-                setupTagFieldControls(TAGGING_FIELD_SELECTOR)
+                setup_tag_completion(TAGGING_FIELD_SELECTOR)
                 $('.eduzen #input input.submit').bind('click', _this.doSubmitResource)
             } else {
                 $resultlist.empty()
@@ -331,7 +339,7 @@
                 $homeButton = $('<a class="home-menu-button btn" title="Zur&uuml;ck zur Timeline-Ansicht">Timeline</a>')
                 $homeButton.click(function (e) {
                     _this.prepare_index_page(true, true)
-                    _this.pushTimelineViewState()
+                    _this.push_timeline_view_state()
                 })
             $('#menu').append($homeButton)
         } else {
@@ -368,7 +376,7 @@
                         _this.model.setAvailableResources([]) // this forces a re-initialization of main-timeline
                     }
                     _this.prepare_index_page(true, true)
-                    _this.pushTimelineViewState()
+                    _this.push_timeline_view_state()
                 })
             var $tagButton = $('<a class="btn tag selected">' +tags[i].value+ '</a>')
                 $tagButton.append($closeButton)
@@ -384,10 +392,33 @@
                 //        allAvailableResources are very limited, thus we need to reset it to fetch at least latest 15
                 _this.model.setAvailableResources([]) // this forces a re-initialization of main-timeline
                 _this.prepare_index_page(true, true)
-                _this.pushTimelineViewState()
+                _this.push_timeline_view_state()
             })
         $('.tag-filter-info').html($filterMeta).append($clearButton).append($filterButtons)
         return null
+    }
+
+    this.render_tag_header = function () {
+        // ### $('.eduzen #nav.info').show()
+        var label = 'Filter Beitr&auml;ge nach Tags&nbsp;'
+        var $tag_input_filter = $("<input>").addClass('tag-input-filter')
+            $tag_input_filter.attr('placeholder', '...')
+        $('.tag-cloud-header').html(label).append('<br/><br/>').append($tag_input_filter)
+        _this.setup_tag_completion('input.tag-input-filter', function(e) {
+            var input_filter = _this.get_entered_tags('input.tag-input-filter')
+            // console.log("User pressed ENTER to filter timeline.. by tags " + input_filter)
+            // prepare new page model
+            for (var i=0; i < input_filter.length; i++) {
+                var entered_tag = _this.model.getTagByName(input_filter[i])
+                if (typeof entered_tag !== "undefined") {
+                    _this.model.addTagToFilter(entered_tag)
+                }
+                // go to updated view
+                _this.prepare_index_page(true, true)
+                // fixme: formerly here were just (optimal) view updates
+                _this.push_timeline_view_state()
+            }
+        })
     }
 
     this.render_tag_items = function (parent_selector) {
@@ -403,9 +434,6 @@
         }
         // sort current visible tags too
         tagsToShow.sort(_this.name_sort_asc)
-        // in any case, show tag-view area
-        // ### $('.eduzen #nav.info').show()
-        $('.tag-cloud-header').html('Filter Beitr&auml;ge nach Tags')
         // render tag ui/dialog
         if (tagsToShow.length > 0) {
             var $tagview = undefined
@@ -449,7 +477,7 @@
                 // go to updated view
                 _this.prepare_index_page(true, true)
                 // fixme: formerly here were just (optimal) view updates
-                _this.pushTimelineViewState()
+                _this.push_timeline_view_state()
 
             })
             $parent.append($tag)
@@ -688,12 +716,12 @@
         }
     }
 
-    this.setupTagFieldControls = function (identifier) {
+    this.setup_tag_completion = function (identifier, select_handler) {
         $(identifier).bind( "keydown" , function (event) {
             if (event.keyCode === $.ui.keyCode.TAB && $( this ).data( "ui-autocomplete" ).menu.active ) {
                 event.preventDefault();
             } else if (event.keyCode === $.ui.keyCode.ENTER) {
-                // fixme: think of submitting posting through keyboard
+                // fixme: think of submitting posting through keyboard ENTER @see select: function
             }
         }).autocomplete({
             minLength: 0,
@@ -714,6 +742,7 @@
                 // add placeholder to get the comma-and-space at the end
                 terms.push( "" );
                 this.value = terms.join( ", " );
+                if (typeof select_handler !== "undefined") select_handler()
                 return false;
             }
         });
@@ -1012,7 +1041,7 @@
         }
     }
 
-    this.pushTimelineViewState = function () {
+    this.push_timeline_view_state = function () {
         var view_state = undefined
         if (_this.model.getTagFilter().length > 0) {
             view_state = {"name": FILTERED_TIMELINE, "data": {"tags": _this.model.getTagFilter(), "userid": 0}}
@@ -1100,7 +1129,7 @@
         return null
     }
 
-    this.getTagsSubmitted = function (fieldIdentifier) {
+    this.get_entered_tags = function (fieldIdentifier) {
         if ($(fieldIdentifier).val() == undefined) return undefined
         var tagline = $(fieldIdentifier).val().split( /,\s*/ )
         if (tagline == undefined) throw new Error("Tagging field got somehow broken.. ")
@@ -1182,7 +1211,7 @@
     this.doSubmitResource = function () {
         // TODO: clean up this mixed up method.
         var valueToSubmit = getTeXAndHTMLSource(document.getElementById("add_resource"))
-        var qualifiedTags = getTagsSubmitted(TAGGING_FIELD_SELECTOR)
+        var qualifiedTags = get_entered_tags(TAGGING_FIELD_SELECTOR)
         // differentiate in tags to create and existing tags in db (which need to be associated)
         var tagsToReference = getTagTopicsToReference(qualifiedTags)
         var tagsToCreate = getTagTopicsToCreate(qualifiedTags, tagsToReference)

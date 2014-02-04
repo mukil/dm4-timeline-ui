@@ -1,3 +1,11 @@
+
+/**
+ * @author Malte Reißig <malte.reissig@tu-berlin.de>
+ * @website https://github.com/mukil/org.deepamehta-tagging-resources
+ * @license GPL Version 3.0
+ * @version 0.2.4-SNAPSHOT
+ */
+
 function EMC (dmc, model) {
 
     var _this = this

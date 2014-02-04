@@ -1,4 +1,11 @@
 
+/**
+ * @author Malte Reißig <malte.reissig@tu-berlin.de>
+ * @website https://github.com/mukil/org.deepamehta-tagging-resources
+ * @license GPL Version 3.0
+ * @version 0.2.4-SNAPSHOT
+ */
+
 // Define List Item Renderer Interface
 // Note: Every action declared in the class gets executed at the time of instantiation.
 function TimelineItemRenderer () {}
@@ -129,7 +136,9 @@ function MoodleItemRenderer (object, router, click_handler) {
                 // place dialog in the dom
                 $addDialog.hide()
                 $addDialog.insertAfter('li#' +clickedListItem+ ' .toolbar a.add-tag.btn')
-                setupTagFieldControls('li#' +clickedListItem+ ' .toolbar div.add-tag-dialog input.new-tag')
+                //
+                controler.setup_tag_completion('li#' +clickedListItem+ ' .toolbar div.add-tag-dialog input.new-tag')
+                //
                 $addDialog.show("slow")
             })
             // ### maybe introduce a second, slightly bigger button to go to detail-view
@@ -255,6 +264,7 @@ function NoteItemRenderer (object, router, click_handler) {
                         var tagsToAssociate = getTagTopicsToReference(qualifiedTags)
                         var tagsToPossiblyCreate = getTagTopicsToCreate(qualifiedTags, tagsToAssociate)
                         var tagsToCreateAndAssociate = getTagTopicsToCreate(tagsToPossiblyCreate, existingTags)
+                        //
                         controler.emc.createResourceTagAssociations(model, tagsToAssociate)
                         controler.emc.createNewTagsForResource(model, tagsToCreateAndAssociate)
                         // track "added tag"-goal
@@ -276,7 +286,9 @@ function NoteItemRenderer (object, router, click_handler) {
                 // place dialog in the dom
                 $addDialog.hide()
                 $addDialog.insertAfter('li#' +clickedListItem+ ' .toolbar a.add-tag.btn')
-                setupTagFieldControls('li#' +clickedListItem+ ' .toolbar div.add-tag-dialog input.new-tag')
+                //
+                controler.setup_tag_completion('li#' +clickedListItem+ ' .toolbar div.add-tag-dialog input.new-tag')
+                //
                 $addDialog.show("slow")
             })
             // ### maybe introduce a second, slightly bigger button to go to detail-view
