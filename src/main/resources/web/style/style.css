@@ -1101,6 +1101,7 @@ input.cke_dialog_ui_input_text:focus {
     margin-top: 0px;
     margin-left: 0px;
     margin-right: 0px;
+    /* *border-left: 5px solid #C50E1F; **/
 }
 
 .eduzen ul.list .moodle-item .item-content {
@@ -1108,6 +1109,7 @@ input.cke_dialog_ui_input_text:focus {
     color: #a9a9a9;
     cursor: pointer;
     margin-bottom: 5px;
+    border-left: 5px solid #C50E1F;
 }
 
 .eduzen ul.list .moodle-item .item-content img {

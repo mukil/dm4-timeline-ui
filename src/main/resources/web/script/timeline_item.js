@@ -158,7 +158,7 @@ function MoodleItemRenderer (object, router, click_handler) {
         }
 
         // score info area
-        var $votes = $('<div class="votes">Bewerte diesen Inhalt </div>')
+        var $votes = $('<div class="votes">Bewerte diesen ISIS-Inhalt </div>')
         var $upvote = $('<a id="' +model.id+ '" class="btn vote">+</a>') // we have an id triple in this "component"
             $upvote.click(function (e) {
                 var updatedTopic = controler.dmc.request("GET", "/review/upvote/" + e.target.id)
@@ -299,7 +299,7 @@ function NoteItemRenderer (object, router, click_handler) {
                 controler.pushDetailViewState(model)
             })
         // score info area
-        var $votes = $('<div class="votes">Bewerte diesen Inhalt </div>')
+        var $votes = $('<div class="votes">Bewerte diesen Beitrag </div>')
         var $upvote = $('<a id="' +model.id+ '" class="btn vote">+</a>') // we have an id triple in this "component"
             $upvote.click(function (e) {
                 var updatedTopic = controler.dmc.request("GET", "/review/upvote/" + e.target.id)
