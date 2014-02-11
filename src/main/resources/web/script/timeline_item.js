@@ -110,7 +110,7 @@ function MoodleItemRenderer (object, router, click_handler) {
                     $saveBtn.click(function () {
                         // save tags, if not yet associated to this resource
                         var tagFieldId = 'li#' +clickedListItem+ ' .toolbar div.add-tag-dialog input.new-tag'
-                        var qualifiedTags = getTagsSubmitted(tagFieldId)
+                        var qualifiedTags = controler.get_entered_tags(tagFieldId)
                         var existingTags = model.composite[TAG_URI]
                         var tagsToAssociate = getTagTopicsToReference(qualifiedTags)
                         var tagsToPossiblyCreate = getTagTopicsToCreate(qualifiedTags, tagsToAssociate)
@@ -259,7 +259,7 @@ function NoteItemRenderer (object, router, click_handler) {
                     $saveBtn.click(function () {
                         // save tags, if not yet associated to this resource
                         var tagFieldId = 'li#' +clickedListItem+ ' .toolbar div.add-tag-dialog input.new-tag'
-                        var qualifiedTags = getTagsSubmitted(tagFieldId)
+                        var qualifiedTags = controler.get_entered_tags(tagFieldId)
                         var existingTags = model.composite[TAG_URI]
                         var tagsToAssociate = getTagTopicsToReference(qualifiedTags)
                         var tagsToPossiblyCreate = getTagTopicsToCreate(qualifiedTags, tagsToAssociate)
