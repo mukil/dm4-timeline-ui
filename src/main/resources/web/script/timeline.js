@@ -272,20 +272,20 @@
         if (is_profile_view) {
             results = _this.model.getProfileResources()
         }
-        //
+        $('#list-message').html("")
+        var $resultlist = $('#resources .list')
+        // .. ) insert or remove input-area item
+        if (_this.is_logged_in()) {
+            $resultlist.html(_this.create_input_item_view())
+            // ..) create input view
+            setup_ckeditor('add_resource')
+            setup_tag_completion(TAGGING_FIELD_SELECTOR)
+            $('.eduzen #input input.submit').bind('click', _this.doSubmitResource)
+        } else {
+            $resultlist.empty()
+        }
+        // ..) Render results ..
         if (results.length > 0) {
-            $('#list-message').html("")
-            var $resultlist = $('#resources .list')
-            // .. ) insert or remove input-aarea item
-            if (_this.is_logged_in()) {
-                $resultlist.html(_this.create_input_item_view())
-                // ..) create input view
-                setup_ckeditor('add_resource')
-                setup_tag_completion(TAGGING_FIELD_SELECTOR)
-                $('.eduzen #input input.submit').bind('click', _this.doSubmitResource)
-            } else {
-                $resultlist.empty()
-            }
             // ..) insert complete resultset
             $.each(results, function (e, item) {
                 var $topic = _this.create_result_item_view(item)
@@ -294,7 +294,7 @@
             // ..) render math elements in html-resultset
             process_math_in_area("resources")
             quickfixPDFImageRendering() // hacketi hack
-            _this.render_load_more_button()
+            if (results.length > 15) _this.render_load_more_button()
         } else {
             $('#list-message').html('<br/><br/><b class="label">No posts to show.</b>')
             $('.result-text').text('')
@@ -819,6 +819,8 @@
     this.create_result_item_view = function (item) {
 
         var $item_dom = $("li#" + item.id) // creates a new DOMElement
+        // fixme: use try and catch to skip rendering inconsistend data-entries
+        // which are all items "created" via the dm4-webclient and not via the notes-interface
         if (item.type_uri == NOTES_URI) {
             return new NoteItemRenderer(item, _this).render($item_dom) // sets up new item in DOMElement
         } else if (item.type_uri == MOODLE_ITEM_URI) {
@@ -1218,16 +1220,8 @@
         // creating the new resource, with aggregated new tags
         var resource = undefined
         if (valueToSubmit.match(/\S/) != null && valueToSubmit !== "<p><br></p>") { // no empty strings
-            resource = _this.emc.createResourceTopic(valueToSubmit, tagsToCreate) // ### use catch here
+            resource = _this.emc.createResourceTopic(valueToSubmit, tagsToCreate, tagsToReference) // ### use catch here
             if (resource != undefined) {
-                // an creating/associtating tags with this resource
-                /* createNewTagsForResource(resource, tagsToCreate) **/
-                for (var k=0; k < tagsToReference.length; k++) {
-                    if (tagsToReference[k] != undefined) {
-                        var newAssoc = _this.emc.createResourceTagAssociation(resource, tagsToReference[k])
-                        if (!newAssoc) console.warn("We could not create a Resource <-> Tag association ..")
-                    }
-                }
                 // track "added resource" goal
                 if (typeof piwikTracker !== 'undefined') piwikTracker.trackGoal(5)
                 $('#add_resource').html("")
@@ -1327,6 +1321,23 @@
             // fixme: historyApi // _this.pushHistory("detailView", "Note Info: " + noteId, "/notes/" + noteId)
 
         }
+
+        // in any case, create webSocket listener
+
+        var ws = new WebSocket("ws://localhost:8081", "org.deepamehta.subscriptions")
+
+        ws.onopen = function(e) {
+            console.log("Opening WebSocket connection to " + e.target.url, e)
+            ws.send("Hello Notizen-WebSockets server! I am "  + window.navigator.userAgent)
+        }
+        ws.onmessage = function(e) {
+            var response = JSON.parse(e.data)
+            console.log(response)
+        }
+        ws.onclose = function(e) {
+            console.log("Closing Notizen-WebSocket connection to " + e.target.url + " (" + e.reason + ")", e)
+        }
+
     }
 
 })(CKEDITOR, MathJax, jQuery, console, new RESTClient("/core"))

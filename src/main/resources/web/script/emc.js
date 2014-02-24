@@ -106,7 +106,7 @@ function EMC (dmc, model) {
         }
     }
 
-    this.createResourceTopic = function(value, tagsToCreate) {
+    this.createResourceTopic = function(value, tagsToCreate, tagsToReference) {
 
         if (value != undefined) {
             // FIXME: doubled URIs in code find out how to use variables as keys in a declarative object construction
@@ -121,11 +121,17 @@ function EMC (dmc, model) {
                 }
             }
             // create resource directly with all aggregated composite tags
-            for (var t=0; t < tagsToCreate.length; t++) {
+            // fixme: this is currently never processed on server-side but done manually in timeline.js doSubmit()
+             for (var t=0; t < tagsToCreate.length; t++) {
                 topicModel.composite["dm4.tags.tag"].push({
                     "dm4.tags.label": tagsToCreate[t],
                     "dm4.tags.definition": ""
                 })
+            }
+            for (var k=0; k < tagsToReference.length; k++) {
+                if (tagsToReference[k] != undefined) {
+                    topicModel.composite["dm4.tags.tag"].push( "ref_id:" + tagsToReference[k].id )
+                }
             }
             // var resourceTopic = dmc.create_topic(topicModel)
             var resourceTopic = dmc.request("POST", "/notes/resource/create", topicModel)

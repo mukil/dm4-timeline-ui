@@ -1,47 +1,34 @@
 package org.deepamehta.plugins.eduzen;
 
-import java.util.logging.Logger;
-import java.util.List;
-import java.util.Date;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.WebApplicationException;
-
-import de.deepamehta.core.Topic;
-import de.deepamehta.core.model.TopicModel;
-import de.deepamehta.core.RelatedTopic;
-import de.deepamehta.core.model.CompositeValueModel;
-import de.deepamehta.core.service.ClientState;
-import de.deepamehta.core.service.Directives;
-import de.deepamehta.core.storage.spi.DeepaMehtaTransaction;
-import de.deepamehta.plugins.webactivator.WebActivatorPlugin;
-
-import org.deepamehta.plugins.eduzen.service.ResourceService;
-
 import com.sun.jersey.api.view.Viewable;
 import com.sun.jersey.spi.container.ContainerResponse;
 import de.deepamehta.core.Association;
+import de.deepamehta.core.RelatedTopic;
+import de.deepamehta.core.Topic;
 import de.deepamehta.core.model.*;
-import de.deepamehta.core.service.*;
+import de.deepamehta.core.service.ClientState;
+import de.deepamehta.core.service.Directives;
+import de.deepamehta.core.service.PluginService;
+import de.deepamehta.core.service.ResultList;
 import de.deepamehta.core.service.annotation.ConsumesService;
 import de.deepamehta.core.service.event.PreSendTopicListener;
 import de.deepamehta.core.service.event.ServiceResponseFilterListener;
+import de.deepamehta.core.storage.spi.DeepaMehtaTransaction;
 import de.deepamehta.plugins.accesscontrol.service.AccessControlService;
 import de.deepamehta.plugins.tags.service.TaggingService;
 import de.deepamehta.plugins.topicmaps.model.TopicViewmodel;
 import de.deepamehta.plugins.topicmaps.model.TopicmapViewmodel;
+import de.deepamehta.plugins.webactivator.WebActivatorPlugin;
 import java.text.DateFormat;
 import java.util.*;
 import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.ws.rs.*;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.deepamehta.plugins.eduzen.service.ResourceService;
+import org.deepamehta.plugins.subscriptions.service.SubscriptionService;
 
 
 /**
@@ -105,6 +92,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     private final static String DEEPAMEHTA_FILE_URI = "dm4.files.file";
     private final static String DEEPAMEHTA_FILE_PATH_URI = "dm4.files.path";
 
+    private SubscriptionService notificationService = null;
     private AccessControlService aclService = null;
     private TaggingService taggingService = null;
 
@@ -249,13 +237,10 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         /// ### Wrap creation of the "Creator"-Relationship in this transaction too
         DeepaMehtaTransaction tx = dms.beginTx();
         Topic resource = null;
+        // 0) Authorize create request
         Topic user = getAuthorizedUser();
         try {
-            String value = topicModel.getCompositeValueModel().getString(RESOURCE_CONTENT_URI);
-            // skipping: check in htmlContent for <script>-tag
-            // enrich new topic about content
-            topicModel.getCompositeValueModel().put(RESOURCE_CONTENT_URI, value);
-            // enrich new topic about timestamps
+            // 1) enrich new topic about timestamps and defaults
             long createdAt = new Date().getTime();
             topicModel.getCompositeValueModel().put(RESOURCE_CREATED_AT_URI, createdAt);
             topicModel.getCompositeValueModel().put(RESOURCE_LAST_MODIFIED_URI, createdAt);
@@ -264,7 +249,6 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             topicModel.getCompositeValueModel().putRef(RESOURCE_LICENSE_URI, RESOURCE_LICENSE_UNSPECIFIED_URI);
             topicModel.getCompositeValueModel().putRef(RESOURCE_LICENSE_AREA_URI, RESOURCE_LICENSE_UNKNOWN_URI);
             // topicModel.getCompositeValueModel().putRef(RESOURCE_AUTHOR_NAME_URI, RESOURCE_AUTHOR_ANONYMOUS_URI);
-            // create new topic
             resource = dms.createTopic(topicModel, clientState); // clientstate is for workspace-assignment
             Association edge = assignAuthorship(resource, user, clientState);
             if (edge == null) log.warning("Could not relate new resource ("
@@ -275,6 +259,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             throw new WebApplicationException(new RuntimeException("Something went wrong while creating resource", e));
         } finally {
             tx.finish();
+            if (notificationService != null) notificationService.notify("Note created", "", user.getId(), resource);
         }
     }
 
@@ -316,6 +301,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             throw new WebApplicationException(new RuntimeException("Something went wrong while updating resource", e));
         } finally {
             tx.finish();
+            if (notificationService != null) notificationService.notify("Note edited", "", user.getId(), resource);
         }
     }
 
@@ -718,6 +704,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Override
     @ConsumesService({
         "de.deepamehta.plugins.accesscontrol.service.AccessControlService",
+        "org.deepamehta.plugins.subscriptions.service.SubscriptionService",
         "de.deepamehta.plugins.tags.service.TaggingService"
     })
     public void serviceArrived(PluginService service) {
@@ -725,12 +712,16 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             aclService = (AccessControlService) service;
         } else if (service instanceof TaggingService) {
             taggingService = (TaggingService) service;
+        } else if (service instanceof SubscriptionService) {
+            notificationService = (SubscriptionService) service;
         }
     }
 
+    //         "de.deepamehta.plugins.subscriptions.service.SubscriptionService",
     @Override
     @ConsumesService({
         "de.deepamehta.plugins.accesscontrol.service.AccessControlService",
+        "org.deepamehta.plugins.subscriptions.service.SubscriptionService",
         "de.deepamehta.plugins.tags.service.TaggingService"
     })
     public void serviceGone(PluginService service) {
@@ -738,6 +729,8 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             aclService = null;
         } else if (service == taggingService) {
             taggingService = null;
+        } else if (service == notificationService) {
+            notificationService = null;
         }
     }
 
