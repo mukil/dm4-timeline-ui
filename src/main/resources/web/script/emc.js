@@ -106,6 +106,52 @@ function EMC (dmc, model) {
         }
     }
 
+    this.loadUserSubscriptions= function () {
+        //
+        var subscriptions = dmc.request("GET", "/subscriptions/list")
+        if (typeof subscriptions.items === "undefined") return undefined
+        if (subscriptions.items.length > 0) {
+            var subscribed_tags = []
+            for (var i=0; i < subscriptions.items.length; i++) {
+                var item = subscriptions.items[i]
+                if (item['type_uri'] === "dm4.tags.tag") {
+                    subscribed_tags.push(item)
+                }
+           }
+            _this.model.setUserSubscriptions(subscribed_tags)
+        } else {
+            _this.model.setUserSubscriptions([])
+        }
+    }
+
+    this.loadAllUserNotifications = function () {
+        //
+        var notifications = dmc.request("GET", "/subscriptions/notifications/all")
+        if (typeof notifications.items === "undefined") return undefined
+        if (notifications.items.length > 0) {
+            return notifications.items
+            _this.model.setUserNotifications(notifications)
+        } else {
+            _this.model.setUserNotifications([])
+        }
+    }
+
+    this.loadAllUnseenUserNotifications = function () {
+        //
+        var notifications = dmc.request("GET", "/subscriptions/notifications/unseen")
+        if (typeof notifications === "undefined") return undefined
+        if (notifications.length > 0) {
+            _this.model.setUserNotifications(notifications)
+        } else {
+            _this.model.setUserNotifications([])
+        }
+    }
+
+    this.subscribeToTag = function (object_id) {
+        //
+        dmc.request("GET", "/subscriptions/subscribe/" + object_id)
+    }
+
     this.createResourceTopic = function(value, tagsToCreate, tagsToReference) {
 
         if (value != undefined) {

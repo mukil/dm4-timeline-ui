@@ -10,6 +10,7 @@ function AppModel () {
         var currentUserTopic = undefined
         var selectedFormula = undefined
         var profileResourcesId = undefined
+        var userSubscriptions = undefined
 
         var tagFilter = []
 
@@ -72,6 +73,18 @@ function AppModel () {
             },
             getProfileResources: function () {
                 return profileResources
+            },
+            setUserSubscriptions: function (subscriptions) {
+                userSubscriptions = subscriptions
+            },
+            getUserSubscriptions: function () {
+                return userSubscriptions
+            },
+            setUserNotifications: function (news) {
+                userNotifications = news
+            },
+            getUserNotifications: function () {
+                return userNotifications
             },
             addToProfileResources: function (resource) { // ### yet unused
                 return profileResources.push(resource)

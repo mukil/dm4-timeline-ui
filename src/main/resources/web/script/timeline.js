@@ -317,7 +317,7 @@
         }
     }
 
-    _this.append_page_to_result_view = function () {
+    this.append_page_to_result_view = function () {
         $('.list .load-more').remove()
         _this.model.page_nr = _this.model.page_nr + 1
         var offset = _this.model.page_nr * NOTES_LIMIT
@@ -345,6 +345,86 @@
         } else {
             $('#menu .home-menu-button').remove()
         }
+
+        if (_this.is_logged_in()) {
+            //
+            _this.emc.loadUserSubscriptions()
+            _this.emc.loadAllUnseenUserNotifications()
+            //
+            _this.render_subscribed_tags()
+            // _this.create_websocket_listener()
+
+        }
+
+    }
+
+    this.render_subscribed_tags = function() {
+
+        $('#menu .subscribed-tag').remove()
+        var tags = _this.model.getUserSubscriptions()
+        var $container = $('.subscription-view')
+            $container.empty()
+        if (tags.length > 0) {
+            for (var i=0; i < tags.length; i++) {
+                //
+                var tag = tags[i]
+                var $item = $('<div id="sub-' +tag.id+ '" class="subscribed-tag">'+ tag.value +'</div>')
+                    $item.click(function(e) {
+                        // id is empty if sub-div was clicked / check parentTarget then .. anyways: does not matter
+                        if (e.target.id !== "") {
+                            // var tag_id = e.target.id.substr(4)
+                            var pos_left = e.pageX
+                            console.log("Maybe we can calculate relative pos. of notifications-menu.. " + pos_left)
+                            $('#' +e.target.id+ ' div.notification-list').toggle()
+                            // todo: render_notification_menu(tag_id, pos_x, pos_y)
+                        }
+                    })
+                $container.append($item)
+                //
+                var unread_notifications = _this.getNotificationsForItemId(tag.id)
+                var number = unread_notifications.length
+                var $indicator = $('<div class="subscription-indicator">')
+                var $notifications = $('<div class="notification-list">')
+                    $notifications.hide()
+                if (number >= 1) {
+                    // Render indicator for news
+                    // console.log("There are "+ number +" unseen notifications under tag \""+tag.value+"\" for you.")
+                    $indicator.removeClass("read")
+                    $indicator.addClass("unread")
+                    $indicator.text(number)
+                    $item.append($indicator)
+                    // Append notifications menu for this tag
+                    for (var k=0; k < unread_notifications.length; k++) {
+                        var news_item = unread_notifications[k]
+                        console.log(news_item)
+                        var username = news_item.composite["dm4.accesscontrol.user_account"].value
+                        if (news_item
+                            .composite["dm4.accesscontrol.user_account"]
+                            .composite.hasOwnProperty("org.deepamehta.identity.display_name")) {
+                            if (news_item.composite["dm4.accesscontrol.user_account"]
+                                            .composite["org.deepamehta.identity.display_name"].value !== "") {
+                                username = news_item.composite["dm4.accesscontrol.user_account"]
+                                    .composite["org.deepamehta.identity.display_name"].value
+                            }
+                        }
+                        var $news = $('<div id="' +news_item.id+ '" class="news-item">'
+                                        +news_item.value+  ' by ' +username+ '</div>')
+                            $news.click(function(e) {
+                                console.log("Navigating to news-item " + e.target.id)
+                                return false
+                            })
+                        $notifications.append($news)
+                    }
+                    $item.append($notifications)
+                } else {
+                    $indicator.text("")
+                    $indicator.removeClass("unread")
+                    $indicator.addClass("read")
+                    $item.append($indicator)
+                }
+                //
+            }
+        }
     }
 
     this.render_tag_filter_info = function () {
@@ -366,7 +446,8 @@
         var $filterMeta = $('<span class="meta">'+ filterMessage +'</span>')
         var $filterButtons = $('<span class="buttons"></span>')
         for (var i=0; i < tags.length; i++) {
-            var $closeButton = $('<a id="' +tags[i].id+ '" class="close" title="Tag aus dem Filter entfernen">x</a>')
+            var tag_button_topic_id = tags[i].id
+            var $closeButton = $('<a id="' +tag_button_topic_id+ '" class="close" title="Tag aus dem Filter entfernen">x</a>')
                 $closeButton.click(function (e) {
                     var tagId = parseInt(e.target.id)
                     var tag = _this.model.getTagById(tagId)
@@ -378,9 +459,18 @@
                     _this.prepare_index_page(true, true)
                     _this.push_timeline_view_state()
                 })
+            var $filter_item_container = $('<div class="tag-filter-container">')
+            var $subscribeButton = $('<a class="subscribe" id="subscribe-'+ tag_button_topic_id +'" title="Benachrichtigungen f&uuml;r Beitr&uaml;ge '
+                + 'mit diesem Tag aktivieren">Subscribe</a>')
+                $subscribeButton.click(function(event){
+                    var id = event.target.id.substr(10)
+                    console.log("Subscribed logged in user to tag \""+ id +"\"")
+                    _this.emc.subscribeToTag(id)
+                })
             var $tagButton = $('<a class="btn tag selected">' +tags[i].value+ '</a>')
                 $tagButton.append($closeButton)
-            $filterButtons.append($tagButton)
+            $filter_item_container.append($subscribeButton).append($tagButton)
+            $filterButtons.append($filter_item_container)
         }
         var $clearButton = $('<a class="reset btn" title="Alle Tags aus dem Filter entfernen">')
             .html('Filter zur&uuml;cksetzen')
@@ -1131,6 +1221,18 @@
         return null
     }
 
+    this.getNotificationsForItemId = function (itemId) {
+        var all_news = _this.model.getUserNotifications()
+        var my_news = []
+        for (var i=0; i < all_news.length; i++) {
+            var item_id = all_news[i].composite["org.deepamehta.subscriptions.involved_item_id"]
+            if (item_id.value === itemId) {
+                my_news.push(all_news[i])
+            }
+        }
+        return my_news
+    }
+
     this.get_entered_tags = function (fieldIdentifier) {
         if ($(fieldIdentifier).val() == undefined) return undefined
         var tagline = $(fieldIdentifier).val().split( /,\s*/ )
@@ -1270,6 +1372,23 @@
         }
     }
 
+    this.create_websocket_listener = function () {
+
+        var ws = new WebSocket("ws://localhost:8081", "org.deepamehta.subscriptions")
+
+        ws.onopen = function(e) {
+            console.log("Opening WebSocket connection to " + e.target.url, e)
+            ws.send("Hello Notizen-WebSockets server! I am "  + window.navigator.userAgent)
+        }
+        ws.onmessage = function(e) {
+            var response = JSON.parse(e.data)
+            console.log(response)
+        }
+        ws.onclose = function(e) {
+            console.log("Closing Notizen-WebSocket connection to " + e.target.url + " (" + e.reason + ")", e)
+        }
+    }
+
     /** Main router to all views */
 
     this.page_route = function () {
@@ -1286,6 +1405,7 @@
         // in any case
         _this.emc.loadAllTags()
         _this.sort_current_tags()
+
         // route to distinct views
         if (noteId === undefined || noteId === "") {
 
@@ -1320,22 +1440,6 @@
             _this.prepare_detail_page(noteId)
             // fixme: historyApi // _this.pushHistory("detailView", "Note Info: " + noteId, "/notes/" + noteId)
 
-        }
-
-        // in any case, create webSocket listener
-
-        var ws = new WebSocket("ws://localhost:8081", "org.deepamehta.subscriptions")
-
-        ws.onopen = function(e) {
-            console.log("Opening WebSocket connection to " + e.target.url, e)
-            ws.send("Hello Notizen-WebSockets server! I am "  + window.navigator.userAgent)
-        }
-        ws.onmessage = function(e) {
-            var response = JSON.parse(e.data)
-            console.log(response)
-        }
-        ws.onclose = function(e) {
-            console.log("Closing Notizen-WebSocket connection to " + e.target.url + " (" + e.reason + ")", e)
         }
 
     }

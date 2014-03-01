@@ -88,10 +88,10 @@ body.eduzen.note {
     left: 120px;
     top: 0px;
     padding-left: 7px;
-    border: 1px solid #f5f5f5;
-    border-top: 1px solid transparent;
+    border-top: 1px solid #f1f1f1;
     color: #a9a9a9;
-    background-color: #fff;
+    background-color: #f1f1f1;
+    padding-top: 2px;
 }
 
 .eduzen.note.guest .username {
@@ -103,15 +103,14 @@ body.eduzen.note {
     left: 35px;
     top: 0px;
     padding-left: 7px;
-    border: 1px solid #f5f5f5;
-    border-top: 1px solid transparent;
+    border-top: 1px solid #f1f1f1;
     color: #a9a9a9;
-    background-color: #fff;
+    background-color: #f1f1f1;
+    padding-top: 2px;
 }
 
 .eduzen .headline .username:hover {
-    border: 1px solid #0782C1;
-    border-top: 1px solid transparent;
+    border-top: 1px solid #FFC700;
 
 }
 
@@ -123,7 +122,7 @@ body.eduzen.note {
     z-index: 100;
     width: 100%;
     min-height: 40px;
-    border-bottom: 1px solid #FFC700;
+   /**  border-bottom: 1px solid #FFC700; **/
     position: fixed;
     top: 0px; left: 0px;
     background-color: #fff;
@@ -186,6 +185,51 @@ body.eduzen.note {
 .eduzen #menu .pages {
     float: right;
     margin-right: 300px;
+
+}
+.eduzen #menu .subscription-view {
+    display: inline-block;
+    position: relative; left: 200px;
+}
+
+.eduzen #menu .subscribed-tag {
+    display: inline-block; cursor: pointer;
+    margin-left: 10px; margin-right: 10px;
+    background-color: #f1f1f1; color: #a9a9a9;
+    border: 1px solid transparent;
+    border-top: 1px solid #f1f1f1;
+    padding: 6px; padding-right: 2px;
+    padding-top: 10px;
+    padding-bottom: 4px;
+}
+
+.eduzen #menu .subscribed-tag:hover {
+    border-top: 1px solid #FFC700;
+    color: #0782C1;
+}
+
+.eduzen .subscribed-tag .subscription-indicator.unread {
+    display: inline-block;
+    position: relative; top: -4px; left: 0px;
+    border-radius: 10px;
+    padding: 4px; padding-top: 3px; padding-bottom: 2px;
+    /** background-color: #C50E1F; text-align: center; **/
+    color: #0782C1;
+    font-size: 10px;
+    font-family: Courier;
+}
+
+.eduzen .subscribed-tag .notification-list {
+    margin-top: 15px;
+}
+
+.eduzen .subscribed-tag .notification-list .news-item {
+    margin-top: 5px; margin-right: 5px;
+    color: #a9a9a9;
+}
+
+.eduzen .subscribed-tag:hover .notification-list .news-item {
+    color: #a9a9a9;
 }
 
 .eduzen .options .tag-filter-info span.meta {
@@ -355,6 +399,40 @@ body.eduzen.note {
     background-color: #0782C1;
     color: #fff;
     /** border: 1px #383838 solid; **/
+}
+
+.eduzen .tag-filter-container .subscribe {
+    display: block;
+    cursor: pointer;
+    text-align: center;
+    font-size: 10px;
+    opacity: 0;
+    -webkit-transition: opacity 0.2s ease-out;
+    -moz-transition: opacity 0.2s ease-out;
+    -o-transition: opacity 0.2s ease-out;
+    background-color: #FFC700;
+    color: #fff;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    border: 1px solid #fff;
+}
+
+.eduzen .tag-filter-container:hover .subscribe {
+    -webkit-transition: opacity 0.5s ease-out;
+    -moz-transition: opacity 0.5s ease-out;
+    -o-transition: opacity 0.5s ease-out;
+    opacity: 1;
+    border-bottom: 1px solid #FFC700;
+}
+
+.eduzen .tag-filter-container .btn.tag {
+    margin-top: 0px;
+    min-width: 40px;
+}
+
+.eduzen .tag-filter-container {
+    display: inline-block;
+    margin-top: 10px;
 }
 
 .eduzen .header a.help {
