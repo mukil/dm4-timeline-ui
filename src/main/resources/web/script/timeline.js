@@ -372,20 +372,17 @@
                     $item.click(function(e) {
                         // id is empty if sub-div was clicked / check parentTarget then .. anyways: does not matter
                         if (e.target.id !== "") {
-                            // var tag_id = e.target.id.substr(4)
+                            var tag_id = e.target.id.substr(4)
                             var pos_left = e.pageX
-                            console.log("Maybe we can calculate relative pos. of notifications-menu.. " + pos_left)
-                            $('#' +e.target.id+ ' div.notification-list').toggle()
-                            // todo: render_notification_menu(tag_id, pos_x, pos_y)
+                            render_notification_menu(tag_id, pos_left - 20, 30)
                         }
                     })
                 $container.append($item)
                 //
-                var unread_notifications = _this.getNotificationsForItemId(tag.id)
+                var unread_notifications = _this.getNotificationsForSubscribedItemId(tag.id)
                 var number = unread_notifications.length
                 var $indicator = $('<div class="subscription-indicator">')
-                var $notifications = $('<div class="notification-list">')
-                    $notifications.hide()
+                //
                 if (number >= 1) {
                     // Render indicator for news
                     // console.log("There are "+ number +" unseen notifications under tag \""+tag.value+"\" for you.")
@@ -393,29 +390,6 @@
                     $indicator.addClass("unread")
                     $indicator.text(number)
                     $item.append($indicator)
-                    // Append notifications menu for this tag
-                    for (var k=0; k < unread_notifications.length; k++) {
-                        var news_item = unread_notifications[k]
-                        console.log(news_item)
-                        var username = news_item.composite["dm4.accesscontrol.user_account"].value
-                        if (news_item
-                            .composite["dm4.accesscontrol.user_account"]
-                            .composite.hasOwnProperty("org.deepamehta.identity.display_name")) {
-                            if (news_item.composite["dm4.accesscontrol.user_account"]
-                                            .composite["org.deepamehta.identity.display_name"].value !== "") {
-                                username = news_item.composite["dm4.accesscontrol.user_account"]
-                                    .composite["org.deepamehta.identity.display_name"].value
-                            }
-                        }
-                        var $news = $('<div id="' +news_item.id+ '" class="news-item">'
-                                        +news_item.value+  ' by ' +username+ '</div>')
-                            $news.click(function(e) {
-                                console.log("Navigating to news-item " + e.target.id)
-                                return false
-                            })
-                        $notifications.append($news)
-                    }
-                    $item.append($notifications)
                 } else {
                     $indicator.text("")
                     $indicator.removeClass("unread")
@@ -423,6 +397,69 @@
                     $item.append($indicator)
                 }
                 //
+            }
+        }
+
+        function render_notification_menu(tag_id, pos_x, pos_y) {
+
+            var $notifications = $('div.notification-list')
+            if ($notifications.is(':visible')) {
+                // hide notification if its visible and same subscription-tag button is triggered again
+                $notifications.hide()
+                if ($notifications.attr("id") == tag_id) return false
+            }
+            // 0) re-use element
+            if ($notifications.length == 0) { // 0) or create element
+                $notifications = $('<div class="notification-list">')
+                $('.subscription-view').append($notifications)
+            } else {
+                $notifications.empty()
+                $notifications.hide()
+            }
+            // 1) Append news items for this tag to notifications-menu
+            var notifications = _this.getNotificationsForSubscribedItemId(tag_id)
+            for (var k=0; k < notifications.length; k++) {
+                var news_item = notifications[k]
+                var username = news_item.composite["dm4.accesscontrol.user_account"].value
+                if (news_item
+                    .composite["dm4.accesscontrol.user_account"]
+                    .composite.hasOwnProperty("org.deepamehta.identity.display_name")) {
+                    if (news_item.composite["dm4.accesscontrol.user_account"]
+                                    .composite["org.deepamehta.identity.display_name"].value !== "") {
+                        username = news_item.composite["dm4.accesscontrol.user_account"]
+                            .composite["org.deepamehta.identity.display_name"].value
+                    }
+                }
+                var $news = $('<div id="' +news_item.id+ '" class="news-item">'
+                                +news_item.value+  ' by ' +username+ '</div>')
+                    $news.click(function(e) {
+                        console.log(e.target.id)
+                        var news_item_id = e.target.id
+                        var about_item_id = _this.getInvolvedItemIdForNotification(news_item_id)
+                        try {
+                            _this.emc.setNotificationSeen(news_item_id)
+                        } catch (directives_error) { // this happens because of our usage of dmc in emc
+                            console.warn(directives_error)
+                        }
+                        //
+                        _this.prepare_detail_page(about_item_id)
+                        _this.pushDetailViewState(_this.emc.getTopicById(about_item_id))
+                        return false
+                    })
+                $notifications.append($news)
+            }
+            // 2) keep notification menu hidden if no news-items are avaialbe
+            if (notifications.length > 0) {
+                $notifications.attr("id", tag_id)
+                $notifications.css("left", pos_x)
+                $notifications.css("top", pos_y)
+                $notifications.show()
+            } else {
+                // navigate to filtered timeline in this case
+                var tag = _this.model.getTagById(tag_id)
+                _this.model.addTagToFilter(tag)
+                _this.prepare_index_page(true, true)
+                _this.push_timeline_view_state()
             }
         }
     }
@@ -464,8 +501,13 @@
                 + 'mit diesem Tag aktivieren">Subscribe</a>')
                 $subscribeButton.click(function(event){
                     var id = event.target.id.substr(10)
-                    console.log("Subscribed logged in user to tag \""+ id +"\"")
-                    _this.emc.subscribeToTag(id)
+                    // console.log("Subscribed logged in user to tag \""+ id +"\"")
+                    try {
+                        _this.emc.subscribeToTag(id)
+                    } catch (directives_error) {
+                        console.warn(directives_error)
+                    }
+                    _this.render_current_view()
                 })
             var $tagButton = $('<a class="btn tag selected">' +tags[i].value+ '</a>')
                 $tagButton.append($closeButton)
@@ -1221,13 +1263,26 @@
         return null
     }
 
-    this.getNotificationsForItemId = function (itemId) {
+    this.getNotificationsForSubscribedItemId = function (itemId) {
         var all_news = _this.model.getUserNotifications()
         var my_news = []
         for (var i=0; i < all_news.length; i++) {
-            var item_id = all_news[i].composite["org.deepamehta.subscriptions.involved_item_id"]
-            if (item_id.value === itemId) {
+            var item_id = all_news[i].composite["org.deepamehta.subscriptions.subscribed_item_id"]
+            if (item_id.value == itemId) {
                 my_news.push(all_news[i])
+            }
+        }
+        return my_news
+    }
+
+
+    this.getInvolvedItemIdForNotification = function (newsId) {
+        var all_news = _this.model.getUserNotifications()
+        var my_news = []
+        for (var i=0; i < all_news.length; i++) {
+            var news_item = all_news[i]
+            if (news_item.id == newsId) {
+                return all_news[i].composite["org.deepamehta.subscriptions.involved_item_id"].value
             }
         }
         return my_news

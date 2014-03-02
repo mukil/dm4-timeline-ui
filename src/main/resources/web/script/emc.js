@@ -152,6 +152,11 @@ function EMC (dmc, model) {
         dmc.request("GET", "/subscriptions/subscribe/" + object_id)
     }
 
+    this.setNotificationSeen = function (news_id) {
+        //
+        dmc.request("GET", "/subscriptions/notification/seen/" + news_id)
+    }
+
     this.createResourceTopic = function(value, tagsToCreate, tagsToReference) {
 
         if (value != undefined) {
@@ -184,8 +189,8 @@ function EMC (dmc, model) {
             if (resourceTopic == undefined) throw new Error("Something mad happened.")
             var updated = model.addToAvailableResources(resourceTopic)
             // ### possibly addToProfileResources too
-            // dont forget to add our new tags to the client-side AppModel
-            var new_tags = resourceTopic.composite['dm4.tags.tag']
+            // dont forget to add our new (tagsToCreate) tags to the client-side AppModel
+            var new_tags = tagsToCreate
             if (typeof new_tags !== 'undefined') {
                 for (var t=0; t < new_tags.length; t++) {
                     var new_tag = new_tags[t]

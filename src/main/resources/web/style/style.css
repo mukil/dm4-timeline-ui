@@ -187,13 +187,20 @@ body.eduzen.note {
     margin-right: 300px;
 
 }
+
 .eduzen #menu .subscription-view {
     display: inline-block;
     position: relative; left: 200px;
 }
 
+.eduzen.notes.personal #menu .subscription-view,
+.eduzen.notes.note #menu .subscription-view {
+    display: inline-block;
+    position: relative; left: 300px;
+}
+
 .eduzen #menu .subscribed-tag {
-    display: inline-block; cursor: pointer;
+    display: inline-block;
     margin-left: 10px; margin-right: 10px;
     background-color: #f1f1f1; color: #a9a9a9;
     border: 1px solid transparent;
@@ -201,35 +208,52 @@ body.eduzen.note {
     padding: 6px; padding-right: 2px;
     padding-top: 10px;
     padding-bottom: 4px;
+    height: 16px;
+    position: relative; top: 0px;
 }
 
 .eduzen #menu .subscribed-tag:hover {
     border-top: 1px solid #FFC700;
     color: #0782C1;
+    cursor: pointer;
+}
+
+.eduzen .subscribed-tag .subscription-indicator.read {
+    display: inline-block;
+    position: relative; top: -4px; left: 0px;
+    padding: 4px; padding-top: 3px; padding-bottom: 2px;
+    border-radius: 10px;
 }
 
 .eduzen .subscribed-tag .subscription-indicator.unread {
     display: inline-block;
     position: relative; top: -4px; left: 0px;
-    border-radius: 10px;
     padding: 4px; padding-top: 3px; padding-bottom: 2px;
+    border-radius: 10px;
     /** background-color: #C50E1F; text-align: center; **/
     color: #0782C1;
     font-size: 10px;
     font-family: Courier;
+    cursor: pointer;
 }
 
-.eduzen .subscribed-tag .notification-list {
-    margin-top: 15px;
+.eduzen .notification-list {
+    position: fixed;
+    background-color: #f1f1f1;
 }
 
-.eduzen .subscribed-tag .notification-list .news-item {
-    margin-top: 5px; margin-right: 5px;
+.eduzen .notification-list .news-item {
+    margin-top: 5px;
     color: #a9a9a9;
+    border-top: 1px solid #f1f1f1;
+    padding: 5px;
 }
 
-.eduzen .subscribed-tag:hover .notification-list .news-item {
-    color: #a9a9a9;
+.eduzen .notification-list .news-item:hover {
+    color: #0782C1;
+    border-top: 1px solid #FFC700;
+    padding: 5px;
+    cursor: pointer;
 }
 
 .eduzen .options .tag-filter-info span.meta {

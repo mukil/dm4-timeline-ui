@@ -123,6 +123,8 @@ function AppModel () {
                 return undefined
             },
             addTagToFilter: function (tag) {
+                // fixme: add tag just to filter if not already present..
+                // (though that doesnt change results of a tag-query, this case shall be catched before it triggers)
                 tagFilter.push(tag)
             },
             removeTagFromFilter: function (givenTag) {
