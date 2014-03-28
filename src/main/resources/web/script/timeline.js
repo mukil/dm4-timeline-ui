@@ -352,11 +352,11 @@
 
         if (_this.is_logged_in()) {
             //
-            _this.emc.loadUserSubscriptions()
-            _this.emc.loadAllUnseenUserNotifications()
+            // _this.emc.loadUserSubscriptions()
+            // _this.emc.loadAllUnseenUserNotifications()
             //
-            _this.render_subscribed_tags()
-            _this.create_websocket_listener() // this is done just once
+            // _this.render_subscribed_tags()
+            // _this.create_websocket_listener() // this is done just once
 
         }
 
@@ -512,7 +512,7 @@
                     _this.push_timeline_view_state()
                 })
             var $filter_item_container = $('<div class="tag-filter-container">')
-            var $subscribeButton = $('<a class="subscribe" id="subscribe-'+ tag_button_topic_id +'" title="Benachrichtigungen f&uuml;r Beitr&auml;ge '
+            /** var $subscribeButton = $('<a class="subscribe" id="subscribe-'+ tag_button_topic_id +'" title="Benachrichtigungen f&uuml;r Beitr&auml;ge '
                 + 'mit diesem Tag aktivieren">Subscribe</a>')
                 $subscribeButton.click(function(event){
                     var id = event.target.id.substr(10)
@@ -523,10 +523,10 @@
                         console.warn(directives_error)
                     }
                     _this.render_current_view()
-                })
+                }) **/
             var $tagButton = $('<a class="btn tag selected">' +tags[i].value+ '</a>')
                 $tagButton.append($closeButton)
-            $filter_item_container.append($subscribeButton).append($tagButton)
+            $filter_item_container.append($tagButton) // .append($subscribeButton)
             $filterButtons.append($filter_item_container)
         }
         var $clearButton = $('<a class="reset btn" title="Alle Tags aus dem Filter entfernen">')
@@ -1444,7 +1444,7 @@
 
     this.create_websocket_listener = function () {
 
-        if (typeof _this.socket === "undefined") {
+        /** if (typeof _this.socket === "undefined") {
             _this.socket = new WebSocket("ws://localhost:8081", "org.deepamehta.subscriptions")
 
             _this.socket.onopen = function(e) {
@@ -1458,7 +1458,7 @@
             _this.socket.onclose = function(e) {
                 console.log("Closing Notizen-WebSocket connection to " + e.target.url + " (" + e.reason + ")", e)
             }
-        }
+        } **/
     }
 
     /** Main router to all views */

@@ -28,7 +28,7 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.deepamehta.plugins.eduzen.service.ResourceService;
-import org.deepamehta.plugins.subscriptions.service.SubscriptionService;
+// import org.deepamehta.plugins.subscriptions.service.SubscriptionService;
 
 
 /**
@@ -92,7 +92,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     private final static String DEEPAMEHTA_FILE_URI = "dm4.files.file";
     private final static String DEEPAMEHTA_FILE_PATH_URI = "dm4.files.path";
 
-    private SubscriptionService notificationService = null;
+    // private SubscriptionService notificationService = null;
     private AccessControlService aclService = null;
     private TaggingService taggingService = null;
 
@@ -259,7 +259,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             throw new WebApplicationException(new RuntimeException("Something went wrong while creating resource", e));
         } finally {
             tx.finish();
-            if (notificationService != null) notificationService.notify("Notiz angelegt", "", user.getId(), resource);
+            // if (notificationService != null) notificationService.notify("Notiz angelegt", "", user.getId(), resource);
         }
     }
 
@@ -301,7 +301,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             throw new WebApplicationException(new RuntimeException("Something went wrong while updating resource", e));
         } finally {
             tx.finish();
-            if (notificationService != null) notificationService.notify("Beitrag bearbeitet", "", user.getId(), resource);
+            // if (notificationService != null) notificationService.notify("Beitrag bearbeitet", "", user.getId(), resource);
         }
     }
 
@@ -701,10 +701,10 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     // --- Service Listeners
     // --
 
+    //         "org.deepamehta.plugins.subscriptions.service.SubscriptionService",
     @Override
     @ConsumesService({
         "de.deepamehta.plugins.accesscontrol.service.AccessControlService",
-        "org.deepamehta.plugins.subscriptions.service.SubscriptionService",
         "de.deepamehta.plugins.tags.service.TaggingService"
     })
     public void serviceArrived(PluginService service) {
@@ -712,16 +712,15 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             aclService = (AccessControlService) service;
         } else if (service instanceof TaggingService) {
             taggingService = (TaggingService) service;
-        } else if (service instanceof SubscriptionService) {
+        } /**  else if (service instanceof SubscriptionService) {
             notificationService = (SubscriptionService) service;
-        }
+        } **/
     }
 
-    //         "de.deepamehta.plugins.subscriptions.service.SubscriptionService",
+    //        "org.deepamehta.plugins.subscriptions.service.SubscriptionService",
     @Override
     @ConsumesService({
         "de.deepamehta.plugins.accesscontrol.service.AccessControlService",
-        "org.deepamehta.plugins.subscriptions.service.SubscriptionService",
         "de.deepamehta.plugins.tags.service.TaggingService"
     })
     public void serviceGone(PluginService service) {
@@ -729,9 +728,9 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             aclService = null;
         } else if (service == taggingService) {
             taggingService = null;
-        } else if (service == notificationService) {
+        } /** else if (service == notificationService) {
             notificationService = null;
-        }
+        } **/
     }
 
 }
