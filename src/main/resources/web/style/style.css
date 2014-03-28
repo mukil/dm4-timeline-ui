@@ -73,7 +73,6 @@ body.eduzen.note {
 .eduzen.info #menu,
 .eduzen.note #menu {
     background-color: #fff;
-    border-bottom: 1px solid #FFC700;
     width: 100%;
     height: 40px;
     position: fixed;
@@ -100,7 +99,7 @@ body.eduzen.note {
 
 .eduzen .headline .username {
     position: absolute;
-    left: 35px;
+    left: 40px;
     top: 0px;
     padding-left: 7px;
     border-top: 1px solid #f1f1f1;
@@ -212,9 +211,17 @@ body.eduzen.note {
     position: relative; top: 0px;
 }
 
+.eduzen #menu .subscribed-tag a {
+    text-decoration: none;
+    color: #a9a9a9;
+}
+
+.eduzen #menu .subscribed-tag:hover a {
+    color: #0782C1;
+}
+
 .eduzen #menu .subscribed-tag:hover {
     border-top: 1px solid #FFC700;
-    color: #0782C1;
     cursor: pointer;
 }
 
@@ -227,11 +234,11 @@ body.eduzen.note {
 
 .eduzen .subscribed-tag .subscription-indicator.unread {
     display: inline-block;
-    position: relative; top: -4px; left: 0px;
+    position: relative; top: -11px; left: 10px;
     padding: 4px; padding-top: 3px; padding-bottom: 2px;
-    border-radius: 10px;
-    /** background-color: #C50E1F; text-align: center; **/
-    color: #0782C1;
+    /**  border-radius: 10px; color: #0782C1; **/
+    background-color: #C50E1F; text-align: center;
+    color: #fff;
     font-size: 10px;
     font-family: Courier;
     cursor: pointer;
@@ -245,13 +252,13 @@ body.eduzen.note {
 .eduzen .notification-list .news-item {
     margin-top: 5px;
     color: #a9a9a9;
-    border-top: 1px solid #f1f1f1;
+    /** border-top: 1px solid #f1f1f1; **/
     padding: 5px;
 }
 
 .eduzen .notification-list .news-item:hover {
     color: #0782C1;
-    border-top: 1px solid #FFC700;
+    /** border-top: 1px solid #FFC700; **/
     padding: 5px;
     cursor: pointer;
 }
@@ -434,9 +441,10 @@ body.eduzen.note {
     -webkit-transition: opacity 0.2s ease-out;
     -moz-transition: opacity 0.2s ease-out;
     -o-transition: opacity 0.2s ease-out;
-    background-color: #FFC700;
-    color: #fff;
-    padding-top: 4px;
+    border: 1px solid transparent;
+    background-color: #f1f1f1;
+    color: #0782C1;
+    padding-top: 6px;
     padding-bottom: 4px;
     border: 1px solid #fff;
 }
@@ -446,7 +454,11 @@ body.eduzen.note {
     -moz-transition: opacity 0.5s ease-out;
     -o-transition: opacity 0.5s ease-out;
     opacity: 1;
-    border-bottom: 1px solid #FFC700;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.eduzen .tag-filter-container .subscribe:hover {
+    border-top: 1px solid #FFC700;
 }
 
 .eduzen .tag-filter-container .btn.tag {
@@ -760,15 +772,11 @@ textarea#math-input-dialog {
 .eduzen.personal #profile {
     display: block;
     margin-top: 60px;
-    padding-left: 55px;
     margin-right: 95px;
     margin-bottom: 0px;
     padding: 10px;
     position: relative;
-}
-
-.eduzen.personal #profile .profile {
-    padding-left: 5px;
+    left: 10px;
 }
 
 .eduzen.personal #profile .profile .edit-area {
@@ -942,50 +950,56 @@ textarea#math-input-dialog {
     display: none;
 }
 
-.eduzen.note .home-menu-button,
+/** Adapt to new style **/
+/** .eduzen.note .home-menu-button,
 .eduzen.personal .headline .home-menu-button {
     position: absolute;
     top: 0px; left: 35px;
     padding: 7px;
     padding-top: 9px;
-    color: #a9a9a9;
-    border: 1px solid #f1f1f1;
-    border-top: 1px solid transparent;
     text-decoration: none;
-    background-color: #fff;
 }
 
 .eduzen.note .home-menu-button {
-    left: 40px; /** Override previous value */
+    left: 40px;
+} **/
+
+.eduzen .home-menu-button.btn {
+    background-color: #f1f1f1; color: #a9a9a9;
+    border: 1px solid transparent;
+    border-top: 1px solid #f1f1f1;
+    padding: 6px; padding-right: 2px;
+    padding-top: 10px;
+    padding-bottom: 4px;
+    height: 16px;
+    position: absolute; left: 40px; top: 0px;
+}
+
+.eduzen .headline .login-menu-button:hover,
+.eduzen .headline .login-menu-button:focus,
+.eduzen .home-menu-button.btn:hover,
+.eduzen .home-menu-button.btn:focus {
+    border-top: 1px solid #FFC700;
+    color: #0782C1;
+    cursor: pointer;
 }
 
 .eduzen .headline .login-menu-button {
-    position: absolute;
-    top: 0px; left: 35px;
-    padding: 7px;
-    padding-top: 9px;
-    color: #a9a9a9;
-    border: 1px solid #f1f1f1;
-    border-top: 1px solid transparent;
+    background-color: #f1f1f1; color: #a9a9a9;
+    border: 1px solid transparent;
+    border-top: 1px solid #f1f1f1;
+    padding: 6px;
+    padding-top: 10px;
+    padding-bottom: 4px;
+    height: 16px;
     text-decoration: none;
-    background-color: #fff;
+    position: absolute;
+    top: 0px; left: 40px;
 }
 
 .eduzen.notes.note.guest .headline .login-menu-button,
 .eduzen.notes.personal.guest .headline .login-menu-button {
-    position: absolute;
-    top: 0px; left: 130px;
-}
-
-.eduzen.note .home-menu-button:hover,
-.eduzen.note .home-menu-button:focus,
-.eduzen.personal .headline .home-menu-button:hover,
-.eduzen.personal .headline .home-menu-button:focus,
-.eduzen .headline .login-menu-button:hover,
-.eduzen .headline .login-menu-button:focus {
-    border: 1px solid #0782C1;
-    border-top: 1px solid transparent;
-    color: #0782C1;
+    left: 130px;
 }
 
 .eduzen .headline .login-menu-button.pressed:hover,
@@ -1242,7 +1256,7 @@ input.cke_dialog_ui_input_text:focus {
 
 .eduzen ul.objects,
 .eduzen ul.list {
-    padding-left: 0px;
+    padding-left: 5px;
     padding-right: 10px;
     list-style-type: none;
     position: relative;

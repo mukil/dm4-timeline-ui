@@ -16,6 +16,7 @@
     _this.dmc = dmc
     _this.emc = new EMC(dmc, _this.model)
     _this.piwikTracker = (typeof piwikTracker !== "undefined") ? piwikTracker : undefined
+    _this.socket = undefined;
     //
     var profile = undefined
     //
@@ -334,14 +335,17 @@
 
         if (current_view == DETAIL_VIEW ||
             current_view == PERSONAL_TIMELINE) {
-            var $homeButton = undefined
+            var $homeButton = $('a.home-menu-button')
                 //
-                $homeButton = $('<a class="home-menu-button btn" title="Zur&uuml;ck zur Timeline-Ansicht">Timeline</a>')
-                $homeButton.click(function (e) {
-                    _this.prepare_index_page(true, true)
-                    _this.push_timeline_view_state()
-                })
-            $('#menu').append($homeButton)
+                if ($homeButton.length == 0) {
+                    $homeButton = $('<a class="home-menu-button btn" title="Zur&uuml;ck zur '
+                        + 'Timeline-Ansicht">Timeline</a>')
+                    $homeButton.click(function (e) {
+                        _this.prepare_index_page(true, true)
+                        _this.push_timeline_view_state()
+                    })
+                    $('#menu').append($homeButton)
+                }
         } else {
             $('#menu .home-menu-button').remove()
         }
@@ -352,7 +356,7 @@
             _this.emc.loadAllUnseenUserNotifications()
             //
             _this.render_subscribed_tags()
-            // _this.create_websocket_listener()
+            _this.create_websocket_listener() // this is done just once
 
         }
 
@@ -368,7 +372,15 @@
             for (var i=0; i < tags.length; i++) {
                 //
                 var tag = tags[i]
-                var $item = $('<div id="sub-' +tag.id+ '" class="subscribed-tag">'+ tag.value +'</div>')
+                var $item = $('<div id="sub-' +tag.id+ '" class="subscribed-tag" title="'
+                        + 'Abonnement von '+tag.value+'">') // + tag.value +'</div>')
+                var $item_label = $('<a href="#">'+tag.value+'</a>')
+                    $item_label.click(function (e) {
+                            var tag_id = e.target.parentElement.id.substr(4)
+                            var pos_left = e.pageX
+                            render_notification_menu(tag_id, pos_left - 20, 30)
+                    })
+                    $item.append($item_label)
                     $item.click(function(e) {
                         // id is empty if sub-div was clicked / check parentTarget then .. anyways: does not matter
                         if (e.target.id !== "") {
@@ -390,11 +402,13 @@
                     $indicator.addClass("unread")
                     $indicator.text(number)
                     $item.append($indicator)
+                    $item.attr("title", $item.attr("title") + ' - ' + number +  ' neue Benachrichtigungen')
                 } else {
                     $indicator.text("")
                     $indicator.removeClass("unread")
                     $indicator.addClass("read")
                     $item.append($indicator)
+                    $item.attr("title", $item.attr("title") + ' - Keine neuen Benachrichtigungen')
                 }
                 //
             }
@@ -431,7 +445,7 @@
                     }
                 }
                 var $news = $('<div id="' +news_item.id+ '" class="news-item">'
-                                +news_item.value+  ' by ' +username+ '</div>')
+                                +news_item.value+  ' von ' +username+ '</div>')
                     $news.click(function(e) {
                         console.log(e.target.id)
                         var news_item_id = e.target.id
@@ -457,9 +471,10 @@
             } else {
                 // navigate to filtered timeline in this case
                 var tag = _this.model.getTagById(tag_id)
-                _this.model.addTagToFilter(tag)
-                _this.prepare_index_page(true, true)
-                _this.push_timeline_view_state()
+                if (_this.model.addTagToFilter(tag)) {
+                    _this.prepare_index_page(true, true)
+                    _this.push_timeline_view_state()
+                }
             }
         }
     }
@@ -497,7 +512,7 @@
                     _this.push_timeline_view_state()
                 })
             var $filter_item_container = $('<div class="tag-filter-container">')
-            var $subscribeButton = $('<a class="subscribe" id="subscribe-'+ tag_button_topic_id +'" title="Benachrichtigungen f&uuml;r Beitr&uaml;ge '
+            var $subscribeButton = $('<a class="subscribe" id="subscribe-'+ tag_button_topic_id +'" title="Benachrichtigungen f&uuml;r Beitr&auml;ge '
                 + 'mit diesem Tag aktivieren">Subscribe</a>')
                 $subscribeButton.click(function(event){
                     var id = event.target.id.substr(10)
@@ -1429,18 +1444,20 @@
 
     this.create_websocket_listener = function () {
 
-        var ws = new WebSocket("ws://localhost:8081", "org.deepamehta.subscriptions")
+        if (typeof _this.socket === "undefined") {
+            _this.socket = new WebSocket("ws://localhost:8081", "org.deepamehta.subscriptions")
 
-        ws.onopen = function(e) {
-            console.log("Opening WebSocket connection to " + e.target.url, e)
-            ws.send("Hello Notizen-WebSockets server! I am "  + window.navigator.userAgent)
-        }
-        ws.onmessage = function(e) {
-            var response = JSON.parse(e.data)
-            console.log(response)
-        }
-        ws.onclose = function(e) {
-            console.log("Closing Notizen-WebSocket connection to " + e.target.url + " (" + e.reason + ")", e)
+            _this.socket.onopen = function(e) {
+                console.log("Opening WebSocket connection to " + e.target.url, e)
+                _this.socket.send("Hello Notizen-WebSockets server! I am "  + window.navigator.userAgent)
+            }
+            _this.socket.onmessage = function(e) {
+                // console.log("Received message, we should check notifications and re-render the users toolbar ..")
+                _this.render_toolbar()
+            }
+            _this.socket.onclose = function(e) {
+                console.log("Closing Notizen-WebSocket connection to " + e.target.url + " (" + e.reason + ")", e)
+            }
         }
     }
 

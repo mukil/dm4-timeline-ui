@@ -122,10 +122,13 @@ function AppModel () {
                 }
                 return undefined
             },
-            addTagToFilter: function (tag) {
-                // fixme: add tag just to filter if not already present..
-                // (though that doesnt change results of a tag-query, this case shall be catched before it triggers)
-                tagFilter.push(tag)
+            addTagToFilter: function (newTag) {
+                for (var i=0; i < tagFilter.length; i++) {
+                    var tag = tagFilter[i]
+                    if (tag.id == newTag.id) return false
+                }
+                tagFilter.push(newTag)
+                return true
             },
             removeTagFromFilter: function (givenTag) {
                 var newTagFilter = []
