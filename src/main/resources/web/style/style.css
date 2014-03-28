@@ -968,10 +968,10 @@ textarea#math-input-dialog {
     background-color: #f1f1f1; color: #a9a9a9;
     border: 1px solid transparent;
     border-top: 1px solid #f1f1f1;
-    padding: 6px; padding-right: 2px;
+    padding: 6px;
     padding-top: 10px;
     padding-bottom: 4px;
-    height: 16px;
+    height: 17px;
     position: absolute; left: 40px; top: 0px;
 }
 
