@@ -616,10 +616,17 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         // sort all result-items
         Collections.sort(in_memory, new Comparator<RelatedTopic>() {
             public int compare(RelatedTopic t1, RelatedTopic t2) {
-                long one = t1.getCompositeValue().getLong(RESOURCE_CREATED_AT_URI, 0);
-                long two = t2.getCompositeValue().getLong(RESOURCE_CREATED_AT_URI, 0);
-                if ( one < two ) return 1;
-                if ( one > two ) return -1;
+                try {
+                    long one = t1.getCompositeValue().getLong(RESOURCE_CREATED_AT_URI, 0);
+                    long two = t2.getCompositeValue().getLong(RESOURCE_CREATED_AT_URI, 0);
+                    if ( one < two ) return 1;
+                    if ( one > two ) return -1;
+                } catch (Exception nfe) {
+                    log.warning("Error while accessing timestamp of Topic 1: " + t1.getId()
+                            + " Topic2: " + t2.getId() + " cannot read .created_at-value (long:"
+                            + "" + RESOURCE_CREATED_AT_URI + ")");
+                    return 0;
+                }
                 return 0;
             }
         });
