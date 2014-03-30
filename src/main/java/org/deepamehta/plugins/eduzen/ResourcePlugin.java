@@ -16,6 +16,7 @@ import de.deepamehta.core.service.event.ServiceResponseFilterListener;
 import de.deepamehta.core.storage.spi.DeepaMehtaTransaction;
 import de.deepamehta.plugins.accesscontrol.service.AccessControlService;
 import de.deepamehta.plugins.tags.service.TaggingService;
+import de.deepamehta.plugins.time.service.TimeService;
 import de.deepamehta.plugins.topicmaps.model.TopicViewmodel;
 import de.deepamehta.plugins.topicmaps.model.TopicmapViewmodel;
 import de.deepamehta.plugins.webactivator.WebActivatorPlugin;
@@ -92,9 +93,13 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     private final static String DEEPAMEHTA_FILE_URI = "dm4.files.file";
     private final static String DEEPAMEHTA_FILE_PATH_URI = "dm4.files.path";
 
+    private final static String PROP_URI_CREATED  = "dm4.time.created";
+    private final static String PROP_URI_MODIFIED = "dm4.time.modified";
+
     // private SubscriptionService notificationService = null;
     private AccessControlService aclService = null;
     private TaggingService taggingService = null;
+    private TimeService timeService = null;
 
     @Override
     public void init() {
@@ -331,6 +336,10 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
                     item.loadChildTopics(TAG_URI);
                     item.loadChildTopics(REVIEW_URI);
                     enrichTopicModelAboutCreator(item);
+                    //
+                    enrichTopicModelAboutCreationTimestamp(item);
+                    enrichTopicModelAboutModificationTimestamp(item);
+                    //
                     results.put(item.toJSON());
                     if (results.length() == size) break;
                 }
@@ -574,6 +583,18 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         }
     }
 
+    private void enrichTopicModelAboutCreationTimestamp (Topic resource) {
+        long created = timeService.getCreationTime(resource);
+        CompositeValueModel resourceModel = resource.getCompositeValue().getModel();
+        resourceModel.put(PROP_URI_CREATED, created);
+    }
+
+    private void enrichTopicModelAboutModificationTimestamp (Topic resource) {
+        long created = timeService.getModificationTime(resource);
+        CompositeValueModel resourceModel = resource.getCompositeValue().getModel();
+        resourceModel.put(PROP_URI_MODIFIED, created);
+    }
+
     private Topic fetchCreator(Topic resource) {
         //
         return resource.getRelatedTopic(CREATOR_EDGE_URI, PARENT_URI,
@@ -712,13 +733,16 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Override
     @ConsumesService({
         "de.deepamehta.plugins.accesscontrol.service.AccessControlService",
-        "de.deepamehta.plugins.tags.service.TaggingService"
+        "de.deepamehta.plugins.tags.service.TaggingService",
+        "de.deepamehta.plugins.time.service.TimeService"
     })
     public void serviceArrived(PluginService service) {
         if (service instanceof AccessControlService) {
             aclService = (AccessControlService) service;
         } else if (service instanceof TaggingService) {
             taggingService = (TaggingService) service;
+        } else if (service instanceof TimeService) {
+            timeService = (TimeService) service;
         } /**  else if (service instanceof SubscriptionService) {
             notificationService = (SubscriptionService) service;
         } **/
@@ -728,13 +752,16 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Override
     @ConsumesService({
         "de.deepamehta.plugins.accesscontrol.service.AccessControlService",
-        "de.deepamehta.plugins.tags.service.TaggingService"
+        "de.deepamehta.plugins.tags.service.TaggingService",
+        "de.deepamehta.plugins.time.service.TimeService"
     })
     public void serviceGone(PluginService service) {
         if (service == aclService) {
             aclService = null;
         } else if (service == taggingService) {
             taggingService = null;
+        } else if (service == timeService) {
+            timeService = null;
         } /** else if (service == notificationService) {
             notificationService = null;
         } **/
