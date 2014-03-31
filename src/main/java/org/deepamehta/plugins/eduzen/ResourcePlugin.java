@@ -635,6 +635,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             log.info("fetching " +all_results.getSize()+ " contributions by user " + user.getSimpleValue());
             for (RelatedTopic item : all_results) {
                 enrichTopicModelAboutCreator(item);
+                enrichTopicModelAboutCreationTimestamp(item);
                 results.put(item.toJSON());
             }
             return results.toString();
