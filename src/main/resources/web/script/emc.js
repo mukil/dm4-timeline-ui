@@ -176,6 +176,11 @@ function EMC (dmc, model) {
         dmc.request("GET", "/subscriptions/subscribe/" + object_id)
     }
 
+    this.unsubscribeFromTag = function (object_id) {
+        //
+        dmc.request("GET", "/subscriptions/unsubscribe/" + object_id)
+    }
+
     this.setNotificationSeen = function (news_id) {
         //
         dmc.request("GET", "/subscriptions/notification/seen/" + news_id)

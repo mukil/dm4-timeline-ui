@@ -29,7 +29,7 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.deepamehta.plugins.eduzen.service.ResourceService;
-// import org.deepamehta.plugins.subscriptions.service.SubscriptionService;
+import org.deepamehta.plugins.subscriptions.service.SubscriptionService;
 
 
 /**
@@ -96,7 +96,9 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     private final static String PROP_URI_CREATED  = "dm4.time.created";
     private final static String PROP_URI_MODIFIED = "dm4.time.modified";
 
-    // private SubscriptionService notificationService = null;
+    // --- DeepaMehta 4 Plugin Services
+
+    private SubscriptionService notificationService = null;
     private AccessControlService aclService = null;
     private TaggingService taggingService = null;
     private TimeService timeService = null;
@@ -108,7 +110,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
 
     @Override
     public void preSendTopic(Topic topic, ClientState clientState) {
-        // enrich a single resource-topic about creator and modifiers
+        // enrich each resource-topic about creator and modifiers
         if (topic.getTypeUri().equals(RESOURCE_URI)) {
             enrichTopicModelAboutCreator(topic); // called for topic-detail request but not for a topic in a collection
         }
@@ -170,7 +172,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         viewData("name", "Gefilterte Notizen Timeline, Tags: " + tagFilter);
         viewData("style", "style.css");
         viewData("path", "/notes/tagged/" + tagFilter);
-        viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
+        viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png"); // ###
         return view("index");
     }
 
@@ -186,13 +188,11 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         viewData("description", description);
         viewData("style", "style.css");
         String profile_picture = getUserProfilePicturePath(userId);
-        viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
+        viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png"); // ###
         if (profile_picture != null) {
             viewData("picture", "http://notizen.eduzen.tu-berlin.de/filerepo" + profile_picture);
         }
         viewData("path", "/notes/user" + userId);
-
-        //
         return view("index");
     }
 
@@ -212,7 +212,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         }
         viewData("description", "Tagged: " + description);
         viewData("path", "/notes/" + resource.getId());
-        viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
+        viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png"); // ###
         return view("index");
     }
 
@@ -225,7 +225,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         viewData("name", "Notiz, zuletzt bearbeitet: " + new Date(lastModified).toString());
         viewData("style", "detail-print.css");
         viewData("path", "/notes/" + resource.getId());
-        viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
+        viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png"); // ###
         return view("index");
     }
 
@@ -264,7 +264,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             throw new WebApplicationException(new RuntimeException("Something went wrong while creating resource", e));
         } finally {
             tx.finish();
-            // if (notificationService != null) notificationService.notify("Notiz angelegt", "", user.getId(), resource);
+            if (notificationService != null) notificationService.notify("Notiz angelegt", "", user.getId(), resource);
         }
     }
 
@@ -306,7 +306,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             throw new WebApplicationException(new RuntimeException("Something went wrong while updating resource", e));
         } finally {
             tx.finish();
-            // if (notificationService != null) notificationService.notify("Beitrag bearbeitet", "", user.getId(), resource);
+            if (notificationService != null) notificationService.notify("Beitrag bearbeitet", "", user.getId(), resource);
         }
     }
 
@@ -354,7 +354,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
                 // 6) Sort and fetch moodle-items
                 count = 0;
                 for (RelatedTopic moodle_item : all_items) { // 7) prepare (some size*2) fetched moodle items
-                    // if (count >= from) {
+                    if (count >= from) {
                         // prepare SIZE moodle items
                         moodle_item.loadChildTopics(MOODLE_ITEM_ICON_URI);
                         moodle_item.loadChildTopics(MOODLE_ITEM_MODIFIED_URI);
@@ -369,8 +369,8 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
                         // enrichTopicModelAboutCreator(moodle_item);
                         results.put(moodle_item.toJSON());
                         if (results.length() == size * 3) break;
-                    // }
-                    // count++;
+                    }
+                    count++;
                 }
             }
         } catch (Exception e) { // e.g. a "RuntimeException" is thrown if the moodle-plugin is not installed
@@ -651,12 +651,11 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         Topic user = dms.getTopic("dm4.accesscontrol.username", new SimpleValue(username), false);
         Topic account = user.getRelatedTopic(COMPOSITION_TYPE_URI, CHILD_URI, PARENT_URI,
                 "dm4.accesscontrol.user_account", false, false);
-        // log.info("Fetching all Moodle Items for user \""+account.getSimpleValue()+"\" (" +account.getId()+ ")");
+        log.info("Fetcing all Moodle Items for user \""+account.getSimpleValue()+"\" (" +account.getId()+ ")");
         ResultList<RelatedTopic> enroled_courses = account.getRelatedTopics(MOODLE_PARTICIPANT_EDGE,
                 DEFAULT_ROLE_TYPE_URI, DEFAULT_ROLE_TYPE_URI, MOODLE_COURSE_URI, false, false, 0);
         ResultList<RelatedTopic> resultset = new ResultList<RelatedTopic>();
         for (RelatedTopic course : enroled_courses) {
-            // log.info(" in Moodle Course \""+course.getSimpleValue()+"\"");
             ResultList<RelatedTopic> sections = course.getRelatedTopics(AGGREGATION_TYPE_URI, PARENT_URI, CHILD_URI,
                     MOODLE_SECTION_URI, false, false, 0);
             if (sections != null) {
@@ -667,7 +666,6 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
                 }
             }
         }
-        //
         return resultset;
     }
 
@@ -676,8 +674,6 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     // --
     // --- Private Helper Methods
     // --
-
-
 
     private void enrichTopicModelAboutCreator (Topic resource) {
         // enriching our sorted resource-results on-the-fly about some minimal user-info
@@ -845,14 +841,16 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         return "&Ouml;ffentliche Notizen";
     }
 
+
+
     // --
     // --- Service Listeners
     // --
 
-    //         "org.deepamehta.plugins.subscriptions.service.SubscriptionService",
     @Override
     @ConsumesService({
         "de.deepamehta.plugins.accesscontrol.service.AccessControlService",
+        "org.deepamehta.plugins.subscriptions.service.SubscriptionService",
         "de.deepamehta.plugins.tags.service.TaggingService",
         "de.deepamehta.plugins.time.service.TimeService"
     })
@@ -863,15 +861,15 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             taggingService = (TaggingService) service;
         } else if (service instanceof TimeService) {
             timeService = (TimeService) service;
-        } /**  else if (service instanceof SubscriptionService) {
+        } else if (service instanceof SubscriptionService) {
             notificationService = (SubscriptionService) service;
-        } **/
+        }
     }
 
-    //        "org.deepamehta.plugins.subscriptions.service.SubscriptionService",
     @Override
     @ConsumesService({
         "de.deepamehta.plugins.accesscontrol.service.AccessControlService",
+        "org.deepamehta.plugins.subscriptions.service.SubscriptionService",
         "de.deepamehta.plugins.tags.service.TaggingService",
         "de.deepamehta.plugins.time.service.TimeService"
     })
@@ -882,9 +880,9 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             taggingService = null;
         } else if (service == timeService) {
             timeService = null;
-        } /** else if (service == notificationService) {
+        } else if (service == notificationService) {
             notificationService = null;
-        } **/
+        }
     }
 
 }

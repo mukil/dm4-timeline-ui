@@ -352,11 +352,11 @@
 
         if (_this.is_logged_in()) {
             //
-            // _this.emc.loadUserSubscriptions()
-            // _this.emc.loadAllUnseenUserNotifications()
+            _this.emc.loadUserSubscriptions()
+            _this.emc.loadAllUnseenUserNotifications()
             //
-            // _this.render_subscribed_tags()
-            // _this.create_websocket_listener() // this is done just once
+            _this.render_subscribed_tags()
+            _this.create_websocket_listener() // this is done just once
 
         }
 
@@ -396,21 +396,19 @@
                 var $indicator = $('<div class="subscription-indicator">')
                 //
                 if (number >= 1) {
-                    // Render indicator for news
-                    // console.log("There are "+ number +" unseen notifications under tag \""+tag.value+"\" for you.")
+                    // Render and indicate unread notifications
                     $indicator.removeClass("read")
                     $indicator.addClass("unread")
                     $indicator.text(number)
                     $item.append($indicator)
-                    $item.attr("title", $item.attr("title") + ' - ' + number +  ' neue Benachrichtigungen')
+                    $item.attr("title", $item.attr("title") + ' - ' + number +  ' Nachrichten')
                 } else {
                     $indicator.text("")
                     $indicator.removeClass("unread")
                     $indicator.addClass("read")
                     $item.append($indicator)
-                    $item.attr("title", $item.attr("title") + ' - Keine neuen Benachrichtigungen')
+                    $item.attr("title", $item.attr("title") + ' - No news')
                 }
-                //
             }
         }
 
@@ -447,7 +445,6 @@
                 var $news = $('<div id="' +news_item.id+ '" class="news-item">'
                                 +news_item.value+  ' von ' +username+ '</div>')
                     $news.click(function(e) {
-                        console.log(e.target.id)
                         var news_item_id = e.target.id
                         var about_item_id = _this.getInvolvedItemIdForNotification(news_item_id)
                         try {
@@ -455,27 +452,41 @@
                         } catch (directives_error) { // this happens because of our usage of dmc in emc
                             console.warn(directives_error)
                         }
-                        //
                         _this.prepare_detail_page(about_item_id)
                         _this.pushDetailViewState(_this.emc.getTopicById(about_item_id))
                         return false
                     })
                 $notifications.append($news)
             }
-            // 2) keep notification menu hidden if no news-items are avaialbe
-            if (notifications.length > 0) {
-                $notifications.attr("id", tag_id)
-                $notifications.css("left", pos_x)
-                $notifications.css("top", pos_y)
-                $notifications.show()
-            } else {
+            // 2) render notification menu
+            $notifications.attr("id", tag_id)
+            $notifications.css("left", pos_x)
+            $notifications.css("top", pos_y)
+            // 3) Add unsubscribe button
+            var tag_label = _this.model.getTagById(tag_id).value
+            var $unsubscribe = $('<div class="unsubscribe-btn" title="Benachrichtigungen f&uuml;r Beitr&auml;ge '
+                    + 'mit diesem Tag deaktivieren">Unsubscribe ' + tag_label + '</div>')
+                $unsubscribe.click(function (e) {
+                    try {
+                        _this.emc.unsubscribeFromTag(tag_id)
+                    } catch (directives_error) {
+                        console.warn(directives_error)
+                        // re-load user subscriptions
+                        _this.emc.loadUserSubscriptions()
+                        // render new subscriptions toolbar
+                        _this.render_subscribed_tags()
+                    }
+                })
+            $notifications.append($unsubscribe)
+            $notifications.show()
+            /** else {
                 // navigate to filtered timeline in this case
                 var tag = _this.model.getTagById(tag_id)
                 if (_this.model.addTagToFilter(tag)) {
                     _this.prepare_index_page(true, true)
                     _this.push_timeline_view_state()
                 }
-            }
+            } **/
         }
     }
 
@@ -512,7 +523,7 @@
                     _this.push_timeline_view_state()
                 })
             var $filter_item_container = $('<div class="tag-filter-container">')
-            /** var $subscribeButton = $('<a class="subscribe" id="subscribe-'+ tag_button_topic_id +'" title="Benachrichtigungen f&uuml;r Beitr&auml;ge '
+            var $subscribeButton = $('<a class="subscribe" id="subscribe-'+ tag_button_topic_id +'" title="Benachrichtigungen f&uuml;r Beitr&auml;ge '
                 + 'mit diesem Tag aktivieren">Subscribe</a>')
                 $subscribeButton.click(function(event){
                     var id = event.target.id.substr(10)
@@ -523,10 +534,12 @@
                         console.warn(directives_error)
                     }
                     _this.render_current_view()
-                }) **/
+                })
             var $tagButton = $('<a class="btn tag selected">' +tags[i].value+ '</a>')
                 $tagButton.append($closeButton)
-            $filter_item_container.append($tagButton) // .append($subscribeButton)
+            // if user is logged in, provide subscription option above each tag-filter-info button
+            if (_this.is_logged_in()) $filter_item_container.append($subscribeButton)
+            $filter_item_container.append($tagButton)
             $filterButtons.append($filter_item_container)
         }
         var $clearButton = $('<a class="reset btn" title="Alle Tags aus dem Filter entfernen">')
@@ -551,7 +564,6 @@
         var $tag_input_filter = $("<input>").addClass('tag-input-filter')
             $tag_input_filter.attr('placeholder', '...')
         $('.tag-cloud-header').html(label).append('<br/><br/>').append($tag_input_filter)
-
         // Setup tag completion resp. just the tags left-over in result-set.
         var left_overs = undefined
         if (_this.model.getTagFilter().length > 0) {
@@ -1454,7 +1466,7 @@
 
     this.create_websocket_listener = function () {
 
-        /** if (typeof _this.socket === "undefined") {
+        if (typeof _this.socket === "undefined") {
             _this.socket = new WebSocket("ws://localhost:8081", "org.deepamehta.subscriptions")
 
             _this.socket.onopen = function(e) {
@@ -1468,7 +1480,7 @@
             _this.socket.onclose = function(e) {
                 console.log("Closing Notizen-WebSocket connection to " + e.target.url + " (" + e.reason + ")", e)
             }
-        } **/
+        }
     }
 
     /** Main router to all views */

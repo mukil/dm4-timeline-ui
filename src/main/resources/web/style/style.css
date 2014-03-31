@@ -246,16 +246,28 @@ body.eduzen.note {
 
 .eduzen .notification-list {
     position: fixed;
-    background-color: #f1f1f1;
 }
 
-.eduzen .notification-list .news-item {
+
+.eduzen .notification-list .unsubscribe-btn {
     margin-top: 5px;
+    border-top: 1px solid transparent;
+}
+
+.eduzen .notification-list .unsubscribe-btn,
+.eduzen .notification-list .news-item {
+    padding-top: 8px;
     color: #a9a9a9;
     /** border-top: 1px solid #f1f1f1; **/
     padding: 5px;
+    background-color: #f1f1f1;
 }
 
+.eduzen .notification-list .unsubscribe-btn:hover {
+    border-top: 1px solid #FFC700;
+}
+
+.eduzen .notification-list .unsubscribe-btn:hover,
 .eduzen .notification-list .news-item:hover {
     color: #0782C1;
     /** border-top: 1px solid #FFC700; **/
