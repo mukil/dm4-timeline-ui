@@ -34,9 +34,9 @@ import org.deepamehta.plugins.eduzen.service.ResourceService;
 
 /**
  * Notizen-Timeline Web-Application
- * @version 0.2.3
+ * @version 0.2.4-SNAPSHOT
  * @author Malte Reißig <malte.reissig@tu-berlin.de>
- * @since 26 January 2014
+ * @since 31 March 2014
  *
  * @see http://www.eduzen.tu-berlin.de
  */
@@ -350,7 +350,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
                 // 5) Fetch Resultset of \"Moodle Items\"
                 ResultList<RelatedTopic> my_moodle_items = getAllMyMoodleItems(); // restrict to current user + courses
                 if (my_moodle_items == null) return results.toString(); // user is most probably not logged in
-                ArrayList<RelatedTopic> all_items = getResultSetSortedByModificationTime(my_moodle_items);
+                ArrayList<RelatedTopic> all_items = getMoodleResultSetSortedByModificationTime(my_moodle_items);
                 // 6) Sort and fetch moodle-items
                 count = 0;
                 for (RelatedTopic moodle_item : all_items) { // 7) prepare (some size*2) fetched moodle items
@@ -381,9 +381,125 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         }
     }
 
+    /**
+     * Fetching resources by time-range and time-value (created || modified).
+     */
+
+    @GET
+    @Path("/notes/by_time/{time_value}/{from}/{to}")
+    @Produces("application/json")
+    // @Override
+    public String getNotesInTimeRange(@PathParam("time_value") String type, @PathParam("from") long from,
+            @PathParam("to") long to) {
+        //
+        JSONArray results = new JSONArray();
+        try {
+            // 1) Fetch Resultset of Resources
+            log.info("> ResourcePlugin fetching resources in timerange from \"" + from + "\" to \"" + to + "\"");
+            ArrayList<Topic> resources_in_range = new ArrayList<Topic>();
+            Collection<Topic> topics_in_range = null;
+            if (type.equals("created")) {
+                topics_in_range = timeService.getTopicsByCreationTime(from, to);
+            } else if (type.equals("modified")) {
+                topics_in_range = timeService.getTopicsByModificationTime(from, to);
+            } else {
+                return "Wrong parameter: set time_value to \"created\" or \"modified\"";
+            }
+            if (topics_in_range.isEmpty()) log.info("getNotesInTimeRange ("+type+") found no result.");
+            log.info("Identified " + topics_in_range.size() + " topics in range");
+            Iterator<Topic> resultset = topics_in_range.iterator();
+            while (resultset.hasNext()) {
+                Topic in_question = resultset.next();
+                if (in_question.getTypeUri().equals(RESOURCE_URI)) {
+                    resources_in_range.add(in_question);
+                } else if (in_question.getTypeUri().equals(MOODLE_ITEM_URI)) {
+                    resources_in_range.add(in_question);
+                } else {
+                    log.info("> Result \"" +in_question.getSimpleValue()+ "\" (" +in_question.getTypeUri()+ ")");
+                }
+            }
+            log.info("> ResourcePlugin fetched " +resources_in_range.size()+ " resources (" + from + ", " + to + ")"
+                    + " by time");
+            // 2) Sort and fetch resources
+            // ArrayList<RelatedTopic> in_memory_resources = getResultSetSortedByCreationTime(all_resources);
+            for (Topic item : resources_in_range) { // 2) prepare resource items
+                // 3) Prepare the notes page-results view-model
+                if (item.getTypeUri().equals(MOODLE_ITEM_URI)) {
+                    item.loadChildTopics(MOODLE_ITEM_DESC_URI);
+                    item.loadChildTopics(MOODLE_ITEM_REMOTE_URL_URI);
+                    item.loadChildTopics(MOODLE_ITEM_HREF_URI);
+                    item.loadChildTopics(MOODLE_ITEM_ICON_URI);
+                } else if (item.getTypeUri().equals(RESOURCE_URI)) {
+                    item.loadChildTopics(RESOURCE_CONTENT_URI);
+                }
+                //
+                item.loadChildTopics(TAG_URI);
+                item.loadChildTopics(REVIEW_URI);
+                enrichTopicModelAboutCreator(item);
+                //
+                enrichTopicModelAboutCreationTimestamp(item);
+                enrichTopicModelAboutModificationTimestamp(item);
+                //
+                results.put(item.toJSON());
+            }
+            // TODO: Add \"Moodle Items\" as items in question
+        } catch (Exception e) { // e.g. a "RuntimeException" is thrown if the moodle-plugin is not installed
+            throw new WebApplicationException(new RuntimeException("something went wrong", e));
+        } finally {
+            // Note: with or without moodle-plugin, return our json-array (resultset)
+            return results.toString();
+        }
+    }
+
+    /**
+     * Getting {"value", "type_uri", "id" and "dm4.time.created"} values of (interesting) topics in range.
+     */
+
+    @GET
+    @Path("/notes/index/{from}/{to}")
+    @Produces("application/json")
+    public String getIndexForTimeRange(@PathParam("from") long from, @PathParam("to") long to) {
+        //
+        JSONArray results = new JSONArray();
+        try {
+            // 1) Fetch Resultset of Resources
+            log.info("Fetching all topics in timerange from \"" + from + "\" to \"" + to + "\"");
+            ArrayList<Topic> all_in_range = new ArrayList<Topic>();
+            Collection<Topic> topics_in_range = timeService.getTopicsByCreationTime(from, to);
+            log.info("Identified " + topics_in_range.size() + " topics in range");
+            Iterator<Topic> resultset = topics_in_range.iterator();
+            while (resultset.hasNext()) {
+                Topic in_question = resultset.next();
+                log.info("> " +in_question.getSimpleValue()+ " of type \"" +in_question.getTypeUri()+ "\"");
+                if (in_question.getTypeUri().equals(RESOURCE_URI) ||
+                    in_question.getTypeUri().equals(MOODLE_ITEM_URI) ||
+                    in_question.getTypeUri().equals(MOODLE_COURSE_URI) ||
+                    in_question.getTypeUri().equals(TAG_URI) ||
+                    in_question.getTypeUri().equals(DEEPAMEHTA_FILE_URI)) {
+                    all_in_range.add(in_question);
+                }
+            }
+            log.info(">>> Fetched " +all_in_range.size()+ " resources (" + from + ", " + to + ")" + " by time");
+            // 2) Sort and fetch resources
+            // ArrayList<RelatedTopic> in_memory_resources = getResultSetSortedByCreationTime(all_resources);
+            for (Topic item : all_in_range) { // 2) prepare resource items
+                // 3) Prepare the notes page-results view-model
+                enrichTopicModelAboutCreationTimestamp(item);
+                enrichTopicModelAboutModificationTimestamp(item);
+                results.put(item.toJSON());
+            }
+        } catch (Exception e) { // e.g. a "RuntimeException" is thrown if the moodle-plugin is not installed
+            throw new WebApplicationException(new RuntimeException("something went wrong", e));
+        } finally {
+            // Note: with or without moodle-plugin, return our json-array (resultset)
+            return results.toString();
+        }
+    }
+
     @GET
     @Path("/resources/{tagId}")
     @Produces("application/json")
+    @Override
     public ArrayList<RelatedTopic> getResourcesByTagAndTypeURI(@PathParam("tagId") long tagId,
             @HeaderParam("Cookie") ClientState clientState) {
         ArrayList<RelatedTopic> response = new ArrayList<RelatedTopic>();
@@ -505,12 +621,30 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         }
     }
 
-    // --
-    // --- Private Helper Methods
-    // --
+    @GET
+    @Path("/notes/fetch/contributions/{userId}")
+    @Produces("application/json")
+    @Override
+    public String getContributedResources(@PathParam("userId") long userId,
+            @HeaderParam("Cookie") ClientState clientState) {
+        //
+        JSONArray results = new JSONArray();
+        try {
+            Topic user  = dms.getTopic(userId, true);
+            ResultList<RelatedTopic> all_results = fetchAllContributionsByUser(user);
+            log.info("fetching " +all_results.getSize()+ " contributions by user " + user.getSimpleValue());
+            for (RelatedTopic item : all_results) {
+                enrichTopicModelAboutCreator(item);
+                results.put(item.toJSON());
+            }
+            return results.toString();
+        } catch (Exception e) {
+            throw new WebApplicationException(new RuntimeException("something went wrong", e));
+        }
+    }
 
-    /** Fetch all Topics (Moodle Items) a particular (logged-in) user is allowed to see (via his/her Moodle Courses) */
-    private ResultList<RelatedTopic> getAllMyMoodleItems () {
+    @Override
+    public ResultList<RelatedTopic> getAllMyMoodleItems() {
         String username = aclService.getUsername();
         if (username == null) return null;
         Topic user = dms.getTopic("dm4.accesscontrol.username", new SimpleValue(username), false);
@@ -536,26 +670,13 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         return resultset;
     }
 
-    @GET
-    @Path("/notes/fetch/contributions/{userId}")
-    @Produces("application/json")
-    public String getContributedResources(@PathParam("userId") long userId,
-            @HeaderParam("Cookie") ClientState clientState) {
-        //
-        JSONArray results = new JSONArray();
-        try {
-            Topic user  = dms.getTopic(userId, true);
-            ResultList<RelatedTopic> all_results = fetchAllContributionsByUser(user);
-            log.info("fetching " +all_results.getSize()+ " contributions by user " + user.getSimpleValue());
-            for (RelatedTopic item : all_results) {
-                enrichTopicModelAboutCreator(item);
-                results.put(item.toJSON());
-            }
-            return results.toString();
-        } catch (Exception e) {
-            throw new WebApplicationException(new RuntimeException("something went wrong", e));
-        }
-    }
+
+
+    // --
+    // --- Private Helper Methods
+    // --
+
+
 
     private void enrichTopicModelAboutCreator (Topic resource) {
         // enriching our sorted resource-results on-the-fly about some minimal user-info
@@ -631,21 +752,19 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         // build up sortable collection of all result-items
         ArrayList<RelatedTopic> in_memory = new ArrayList<RelatedTopic>();
         for (RelatedTopic obj : all) {
-            obj.loadChildTopics(RESOURCE_CREATED_AT_URI);
             in_memory.add(obj);
         }
         // sort all result-items
         Collections.sort(in_memory, new Comparator<RelatedTopic>() {
             public int compare(RelatedTopic t1, RelatedTopic t2) {
                 try {
-                    long one = t1.getCompositeValue().getLong(RESOURCE_CREATED_AT_URI, 0);
-                    long two = t2.getCompositeValue().getLong(RESOURCE_CREATED_AT_URI, 0);
-                    if ( one < two ) return 1;
-                    if ( one > two ) return -1;
+                    Object one = t1.getProperty(PROP_URI_CREATED);
+                    Object two = t2.getProperty(PROP_URI_CREATED);
+                    if ( Long.parseLong(one.toString()) < Long.parseLong(two.toString()) ) return 1;
+                    if ( Long.parseLong(one.toString()) > Long.parseLong(two.toString()) ) return -1;
                 } catch (Exception nfe) {
-                    log.warning("Error while accessing timestamp of Topic 1: " + t1.getId()
-                            + " Topic2: " + t2.getId() + " cannot read .created_at-value (long:"
-                            + "" + RESOURCE_CREATED_AT_URI + ")");
+                    log.warning("Error while accessing timestamp of Topic 1: " + t1.getId() + " Topic2: "
+                            + t2.getId() + " nfe: " + nfe.getMessage());
                     return 0;
                 }
                 return 0;
@@ -654,7 +773,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
         return in_memory;
     }
 
-    private ArrayList<RelatedTopic> getResultSetSortedByModificationTime (ResultList<RelatedTopic> all) {
+    private ArrayList<RelatedTopic> getMoodleResultSetSortedByModificationTime (ResultList<RelatedTopic> all) {
         // build up sortable collection of all result-items
         ArrayList<RelatedTopic> in_memory = new ArrayList<RelatedTopic>();
         for (RelatedTopic obj : all) {

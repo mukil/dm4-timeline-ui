@@ -44,6 +44,30 @@ function EMC (dmc, model) {
         return some_resources
     }
 
+    // Loads \"Moodle Items\" and \"Resources\" to model.availableResources
+    this.loadItemsSinceDay = function (day_count) {
+        //
+        var time_now = new Date().getTime()
+        var since = time_now - (86400000 * day_count) // a day
+        var some_resources = dmc.request('GET', '/notes/by_time/created/' + since + '/' + time_now)
+        if (some_resources.length > 0) {
+            _this.model.setAvailableResources(some_resources)
+        } else {
+            _this.model.setAvailableResources([])
+        }
+        return some_resources
+    }
+
+    // Loads index about \"Moodle Items\", \"Tags\", \"Moodle Courses\", \"Resources\" and \"Files\"
+    this.loadIndexSinceDay = function (day_count) {
+        //
+        var time_now = new Date().getTime()
+        var since = time_now - (86400000 * day_count) // a day
+        var everything = dmc.request('GET', '/notes/index/' + since + '/' + time_now)
+        // .. do something nice with it :)
+        return everything
+    }
+
     this.loadAllContributions = function (userId) { // lazy, unsorted, possibly limited
         // update client-side model
         _this.model.setProfileResourcesId(userId)

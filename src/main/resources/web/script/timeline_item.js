@@ -196,7 +196,7 @@ function NoteItemRenderer (object, router, click_handler) {
 
     var TAG_URI = "dm4.tags.tag" // fixme: doublings
     var REVIEW_SCORE_URI = "org.deepamehta.reviews.score" // fixme: doublings
-    var CREATED_AT_URI = "org.deepamehta.resources.created_at" // fixme: doublings
+    var CREATED_AT_URI = "dm4.time.created" // fixme: doublings
     var NOTE_CONTENT_URI = "org.deepamehta.resources.content" // fixme: doublings
 
     var model = object

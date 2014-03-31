@@ -48,8 +48,8 @@ public class Migration8 extends Migration {
                         logger.info("Migration8: Written eduZEN Timestamps (created: "+created_at+", modified: "
                             +last_modified+" ) as DeepaMehta 4 Time properties.");
                     } catch (ClassCastException ce) {
-                        logger.info("Migration8: Catched ClassCastException for resources which were edited with the "
-                                + "dm4-webclient");
+                        logger.info("Migration8: Catched ClassCastException for resources which were edited with the"
+                                + " dm4-webclient");
                         String alt_created_at = resource.getCompositeValue().getString(CREATED_AT_TYPE_URI);
                         String alt_last_modified = resource.getCompositeValue().getString(LAST_MODIFIED_TYPE_URI);
                         resource.setProperty(PROP_URI_CREATED, Long.parseLong(alt_created_at), true);

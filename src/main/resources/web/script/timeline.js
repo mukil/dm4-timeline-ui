@@ -23,8 +23,8 @@
     var current_view = "" // fixme: remove this helper
     var TAG_URI = "dm4.tags.tag" // fixme: doublings
     var REVIEW_SCORE_URI = "org.deepamehta.reviews.score" // fixme: doublings
-    var CREATED_AT_URI = "org.deepamehta.resources.created_at" // fixme: doublings
-    var LAST_MODIFIED_URI = "org.deepamehta.resources.last_modified_at" // fixme: doublings
+    var CREATED_AT_URI = "dm4.time.created" // fixme: doublings
+    var LAST_MODIFIED_URI = "dm4.time.modified" // fixme: doublings
     var NOTES_URI = "org.deepamehta.resources.resource" // fixme: doublings
     var NOTE_CONTENT_URI = "org.deepamehta.resources.content" // fixme: doublings
     var NOTE_LOCKED_URI = "org.deepamehta.resources.blocked_for_edits" // fixme: doublings
@@ -295,7 +295,7 @@
             // ..) render math elements in html-resultset
             process_math_in_area("resources")
             quickfixPDFImageRendering() // hacketi hack
-            if (results.length > 15) _this.render_load_more_button()
+            if (results.length > 14) _this.render_load_more_button()
         } else {
             $('#list-message').html('<br/><br/><b class="label">No posts to show.</b>')
             $('.result-text').text('')
