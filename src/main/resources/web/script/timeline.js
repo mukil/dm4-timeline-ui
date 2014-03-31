@@ -551,9 +551,15 @@
         var $tag_input_filter = $("<input>").addClass('tag-input-filter')
             $tag_input_filter.attr('placeholder', '...')
         $('.tag-cloud-header').html(label).append('<br/><br/>').append($tag_input_filter)
+
+        // Setup tag completion resp. just the tags left-over in result-set.
+        var left_overs = undefined
+        if (_this.model.getTagFilter().length > 0) {
+            left_overs = getAllTagsInCurrentResults()
+            left_overs = sliceAboutFilteredTags(left_overs)
+        }
         _this.setup_tag_completion('input.tag-input-filter', function(e) {
             var input_filter = _this.get_entered_tags('input.tag-input-filter')
-            // console.log("User pressed ENTER to filter timeline.. by tags " + input_filter)
             // prepare new page model
             for (var i=0; i < input_filter.length; i++) {
                 var entered_tag = _this.model.getTagByName(input_filter[i])
@@ -565,7 +571,7 @@
                 // fixme: formerly here were just (optimal) view updates
                 _this.push_timeline_view_state()
             }
-        })
+        }, left_overs)
     }
 
     this.render_tag_items = function (parent_selector) {
@@ -863,7 +869,7 @@
         }
     }
 
-    this.setup_tag_completion = function (identifier, select_handler) {
+    this.setup_tag_completion = function (identifier, select_handler, source) {
         $(identifier).bind( "keydown" , function (event) {
             if (event.keyCode === $.ui.keyCode.TAB && $( this ).data( "ui-autocomplete" ).menu.active ) {
                 event.preventDefault();
@@ -874,7 +880,11 @@
             minLength: 0,
             source: function ( request, response ) {
                 // delegate back to autocomplete, but extract the last term
-                response( $.ui.autocomplete.filter( _this.model.getAvailableTags(), extractLast( request.term ) ) );
+                if (typeof source !== "undefined") {
+                    response( $.ui.autocomplete.filter( source, extractLast( request.term ) ) );
+                } else {
+                    response( $.ui.autocomplete.filter( _this.model.getAvailableTags(), extractLast( request.term ) ) );
+                }
             },
             focus: function () {
                 // prevent value inserted on focus
