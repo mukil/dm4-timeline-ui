@@ -201,8 +201,9 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Produces("text/html")
     public Viewable getDetailView(@PathParam("id") long resourceId, @HeaderParam("Cookie") ClientState clientState) {
         Topic resource = dms.getTopic(resourceId, true);
-        long lastModified = resource.getModel().getCompositeValueModel().getLong(RESOURCE_LAST_MODIFIED_URI);
-        viewData("name", "Notiz, zuletzt bearbeitet: " + new Date(lastModified).toString());
+        Object lastModified = resource.getProperty(PROP_URI_MODIFIED);
+        long modified_timestamp = Long.parseLong(lastModified.toString());
+        viewData("name", "Notiz, zuletzt bearbeitet: " + new Date(modified_timestamp).toString());
         viewData("style", "style.css");
         String description = "";
         if (resource.getCompositeValue().has(TAG_URI)) {
@@ -221,8 +222,9 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Produces("text/html")
     public Viewable getDetailPrintView(@PathParam("id") long resourceId) {
         Topic resource = dms.getTopic(resourceId, true);
-        long lastModified = resource.getModel().getCompositeValueModel().getLong(RESOURCE_LAST_MODIFIED_URI);
-        viewData("name", "Notiz, zuletzt bearbeitet: " + new Date(lastModified).toString());
+        Object lastModified = resource.getProperty(PROP_URI_MODIFIED);
+        long modified_timestamp = Long.parseLong(lastModified.toString());
+        viewData("name", "Notiz, zuletzt bearbeitet: " + new Date(modified_timestamp).toString());
         viewData("style", "detail-print.css");
         viewData("path", "/notes/" + resource.getId());
         viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png"); // ###
