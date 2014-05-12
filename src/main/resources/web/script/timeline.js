@@ -1467,7 +1467,7 @@
     this.create_websocket_listener = function () {
 
         if (typeof _this.socket === "undefined") {
-            _this.socket = new WebSocket("ws://localhost:8081", "org.deepamehta.subscriptions")
+            _this.socket = new WebSocket("ws://" +document.location.hostname+ ":8081", "org.deepamehta.subscriptions")
 
             _this.socket.onopen = function(e) {
                 console.log("Opening WebSocket connection to " + e.target.url, e)

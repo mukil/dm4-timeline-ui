@@ -615,6 +615,8 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
                         }
                     }
                 }
+            } else {
+                throw new WebApplicationException(new RuntimeException("no tags given"));
             }
         } catch (Exception e) {
             log.warning("" + e.getCause().toString() + ":" + e.getMessage().toString());
