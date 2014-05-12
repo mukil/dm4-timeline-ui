@@ -40,7 +40,11 @@ function AppModel () {
                 return currentResource
             },
             addToAvailableTags: function (tag) {
-                return availableTags.push(tag)
+                if (typeof tag === "object") {
+                    return availableTags.push(tag)
+                } else {
+                    console.warn("Do not add corrupt tags to AppModel: " + tag);
+                }
             },
             setAvailableResources: function (elements) {
                 availableResources = elements

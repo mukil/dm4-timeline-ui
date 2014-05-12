@@ -11,8 +11,9 @@ function EMC (dmc, model) {
     var _this = this
         _this.model = model
 
-    var TAG_URI = "dm4.tags.tag" // fixme: doublings
-    var NOTES_URI = "org.deepamehta.resources.resource" // fixme: doublings
+    // ### find out how to use variables as keys in a declarative object construction
+    var TAG_URI = "dm4.tags.tag" // ### fixme: doublings
+    var NOTES_URI = "org.deepamehta.resources.resource" // ### fixme: doublings
 
     /** RESTful utility methods for the trt-views **/
 
@@ -83,7 +84,7 @@ function EMC (dmc, model) {
     this.loadResourceById = function (id) { // lazy, unsorted, possibly limited
         //
         var resource = dmc.get_topic_by_id(id, true)
-        if (resource != undefined) {
+        if (typeof resource !== 'undefined') {
             _this.model.setCurrentResource(resource)
         } else {
             throw new Error("Something mad happend while loading resource.")
@@ -93,7 +94,7 @@ function EMC (dmc, model) {
     this.loadAllResourcesByTagId = function (tagId) { // lazy, unsorted, possibly limited
         //
         var all_tagged_resources = dmc.request("GET", "/resources/" +tagId)
-        if (all_tagged_resources != undefined) {
+        if (typeof all_tagged_resources !== 'undefined') {
             if (all_tagged_resources.length > 0) {
                 // overriding previously set resultlist
                 _this.model.setAvailableResources(all_tagged_resources)
@@ -108,7 +109,7 @@ function EMC (dmc, model) {
     this.loadAllResourcesByTags = function (tagList) { // lazy, unsorted, possibly limited
         //
         var all_tagged_resources = dmc.request("POST", "/resources/by_many", tagList)
-        if (all_tagged_resources != undefined) {
+        if (typeof all_tagged_resources !== 'undefined') {
             if (all_tagged_resources.length > 0) {
                 // overriding previously set resultlist
                 _this.model.setAvailableResources(all_tagged_resources)
@@ -188,38 +189,36 @@ function EMC (dmc, model) {
 
     this.createResourceTopic = function(value, tagsToCreate, tagsToReference) {
 
-        if (value != undefined) {
-            // FIXME: doubled URIs in code find out how to use variables as keys in a declarative object construction
-            // TODO: initializ aggregated license properly on each new resource
+        if (typeof value !== 'undefined') {
             var topicModel = {
                 "type_uri": "org.deepamehta.resources.resource",
                 "composite": {
                     "org.deepamehta.resources.name": "",
                     "org.deepamehta.resources.content": value,
-                    "dm4.tags.tag": [], // aggregated composite cannot be created (?)
+                    "dm4.tags.tag": [],
                     "org.deepamehta.reviews.score": 0
                 }
             }
             // create resource directly with all aggregated composite tags
-            // fixme: this is currently never processed on server-side but done manually in timeline.js doSubmit()
-             for (var t=0; t < tagsToCreate.length; t++) {
+            for (var t=0; t < tagsToCreate.length; t++) {
                 topicModel.composite["dm4.tags.tag"].push({
                     "dm4.tags.label": tagsToCreate[t],
                     "dm4.tags.definition": ""
                 })
             }
+            // enrich composite model about references to existin tags..
             for (var k=0; k < tagsToReference.length; k++) {
-                if (tagsToReference[k] != undefined) {
+                if (typeof tagsToReference[k] !== 'undefined') {
                     topicModel.composite["dm4.tags.tag"].push( "ref_id:" + tagsToReference[k].id )
                 }
             }
             // var resourceTopic = dmc.create_topic(topicModel)
             var resourceTopic = dmc.request("POST", "/notes/resource/create", topicModel)
-            if (resourceTopic == undefined) throw new Error("Something mad happened.")
-            var updated = model.addToAvailableResources(resourceTopic)
-            // ### possibly addToProfileResources too
-            // dont forget to add our new (tagsToCreate) tags to the client-side AppModel
-            var new_tags = tagsToCreate
+            if (typeof resourceTopic === "undefined") throw new Error("Something mad happened.")
+            // update client-side model AppModel instance
+            var updated = model.addToAvailableResources(resourceTopic) // ### possibly addToProfileResources too
+            // the folloiwng line-change fixes: corrupt client side (AppModel) cache
+            var new_tags = resourceTopic.composite['dm4.tags.tag']
             if (typeof new_tags !== 'undefined') {
                 for (var t=0; t < new_tags.length; t++) {
                     var new_tag = new_tags[t]
@@ -264,11 +263,8 @@ function EMC (dmc, model) {
         // creating new tags and associtating these with the given resource
         for (var i=0; i < tagsToCreate.length; i++) {
             var newTag = _this.createTagTopic(tagsToCreate[i])
-            if (newTag != undefined) {
+            if (typeof newTag !== 'undefined') {
                 var assoc = _this.createResourceTagAssociation(resource, newTag)
-                if (assoc == undefined) {
-                    throw new Error("Something mad happened while creating resource tag association.")
-                }
             }
         }
     }
@@ -276,14 +272,14 @@ function EMC (dmc, model) {
     // note: aggregated composites should be updated in an update call of resource (if assoc is part of the model)
     this.createResourceTagAssociations = function (resource, tagsToReference) {
         for (var k=0; k < tagsToReference.length; k++) {
-            if (tagsToReference[k] != undefined) {
-                var newAssoc = _this.createResourceTagAssociation(resource, tagsToReference[k])
+            if (typeof tagsToReference[k] !== 'undefined') {
+                _this.createResourceTagAssociation(resource, tagsToReference[k])
             }
         }
     }
 
     this.createTagTopic = function (name) {
-        if (name != undefined) {
+        if (typeof name !== 'undefined') {
             var topicModel = {
                 "type_uri": "dm4.tags.tag",
                 "composite": {
@@ -304,7 +300,7 @@ function EMC (dmc, model) {
 
     /** fixme: introduce a check if resource-tag assocation is not already existing */
     this.createResourceTagAssociation = function (resourceTopic, tagTopic) {
-        if (resourceTopic != undefined && tagTopic != undefined) {
+        if (typeof resourceTopic !== 'undefined' && typeof tagTopic !== 'undefined') {
             if (!_this.associationExists(resourceTopic.id, tagTopic.id, "dm4.core.aggregation")) {
                 var assocModel = {"type_uri": "dm4.core.aggregation",
                     "role_1":{"topic_id":resourceTopic.id, "role_type_uri":"dm4.core.parent"},
@@ -313,11 +309,9 @@ function EMC (dmc, model) {
                 // console.log("associating resource with tag in dB " + tagTopic.value)
                 var association = dmc.create_association(assocModel)
                 // console.log(association)
-                if (association == undefined) throw new Error("Something mad happened.")
+                if (typeof association === "undefined") throw new Error("Something mad happened.")
                 // update also the value on client side
-                // console.log("updating resource about tag on client-side..")
-                var client_updated = model.associateTagWithAvailableResource(tagTopic, resourceTopic.id)
-                if (client_updated == undefined) {
+                if (typeof model.associateTagWithAvailableResource(tagTopic, resourceTopic.id) === "undefined") {
                     throw new Error("Something mad happened while updating client side application cache.")
                 }
                 return association;
@@ -329,7 +323,7 @@ function EMC (dmc, model) {
     }
 
     this.createProfilePictureAssociation = function (account, pictureId) {
-         if (account != undefined && pictureId != undefined) {
+         if (typeof account !== 'undefined' && typeof pictureId !== 'undefined') {
             if (!_this.associationExists(account.id, pictureId, "org.deepamehta.identity.profile_picture_edge")) {
                 var assocModel = {"type_uri": "org.deepamehta.identity.profile_picture_edge",
                     "role_1":{"topic_id":account.id, "role_type_uri":"dm4.core.default"},
@@ -403,7 +397,7 @@ function EMC (dmc, model) {
 
     this.logout = function () {
         var loggedOut = false
-        if (_this.username != undefined || _this.username != "") {
+        if (typeof _this.username !== 'undefined' || _this.username !== "") {
             try {
                 var logoutRequest = dmc.request("POST", "/accesscontrol/logout", undefined, undefined, undefined, "text")
                 if (logoutRequest === "") loggedOut = true

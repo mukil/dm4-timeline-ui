@@ -322,7 +322,7 @@
         $('.list .load-more').remove()
         _this.model.page_nr = _this.model.page_nr + 1
         var offset = _this.model.page_nr * NOTES_LIMIT
-        console.log("Appending page " + _this.model.page_nr + " to current result_set, offset is " + offset)
+        // console.log("Appending page " + _this.model.page_nr + " to current result_set, offset is " + offset)
         _this.show_progress_bar()
         var resources = _this.emc.loadSomeResources(NOTES_LIMIT, offset, true) // true == append
         _this.add_to_resultlist_view(resources)
@@ -1361,16 +1361,16 @@
         return tagTopics
     }
 
-    this.getTagTopicsToCreate = function (submittedTags, availableTags) {
+    this.getTagTopicsToCreate = function (submittedTags, referencedTags) {
         var tagsToCreate = []
-        if (availableTags == undefined) return submittedTags // return all submittedTags for creation
-        // filter tags about the submittedTags which are not referenced
+        if (referencedTags == undefined) return submittedTags // return all submittedTags for creation
+        // filter the submittedTags about those tags which will be referenced
         for (var i=0; i < submittedTags.length; i++) {
             var submittedTag = submittedTags[i]
             //
             var create = true
-            for (var k=0; k < availableTags.length; k++) {
-                var referencedTag = availableTags[k]
+            for (var k=0; k < referencedTags.length; k++) {
+                var referencedTag = referencedTags[k]
                 // if "tag" is already part of the referenced, skip creation (comparison is case-insensitive)
                 if (submittedTag.toLowerCase() === referencedTag.value.toLowerCase()) {
                     create = false
@@ -1405,16 +1405,18 @@
     }
 
     this.doSubmitResource = function () {
-        // TODO: clean up this mixed up method.
+        // ### clean up this mixed up method.
         var valueToSubmit = getTeXAndHTMLSource(document.getElementById("add_resource"))
         var qualifiedTags = get_entered_tags(TAGGING_FIELD_SELECTOR)
-        // differentiate in tags to create and existing tags in db (which need to be associated)
+        // tagsToReference = sum of (inputted-tags + (client-side) existing tags)
         var tagsToReference = getTagTopicsToReference(qualifiedTags)
+        // tagsToCreate = diff of (inputted tags + tagsToReference)
         var tagsToCreate = getTagTopicsToCreate(qualifiedTags, tagsToReference)
         // creating the new resource, with aggregated new tags
         var resource = undefined
-        if (valueToSubmit.match(/\S/) != null && valueToSubmit !== "<p><br></p>") { // no empty strings
-            resource = _this.emc.createResourceTopic(valueToSubmit, tagsToCreate, tagsToReference) // ### use catch here
+        // lets just skip processing of "empty" resources
+        if (valueToSubmit.match(/\S/) != null && valueToSubmit !== "<p><br></p>") {
+            resource = _this.emc.createResourceTopic(valueToSubmit, tagsToCreate, tagsToReference)
             if (resource != undefined) {
                 // track "added resource" goal
                 if (typeof piwikTracker !== 'undefined') piwikTracker.trackGoal(5)
