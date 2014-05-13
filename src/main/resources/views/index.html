@@ -37,6 +37,13 @@
                 g.defer=true; g.async=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
             })();
         </script>
+        <script type="text/javascript">
+            try {
+                var piwikTracker = Piwik.getTracker(pkBaseURL + "piwik.php", 1);
+                piwikTracker.trackPageView();
+                piwikTracker.enableLinkTracking();
+            } catch( err ) {}
+        </script>
         End Piwik Tracking Code -->
 
         <script type="text/javascript">
