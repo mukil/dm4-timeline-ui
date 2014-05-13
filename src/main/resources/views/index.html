@@ -26,14 +26,16 @@
 
         <!-- Piwik
         <script type="text/javascript">
-            var pkBaseURL = (("https:" == document.location.protocol) ? "http://research.eduzen.tu-berlin.de/analytics/" : "http://research.eduzen.tu-berlin.de/analytics/");
-            document.write(unescape("%3Cscript src='" + pkBaseURL + "piwik.js' type='text/javascript'%3E%3C/script%3E"));
-        </script><script type="text/javascript">
-            try {
-                var piwikTracker = Piwik.getTracker(pkBaseURL + "piwik.php", 2);
-                piwikTracker.trackPageView();
-                piwikTracker.enableLinkTracking();
-            } catch( err ) {}
+            var _paq = _paq || [];
+            _paq.push(['trackPageView']);
+            _paq.push(['enableLinkTracking']);
+            (function() {
+                var u=(("https:" == document.location.protocol) ? "https" : "http") + "://stable.eduzen.tu-berlin.de/piwik/";
+                _paq.push(['setTrackerUrl', u+'piwik.php']);
+                _paq.push(['setSiteId', 1]);
+                var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0]; g.type='text/javascript';
+                g.defer=true; g.async=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+            })();
         </script>
         End Piwik Tracking Code -->
 
@@ -142,7 +144,7 @@
             <br/><br/>
             Kind Regards,<br/>
             Your eduZEN Team (team{at}eduzen.tu-berlin.de)
-            <img src="http://research.eduzen.tu-berlin.de/analytics/piwik.php?idsite=2" style="border:0" alt="" />
+            <img src="http://stable.eduzen.tu-berlin.de/piwik/piwik.php?idSite=1&rec=1" style="border:0" alt="" />
         </p></noscript>
 
         <script type="text/javascript" src="/de.deepamehta.accesscontrol/script/vendor/sha256.js"></script> <!-- ### load dynamically -->

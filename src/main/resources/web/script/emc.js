@@ -366,7 +366,7 @@ function EMC (dmc, model) {
 
     this.associationExists = function (topicOne, topicTwo, assocType) {
         var assocs = dmc.get_associations(topicOne, topicTwo, assocType)
-        return (assocs.length == 0) ? false :  true
+        return (assocs.length == 0) ? false : true
     }
 
     this.getFirstAssociation = function (topicOne, topicTwo, assocType) {

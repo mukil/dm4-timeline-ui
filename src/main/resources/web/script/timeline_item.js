@@ -68,7 +68,7 @@ function MoodleItemRenderer (object, router, click_handler) {
             var commaCounter = 0
             for (var ri=0; ri < tags.length; ri++) {
                 tagInfo += '<i class="tag">' +tags[ri].value+ '</i>'
-                commaCounter++
+                commaCounter = commaCounter + 1
                 (commaCounter < tags.length) ? tagInfo += ', ' : tagInfo += '&nbsp;&nbsp;&nbsp;'
             }
             tagInfo += '</span>'
@@ -336,7 +336,7 @@ function NoteItemRenderer (object, router, click_handler) {
                 for (var ri=0; ri < givenTags.length; ri++) {
                     // use tag icon..
                     $tagInfoArea.append('<i class="tag">' +givenTags[ri].value+ '</i>')
-                    commaCounter++
+                    commaCounter = commaCounter + 1
                     (commaCounter < givenTags.length) ? $tagInfoArea.append(', ') : $tagInfoArea.append('&nbsp;&nbsp;&nbsp;')
                 }
             }

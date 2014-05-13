@@ -13,14 +13,16 @@
 
         <!-- Piwik
         <script type="text/javascript">
-            var pkBaseURL = (("https:" == document.location.protocol) ? "https://research.eduzen.tu-berlin.de/analytics/" : "http://research.eduzen.tu-berlin.de/analytics/");
-            document.write(unescape("%3Cscript src='" + pkBaseURL + "piwik.js' type='text/javascript'%3E%3C/script%3E"));
-        </script><script type="text/javascript">
-            try {
-                var piwikTracker = Piwik.getTracker(pkBaseURL + "piwik.php", 2);
-                piwikTracker.trackPageView();
-                piwikTracker.enableLinkTracking();
-            } catch( err ) {}
+            var _paq = _paq || [];
+            _paq.push(['trackPageView']);
+            _paq.push(['enableLinkTracking']);
+            (function() {
+                var u=(("https:" == document.location.protocol) ? "https" : "http") + "://stable.eduzen.tu-berlin.de/piwik/";
+                _paq.push(['setTrackerUrl', u+'piwik.php']);
+                _paq.push(['setSiteId', 1]);
+                var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0]; g.type='text/javascript';
+                g.defer=true; g.async=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+            })();
         </script>
         End Piwik Tracking Code -->
 
@@ -61,7 +63,7 @@
                     <br/><br/>
                     Die Synchronisierung mit deinen ISIS 2-Kursen f&uuml;hrt <i>Notizen</i> automatisch durch sobald du einen ISIS Security Key in deinem Notizen-Nutzerprofil hinterlegt hast.
                     Um Zugang zu einem Security Key zu erhalten musst du uns jedoch erst in dem folgenden ISIS Kurs <a href="https://www.isis.tu-berlin.de/2.0/mod/questionnaire/view.php?id=29963">Deine Zustimmung geben</a>.<br/><br/>
-                    Falls Du weitere Fragen hast melde dich Bitte bei uns oder werfe einen Blick auf <a href="http://web.eduzen.tu-berlin.de/overview-web-applications">diesen Teil</a> unserer Webseite.
+                    Falls Du weitere Fragen hast melde dich Bitte bei uns oder werfe einen Blick auf <a href="http://eduzen.tu-berlin.de/overview-web-applications">diesen Teil</a> unserer Webseite.
                 </p>
 
                 <p><br/></p>
@@ -87,7 +89,7 @@
 
                 <p><br/></p>
                 <h2>Allgemeine Nutzungsbedingungen</h2>
-                    <p>Grunds&auml;tzlich gilt für die Nutzung der eduZEN-Webanwendungen die gleiche <a href="http://www.eduzen.tu-berlin.de/node/67" title="eduZEN-Datenschutzerklärung">Datenschutzerkl&auml;rung</a> wie für unsere
+                    <p>Grunds&auml;tzlich gilt für die Nutzung der eduZEN-Webanwendungen die gleiche <a href="http://www.eduzen.tu-berlin.de/node/53" title="eduZEN-Datenschutzerklärung">Datenschutzerkl&auml;rung</a> wie für unsere
                         <a href="http://www.eduzen.tu-berlin.de">Projekt-Webseite</a>. Wir respektieren eure Privatssph&auml;re und unterst&uuml;tzen die "Do-Not-Track"-Preference moderner Browser.</p>
                     <p>Des weiteren gilt, dass Sie durch die Teilnahme an dem Online-Angebot der eudZEN-Tutorien und die aktive Nutzung einer der eduZEN-Webanwendung den folgenden Rahmenbedingungen,
                         die ma&szlig;geblich der Evaluation unserer Aktivit&auml;ten und Aktionsforschung geschuldet sind, zustimmen:</p>
@@ -104,8 +106,6 @@
                 <p><br/></p>
                 <h2>Macht mit bei der Weiterentwicklung</h2>
                     <p>Nicht nur eure Beitr/&auml;e machen die Anwendung gut, sondern auch eure aktive Teilhabe am Entwicklungsprozess. Am unkompliziertesten geht das indem Du einfach direkt Beitrage in der Webanwendung unter den Tags "feedback" , "bug" und "wish" postest.</p>
-                    <p>F&uuml;r spezifisches Feedback zur Webanwendung kannst du auch immer unser aktuelles <a href="http://research.eduzen.tu-berlin.de/survey/index.php/414826?lang=de-informal">Umfrageformular</a> nutzen.</p>
-                    <p>Wir machen auch regelm&auml;&szlig;ig Treffen f&uuml;r Entwickler_innen um unsere Tools voranzubringen. Schaut einfach mal auf unsere <a href="http://www.eduzen.tu-berlin.de/node/23">Termine-Page</a> falls Ihr interessiert seid und Lust habt uns zu unterst&uuml;tzen.</p>
 
                 <p><br/></p>
                 <h2>Impressum</h2>
@@ -116,7 +116,7 @@
         </div>
 
         <noscript><p>
-            <img src="http://research.eduzen.tu-berlin.de/analytics/piwik.php?idsite=2" style="border:0" alt="" />
+            <img src="http://stable.eduzen.tu-berlin.de/piwik/piwik.php?idSite=1&rec=1" style="border:0" alt="" />
         </p></noscript>
 
 
