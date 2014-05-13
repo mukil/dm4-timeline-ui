@@ -15,7 +15,6 @@
     _this.dict = new EduzenDictionary("DE")
     _this.dmc = dmc
     _this.emc = new EMC(dmc, _this.model)
-    _this.piwikTracker = (typeof piwikTracker !== "undefined") ? piwikTracker : undefined
     _this.socket = undefined;
     //
     var profile = undefined
@@ -1419,7 +1418,7 @@
             resource = _this.emc.createResourceTopic(valueToSubmit, tagsToCreate, tagsToReference)
             if (resource != undefined) {
                 // track "added resource" goal
-                if (typeof piwikTracker !== 'undefined') piwikTracker.trackGoal(5)
+                if (typeof _paq !== 'undefined') _paq.push(['trackGoal', 5])
                 $('#add_resource').html("")
                 $(TAGGING_FIELD_SELECTOR).val("")
                 $('div.header').css("opacity", "1")
@@ -1450,7 +1449,7 @@
             var updated = _this.emc.updateResourceTopic(resource)
             if (updated != undefined) {
                 // track "edited resource" goal
-                if (typeof piwikTracker !== 'undefined') piwikTracker.trackGoal(1)
+                if (typeof _paq !== 'undefined') _paq.push(['trackGoal', 1])
                 _this.model.updateAvailableResource(resource)
                 // destroy the CKEditor instance (if present)
                 if (CKEDITOR.instances.hasOwnProperty('resource_input')) {

@@ -122,7 +122,7 @@ function MoodleItemRenderer (object, router, click_handler) {
                         controler.emc.createResourceTagAssociations(model, tagsToAssociate)
                         controler.emc.createNewTagsForResource(model, tagsToCreateAndAssociate)
                         // track "added tag"-goal
-                        if (typeof controler.piwikTracker !== 'undefined') controler.piwikTracker.trackGoal(4)
+                        if (typeof _paq !== 'undefined') _paq.push(['trackGoal', 4])
                         _this.render($moodle_item)
                         // re-render tag-view
                         controler.sort_current_tags()
@@ -168,7 +168,7 @@ function MoodleItemRenderer (object, router, click_handler) {
                 var updatedTopic = controler.dmc.request("GET", "/review/upvote/" + e.target.id)
                 controler.model.updateAvailableResource(updatedTopic)
                 // track "voted resource" goal
-                if (typeof controler.piwikTracker !== 'undefined') controler.piwikTracker.trackGoal(3)
+                if (typeof _paq !== 'undefined') _paq.push(['trackGoal', 3])
                 model = updatedTopic
                 _this.render($moodle_item)
             })
@@ -177,7 +177,7 @@ function MoodleItemRenderer (object, router, click_handler) {
                 var updatedTopic = controler.dmc.request("GET", "/review/downvote/" + e.target.id)
                 controler.model.updateAvailableResource(updatedTopic)
                 // track "voted resource" goal
-                if (typeof controler.piwikTracker !== 'undefined') controler.piwikTracker.trackGoal(3)
+                if (typeof _paq !== 'undefined') _paq.push(['trackGoal', 3])
                 model = updatedTopic
                 _this.render($moodle_item)
             })
@@ -272,7 +272,7 @@ function NoteItemRenderer (object, router, click_handler) {
                         controler.emc.createResourceTagAssociations(model, tagsToAssociate)
                         controler.emc.createNewTagsForResource(model, tagsToCreateAndAssociate)
                         // track "added tag"-goal
-                        if (typeof controler.piwikTracker !== 'undefined') controler.piwikTracker.trackGoal(4)
+                        if (typeof _paq !== 'undefined') _paq.push(['trackGoal', 4])
                         _this.render($topic)
                         // re-render tag-view
                         controler.sort_current_tags()
@@ -309,7 +309,7 @@ function NoteItemRenderer (object, router, click_handler) {
                 var updatedTopic = controler.dmc.request("GET", "/review/upvote/" + e.target.id)
                 controler.model.updateAvailableResource(updatedTopic)
                 // track "voted resource" goal
-                if (typeof controler.piwikTracker !== 'undefined') controler.piwikTracker.trackGoal(3)
+                if (typeof _paq !== 'undefined') _paq.push(['trackGoal', 3])
                 model = updatedTopic
                 _this.render($topic)
             })
@@ -318,7 +318,7 @@ function NoteItemRenderer (object, router, click_handler) {
                 var updatedTopic = controler.dmc.request("GET", "/review/downvote/" + e.target.id)
                 controler.model.updateAvailableResource(updatedTopic)
                 // track "voted resource" goal
-                if (typeof controler.piwikTracker !== 'undefined') controler.piwikTracker.trackGoal(3)
+                if (typeof _paq !== 'undefined') _paq.push(['trackGoal', 3])
                 model = updatedTopic
                 _this.render($topic)
             })
