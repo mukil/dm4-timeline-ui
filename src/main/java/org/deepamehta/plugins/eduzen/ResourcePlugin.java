@@ -67,6 +67,8 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
 
     private static final String MOODLE_COURSE_URI = "org.deepamehta.moodle.course";
     private static final String MOODLE_SECTION_URI = "org.deepamehta.moodle.section";
+    private static final String MOODLE_SECTION_SUMMARY_URI = "org.deepamehta.moodle.section_summary";
+    private static final String MOODLE_SECTION_NAME_URI = "org.deepamehta.moodle.section_name";
 
     private static final String MOODLE_ITEM_URI = "org.deepamehta.moodle.item";
     private static final String MOODLE_ITEM_ICON_URI = "org.deepamehta.moodle.item_icon";
@@ -162,6 +164,29 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Produces("text/html")
     public Viewable getInfoView() {
         return view("info");
+    }
+
+    @GET
+    @Path("/notes/tags")
+    @Produces("text/html")
+    public Viewable getTagcloudView() {
+        viewData("name", "Alle Tags auf Notizen");
+        viewData("path", "/notes/tags");
+        viewData("style", "style.css");
+        viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
+        return view("ko-cloud");
+    }
+
+    @GET
+    @Path("/notes/main/{view_id}")
+    @Produces("text/html")
+    public Viewable getMainView(@PathParam("view_id") String view_id) {
+        viewData("name", "Notizen as required");
+        viewData("path", "/notes/main");
+        viewData("view_id", view_id);
+        viewData("style", "style.css");
+        viewData("picture", "http://www.eduzen.tu-berlin.de/sites/default/files/eduzen_bright_logo.png");
+        return view("main");
     }
 
     @GET
@@ -390,16 +415,16 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @GET
     @Path("/notes/by_time/{time_value}/{from}/{to}")
     @Produces("application/json")
-    // @Override
-    public String getNotesInTimeRange(@PathParam("time_value") String type, @PathParam("from") long from,
+    @Override
+    public String getItemsInTimeRange(@PathParam("time_value") String type, @PathParam("from") long from,
             @PathParam("to") long to) {
         //
         JSONArray results = new JSONArray();
         try {
-            // 1) Fetch Resultset of Resources
-            log.info("> ResourcePlugin fetching resources in timerange from \"" + from + "\" to \"" + to + "\"");
-            ArrayList<Topic> resources_in_range = new ArrayList<Topic>();
-            Collection<Topic> topics_in_range = null;
+            // 1) Fetch all topics in either "created" or "modified"-timestamp timerange
+            log.info("> Fetching items in timerange from \"" + from + "\" to \"" + to + "\"");
+            ArrayList<Topic> items_in_range = new ArrayList<Topic>(); // items of interest
+            Collection<Topic> topics_in_range = null; // all topics
             if (type.equals("created")) {
                 topics_in_range = timeService.getTopicsByCreationTime(from, to);
             } else if (type.equals("modified")) {
@@ -407,44 +432,75 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             } else {
                 return "Wrong parameter: set time_value to \"created\" or \"modified\"";
             }
-            if (topics_in_range.isEmpty()) log.info("getNotesInTimeRange ("+type+") found no result.");
-            log.info("Identified " + topics_in_range.size() + " topics in range");
+            if (topics_in_range.isEmpty()) log.info(">>> getItemsInTimeRange("+type+") go no result.");
             Iterator<Topic> resultset = topics_in_range.iterator();
             while (resultset.hasNext()) {
                 Topic in_question = resultset.next();
                 if (in_question.getTypeUri().equals(RESOURCE_URI)) {
-                    resources_in_range.add(in_question);
+                    items_in_range.add(in_question);
                 } else if (in_question.getTypeUri().equals(MOODLE_ITEM_URI)) {
-                    resources_in_range.add(in_question);
+                    items_in_range.add(in_question);
+                } else if (in_question.getTypeUri().equals(MOODLE_COURSE_URI)) {
+                    items_in_range.add(in_question);
+                } else if (in_question.getTypeUri().equals(MOODLE_SECTION_URI)) { // defused
+                    // ### resources_in_range.add(in_question);
+                } else if (in_question.getTypeUri().equals(TAG_URI)) {
+                    items_in_range.add(in_question);
+                } else if (in_question.getTypeUri().equals(DEEPAMEHTA_FILE_URI)) {
+                    items_in_range.add(in_question);
                 } else {
-                    log.info("> Result \"" +in_question.getSimpleValue()+ "\" (" +in_question.getTypeUri()+ ")");
+                    // log.info("> Result \"" +in_question.getSimpleValue()+ "\" (" +in_question.getTypeUri()+ ")");
                 }
             }
-            log.info("> ResourcePlugin fetched " +resources_in_range.size()+ " resources (" + from + ", " + to + ")"
+            log.info(">>> Fetched " +items_in_range.size()+ " elements (" + from + ", " + to + ")"
                     + " by time");
-            // 2) Sort and fetch resources
-            // ArrayList<RelatedTopic> in_memory_resources = getResultSetSortedByCreationTime(all_resources);
-            for (Topic item : resources_in_range) { // 2) prepare resource items
-                // 3) Prepare the notes page-results view-model
-                if (item.getTypeUri().equals(MOODLE_ITEM_URI)) {
-                    item.loadChildTopics(MOODLE_ITEM_DESC_URI);
-                    item.loadChildTopics(MOODLE_ITEM_REMOTE_URL_URI);
-                    item.loadChildTopics(MOODLE_ITEM_HREF_URI);
-                    item.loadChildTopics(MOODLE_ITEM_ICON_URI);
-                } else if (item.getTypeUri().equals(RESOURCE_URI)) {
-                    item.loadChildTopics(RESOURCE_CONTENT_URI);
-                }
-                //
-                item.loadChildTopics(TAG_URI);
-                item.loadChildTopics(REVIEW_URI);
-                enrichTopicModelAboutCreator(item);
-                //
-                enrichTopicModelAboutCreationTimestamp(item);
-                enrichTopicModelAboutModificationTimestamp(item);
-                //
-                results.put(item.toJSON());
+            // 2) Sort all fetched items by their "created" or "modified" timestamps
+            ArrayList<Topic> in_memory_resources = null;
+            if (type.equals("created")) {
+                in_memory_resources = getTopicListSortedByCreationTime(items_in_range);
+            } else if (type.equals("modified")) {
+                in_memory_resources = getTopicListSortedByModificationTime(items_in_range);
             }
-            // TODO: Add \"Moodle Items\" as items in question
+            // 3) Prepare the notes page-results view-model (per type of interest)
+            for (Topic item : in_memory_resources) {
+                try {
+                    if (item.getTypeUri().equals(MOODLE_ITEM_URI)) {
+                        item.loadChildTopics(MOODLE_ITEM_DESC_URI);
+                        item.loadChildTopics(MOODLE_ITEM_REMOTE_URL_URI);
+                        item.loadChildTopics(MOODLE_ITEM_HREF_URI);
+                        item.loadChildTopics(MOODLE_ITEM_ICON_URI);
+                        item.loadChildTopics(TAG_URI);
+                        item.loadChildTopics(REVIEW_URI);
+                    } else if (item.getTypeUri().equals(RESOURCE_URI)) {
+                        item.loadChildTopics(RESOURCE_CONTENT_URI);
+                        item.loadChildTopics(TAG_URI);
+                        item.loadChildTopics(REVIEW_URI);
+                    } else if (item.getTypeUri().equals(MOODLE_COURSE_URI)) {
+                        // with sections ?
+                        // item.loadChildTopics(MOODLE_SECTION_URI);
+                    } else if (item.getTypeUri().equals(MOODLE_SECTION_URI)) {
+                        // ### ections? with ?
+                        // item.loadChildTopics(MOODLE_SECTION_SUMMARY_URI);
+                        // item.loadChildTopics(MOODLE_SECTION_NAME_URI);
+                    } else if (item.getTypeUri().equals(TAG_URI) ||
+                            item.getTypeUri().equals(DEEPAMEHTA_FILE_URI)) {
+                        // for tags and files we load all child topics
+                        item.loadChildTopics();
+                    } else {
+                        // for tags and files we load all child topics
+                        item.loadChildTopics();
+                    }
+                    // enrich view-model about corresponding username
+                    enrichTopicModelAboutCreator(item);
+                    // enrich view-model about both timestamps (in any case)
+                    enrichTopicModelAboutCreationTimestamp(item);
+                    enrichTopicModelAboutModificationTimestamp(item);
+                    // add prepare item to our resultset
+                    results.put(item.toJSON());
+                } catch (RuntimeException rex) {
+                    log.warning("Could not add fetched item to results, caused by: " + rex.getMessage());
+                }
+            }
         } catch (Exception e) { // e.g. a "RuntimeException" is thrown if the moodle-plugin is not installed
             throw new WebApplicationException(new RuntimeException("something went wrong", e));
         } finally {
@@ -454,34 +510,34 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     }
 
     /**
-     * Getting {"value", "type_uri", "id" and "dm4.time.created"} values of (interesting) topics in range.
+     * Getting composites of all (interesting) topics in given timerange.
      */
 
     @GET
-    @Path("/notes/index/{from}/{to}")
+    @Path("/notes/all/index/{from}/{to}")
     @Produces("application/json")
     public String getIndexForTimeRange(@PathParam("from") long from, @PathParam("to") long to) {
         //
         JSONArray results = new JSONArray();
         try {
             // 1) Fetch Resultset of Resources
-            log.info("Fetching all topics in timerange from \"" + from + "\" to \"" + to + "\"");
+            log.info("> Fetching index for timerange from \"" + from + "\" to \"" + to + "\"");
             ArrayList<Topic> all_in_range = new ArrayList<Topic>();
             Collection<Topic> topics_in_range = timeService.getTopicsByCreationTime(from, to);
-            log.info("Identified " + topics_in_range.size() + " topics in range");
             Iterator<Topic> resultset = topics_in_range.iterator();
             while (resultset.hasNext()) {
                 Topic in_question = resultset.next();
-                log.info("> " +in_question.getSimpleValue()+ " of type \"" +in_question.getTypeUri()+ "\"");
                 if (in_question.getTypeUri().equals(RESOURCE_URI) ||
                     in_question.getTypeUri().equals(MOODLE_ITEM_URI) ||
                     in_question.getTypeUri().equals(MOODLE_COURSE_URI) ||
+                    in_question.getTypeUri().equals(MOODLE_SECTION_URI) ||
                     in_question.getTypeUri().equals(TAG_URI) ||
                     in_question.getTypeUri().equals(DEEPAMEHTA_FILE_URI)) {
+                    // log.info("> " +in_question.getSimpleValue()+ " of type \"" +in_question.getTypeUri()+ "\"");
                     all_in_range.add(in_question);
                 }
             }
-            log.info(">>> Fetched " +all_in_range.size()+ " resources (" + from + ", " + to + ")" + " by time");
+            log.info(">>> Fetched " +all_in_range.size()+ " items (" + from + ", " + to + ")" + " by time");
             // 2) Sort and fetch resources
             // ArrayList<RelatedTopic> in_memory_resources = getResultSetSortedByCreationTime(all_resources);
             for (Topic item : all_in_range) { // 2) prepare resource items
@@ -682,6 +738,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     private void enrichTopicModelAboutCreator (Topic resource) {
         // enriching our sorted resource-results on-the-fly about some minimal user-info
         // ### currently this method fails silently if resource has no creator-relationship
+        // ### switch to 'dm4.creator'-property and return just the "display_name" (if set)
         CompositeValueModel compositeModel = resource.getCompositeValue().getModel();
         Topic creator = fetchCreator(resource);
         // if (creator == null) throw new RuntimeException("Resource (" +resource.getId()+ ") has NO CREATOR set!");
@@ -748,6 +805,45 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
                 PARENT_URI, RESOURCE_URI, true, false, 0));
         return all_resources;
     }
+
+    private ArrayList<Topic> getTopicListSortedByCreationTime (ArrayList<Topic> all) {
+        Collections.sort(all, new Comparator<Topic>() {
+            public int compare(Topic t1, Topic t2) {
+                try {
+                    Object one = t1.getProperty(PROP_URI_CREATED);
+                    Object two = t2.getProperty(PROP_URI_CREATED);
+                    if ( Long.parseLong(one.toString()) < Long.parseLong(two.toString()) ) return 1;
+                    if ( Long.parseLong(one.toString()) > Long.parseLong(two.toString()) ) return -1;
+                } catch (Exception nfe) {
+                    log.warning("Error while accessing timestamp of Topic 1: " + t1.getId() + " Topic2: "
+                            + t2.getId() + " nfe: " + nfe.getMessage());
+                    return 0;
+                }
+                return 0;
+            }
+        });
+        return all;
+    }
+
+    private ArrayList<Topic> getTopicListSortedByModificationTime (ArrayList<Topic> all) {
+        Collections.sort(all, new Comparator<Topic>() {
+            public int compare(Topic t1, Topic t2) {
+                try {
+                    Object one = t1.getProperty(PROP_URI_MODIFIED);
+                    Object two = t2.getProperty(PROP_URI_MODIFIED);
+                    if ( Long.parseLong(one.toString()) < Long.parseLong(two.toString()) ) return 1;
+                    if ( Long.parseLong(one.toString()) > Long.parseLong(two.toString()) ) return -1;
+                } catch (Exception nfe) {
+                    log.warning("Error while accessing timestamp of Topic 1: " + t1.getId() + " Topic2: "
+                            + t2.getId() + " nfe: " + nfe.getMessage());
+                    return 0;
+                }
+                return 0;
+            }
+        });
+        return all;
+    }
+
 
     private ArrayList<RelatedTopic> getResultSetSortedByCreationTime (ResultList<RelatedTopic> all) {
         // build up sortable collection of all result-items

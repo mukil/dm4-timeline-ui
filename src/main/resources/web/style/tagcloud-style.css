@@ -1,0 +1,127 @@
+
+/** --- Knockout Tag Cloud Styles --- */
+
+.eduzen.tags .content-area #tag-cloud {
+    margin-top: 20px;
+    width: 80%;
+    padding: 20px;
+    background-color: #fff;
+    color: #fff;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.eduzen.tags #tag-cloud ul {
+    padding-left: 0px;
+    text-align: center;
+}
+
+.eduzen.tags #tag-cloud .items li {
+    list-style-type: none;
+    margin-left: 0px;
+    display: inline-block;
+    padding: 5px;
+    cursor: pointer;
+    /** background-color: #fff; **/
+    color: #0782C1;
+    position: relative;
+    padding-left: 10px;
+}
+
+.eduzen.tags #tag-cloud .items li.manymore,
+.eduzen.tags #tag-cloud .items li.more,
+.eduzen.tags #tag-cloud .items li.quitesome,
+.eduzen.tags #tag-cloud .items li.some {
+    padding-top: 8px;
+    padding-right: 10px;
+}
+
+.eduzen.tags #tag-cloud .items li:hover {
+    background-color: #0782C1;
+    color: #fff;
+}
+
+.eduzen.tags #tag-cloud .items li:hover .count {
+    background-color: #a1a1a1;
+    opacity: 1;
+}
+
+.eduzen.tags #tag-cloud .items li.few .name {
+    font-size: 0.8em;
+}
+
+.eduzen.tags #tag-cloud .items li.some .name {
+    font-size: 1em;
+}
+
+.eduzen.tags #tag-cloud .items li.quitesome .name {
+    font-size: 1.5em;
+}
+
+.eduzen.tags #tag-cloud .items li.more .name {
+    font-size: 2em;
+}
+
+.eduzen.tags #tag-cloud .items li.many .name {
+    font-size: 2.5em;
+}
+
+.eduzen.tags #tag-cloud .items li.manymore .name {
+    font-size: 4em;
+}
+
+.eduzen.tags #tag-cloud .items li .count {
+    padding: 2px; padding-top: 3px; padding-bottom: 2px;
+    text-align: center;
+    background-color: #a1a1a1;
+    color: #fff;
+    font-size: 10px;
+    font-family: Courier;
+    cursor: pointer;
+    display: inline-block;
+    opacity: 0;
+}
+
+/** background-color: #C50E1F;  */
+
+.eduzen.tags #tag-cloud .items li.few .count {
+    position: relative; top: -4px; left: 1px;
+}
+
+.eduzen.tags #tag-cloud .items li.some .count {
+    position: relative; top: -4px; left: 6px;
+    padding-right: 4px; padding-left: 4px;
+    font-size: 0.8em;
+}
+
+.eduzen.tags #tag-cloud .items li.quitesome .count {
+    position: relative; top: -10px; left: 5px;
+    padding-right: 7px; padding-left: 7px;
+    font-size: 0.9em;
+}
+
+.eduzen.tags #tag-cloud .items li.more .count {
+    position: relative; top: -16px; left: 5px;
+    padding-right: 8px; padding-left: 8px;
+    font-size: 1em;
+}
+
+.eduzen.tags #tag-cloud .items li.manymore .count {
+    position: relative; top: -42px; left: 4px;
+    padding-right: 10px; padding-left: 10px;
+    font-size: 1.2em;
+}
+
+.eduzen.tags .meta-info {
+    margin-top: 60px;
+    width: 80%;
+    padding: 20px;
+    margin-left: auto;
+    margin-right: auto;
+    color: #0782C1;
+    text-align: center;
+}
+
+.eduzen.tags .meta-info .tag-count {
+    color: #999;
+}

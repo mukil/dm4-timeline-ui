@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title th:text="${name}">Tagcloud - eduZEN Notes v0.3-SNAPSHOT</title>
+        <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0"/>
+
+        <link rel="stylesheet" href="/org.deepamehta.eduzen-tagging-notes/style/eduzen.css"/>
+        <link rel="stylesheet" href="/org.deepamehta.eduzen-tagging-notes/style/tagcloud-style.css"/>
+        <link rel="stylesheet" href="/org.deepamehta.eduzen-tagging-notes/script/vendor/jquery-ui-1.8.21.custom.css"/>
+
+        <!-- jquery -->
+        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/vendor/jquery-1.7.2.min.js"></script>
+        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/vendor/jquery-ui-1.8.21.custom.min.js"></script>
+
+        <!-- Note: We are proudly build on free and open source tools, namely: jQuery, Piwik and DeepaMehta 4. -->
+
+        <!-- Piwik
+        <script type="text/javascript">
+            var _paq = _paq || [];
+            (function() {
+                var u=(("https:" == document.location.protocol) ? "https" : "http") + "://stable.eduzen.tu-berlin.de/piwik/";
+                _paq.push(['setSiteId', 1]);
+                _paq.push(['setTrackerUrl', u+'piwik.php']);
+                _paq.push(['trackPageView']);
+                _paq.push(['enableLinkTracking']);
+                var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0]; g.type='text/javascript';
+                g.defer=true; g.async=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+            })();
+        </script>
+        End Piwik Tracking Code -->
+
+    </head>
+
+    <body class="eduzen tags">
+
+        <div class="headline">
+
+            <div id="menu">
+                <!-- a class="btn sort" id="most-popular">Sortierung nach Bewertung</a-->
+                <!-- a class="btn" id="new">Neuen Inhalt hinzuf&uuml;gen</a-->
+                <div class="about-login"></div>
+                <div class="pages">
+                    <a href="/notes" class="index">zur&uuml;ck zur Timeline</a>
+                    <a href="/notes/info" id="info" title="Nutzungshinweise und Impressum">Tipps</a>
+                </div>
+                <span class="username"></span>
+                <div class="subscription-view"></div>
+            </div>
+
+            <a href="http://www.eduzen.tu-berlin.de" target="_blank">
+                <img src="/org.deepamehta.eduzen-tagging-notes/images/eduzen-logo-35px-height.png"
+                 class="eduzen-logo" title="Notizen ist eine Entwicklung des Studienreformprojekts eduZEN"
+                 alt="EducationZEN Logo" height="35" width="184" />
+            </a>
+
+        </div>
+
+        <div id="message-top"></div>
+
+        <div id="progressbar"><div class="loading-label">Notizen werden geladen ... </div></div>
+
+        <a href="#" class="print-view">Druckansicht</a>
+
+        <div class="meta-info">
+            Liste aller <span data-bind="text: tags.nr_of_tags" class="tag-count">0</span> Tags gewichtet nach der Anzahl ihrer Notizen-Beitr&auml;ge
+        </div>
+
+        <div class="content-area">
+            <div id="tag-cloud">
+                <ul class="items" data-bind="foreach: tags.all_available_tags">
+                    <li data-bind="css: $data.composite.view_css_class.value, click: $root.controler.tag_cloud_click">
+                        <span data-bind="text: $data.value" class="name"></span>
+                        <span data-bind="text: $data.composite.view_related_count.value" class="count"></span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <noscript><p>
+            Sorry, this is a single-page AJAX application relying on JavaScript. <br/>
+            If you want to use our web-app, you have to activate JavaScript in your browser.
+            <br/><br/>
+            Kind Regards,<br/>
+            Your eduZEN Team (team{at}eduzen.tu-berlin.de)
+        </p></noscript>
+
+        <!-- dm4 restclient -->
+        <script type="text/javascript" src="/de.deepamehta.webclient/script/util/rest_client.js"></script>
+        <!-- other jquery modules -->
+        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/vendor/jquery-ui-widget.js"></script>
+        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/vendor/jquery-ui-progressbar.js"></script>
+        <!-- tagging notes model -->
+        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/vendor/eduzen_dictionary.js"></script>
+        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/vendor/knockout-3.1.0.js"></script>
+        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/model/ko_app_model.js"></script>
+        <!-- eduzen rest client -->
+        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/emc.js"></script>
+        <!-- application main file -->
+        <script type="text/javascript" src="/org.deepamehta.eduzen-tagging-notes/script/ko_main.js"></script>
+
+
+        <script type="text/javascript">
+
+            $(document).ready(function () {
+
+                var model = new app_model()
+                // init knockout model
+                ko.applyBindings(model)
+                //
+                var app = new ko_app(new RESTClient(), model)
+                    app.init()
+            })
+
+        </script>
+
+    </body>
+
+</html>

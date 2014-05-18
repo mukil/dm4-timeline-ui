@@ -4,6 +4,7 @@ body.eduzen.note {
     margin: 0px;
 }
 
+.eduzen.tags .header,
 .eduzen.info .header,
 .eduzen.note .header {
     margin-top: 60px;
@@ -70,6 +71,7 @@ body.eduzen.note {
     display: none;
 }
 
+.eduzen.tags #menu,
 .eduzen.info #menu,
 .eduzen.note #menu {
     background-color: #fff;
@@ -125,6 +127,7 @@ body.eduzen.note {
     position: fixed;
     top: 0px; left: 0px;
     background-color: #fff;
+    font-size: 12px;
 }
 
 .eduzen .sidebar {
@@ -140,6 +143,7 @@ body.eduzen.note {
     float: right;
     position: absolute;
     top: 1px; right: 40px;
+    z-index: 1001;
 }
 
 .eduzen.note .eduzen-logo {
@@ -184,7 +188,10 @@ body.eduzen.note {
 .eduzen #menu .pages {
     float: right;
     margin-right: 300px;
+}
 
+.eduzen #menu .pages a {
+    margin-right: 10px;
 }
 
 .eduzen #menu .subscription-view {
@@ -369,7 +376,7 @@ body.eduzen.note {
     pointer-events: all;
 }
 
-.eduzen .pages a {
+.eduzen #menu .pages a {
     display: inline-block;
     padding: 7px;
     border: 1px solid #f1f1f1;
@@ -377,6 +384,10 @@ body.eduzen.note {
     padding-top: 9px;
     text-decoration: underline;
     background-color: #fff;
+}
+
+.eduzen a {
+    color: #0782C1;
 }
 
 .eduzen .print-view {
@@ -396,7 +407,7 @@ body.eduzen.note {
     right: 80px; top: 0px;
 }
 
-.eduzen .back-to-front {
+.eduzen .back-to.front {
     position: fixed;
     right: 260px; top: 0px;
 }
@@ -656,6 +667,7 @@ textarea#math-input-dialog {
 .eduzen.info .content-area {
     font-size: 1.2em;
     line-height: 1.2em;
+    margin-top: 60px;
 }
 
 .eduzen.info .content-area li a {

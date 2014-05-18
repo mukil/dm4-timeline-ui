@@ -33,9 +33,10 @@ public interface ResourceService extends PluginService {
   String getContributedResources(long userId, ClientState clientState);
 
   /**
-   * @return A String holding a JSONArray containing \"Resources\" and (possibly) \"Moodle Items.
+   * @return A String holding a JSONArray containing notes, tags, files and moodle-topics.
+   * @param {time_value} is either "created" or "modified"
    */
-  String getNotesInTimeRange(String time_value, long count, long offset);
+  String getItemsInTimeRange(String time_value, long count, long offset);
 
   /**
    * @return A String holding a JSONArray containing \"Resources\", \"Tags\", \"Moodle Items\",
