@@ -18,7 +18,7 @@ To be able to install this module you first have to have install the following D
 * `dm42-subscriptions-1.0.0`-Bundle - [Source Code](https://github.com/mukil/org.deepamehta-subscriptions), [Nightly Build](http://download.deepamehta.de/nightly/)
 * `dm42-webactivator-0.4.2`-Bundle - [Source Code](https://github.com/jri/dm4-webactivator), [Nightly Build](http://download.deepamehta.de/nightly/)
 
-# Download and Installation
+## Download and Installation
 
 Place all the latest bundle-files of the modules listed as required (see section above) in the `bundles` folder of your deepamehta installation and restart DeepaMehta.
 
