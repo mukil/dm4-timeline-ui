@@ -1,5 +1,5 @@
 
-# eduZEN Notes Module
+# eduZEN Notes Application
 
 A DeepaMehta 4 plugin providing a custom, timeline based AJAX user interface allowing to iteratively filter posts based on many tags.
 
