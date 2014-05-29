@@ -1,7 +1,9 @@
 
-# org.deepamehta eduZEN Notes Module
+# eduZEN Notes Module
 
-A custom, timeline based AJAX user interface introducing the Topic Type `Resource`, enabling users to _tag_, _share_ and _vote_ simple HTML postings.
+A DeepaMehta 4 plugin providing a custom, timeline based AJAX user interface allowing to iteratively filter posts based on many tags.
+
+Its application model introduces the Topic Type `Resource` and aggregates other DM4 plugin to allow users to _tag_, _share_ and _vote_ simple HTML postings.
 
 ## Requirements
 
