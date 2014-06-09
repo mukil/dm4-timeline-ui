@@ -291,7 +291,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             throw new WebApplicationException(new RuntimeException("Something went wrong while creating resource", e));
         } finally {
             tx.finish();
-            if (notificationService != null) notificationService.notify("Notiz angelegt", "", user.getId(), resource);
+            if (notificationService != null) notificationService.createNotifications("Notiz angelegt", "", user.getId(), resource);
         }
     }
 
@@ -333,7 +333,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
             throw new WebApplicationException(new RuntimeException("Something went wrong while updating resource", e));
         } finally {
             tx.finish();
-            if (notificationService != null) notificationService.notify("Beitrag bearbeitet", "", user.getId(), resource);
+            if (notificationService != null) notificationService.createNotifications("Beitrag bearbeitet", "", user.getId(), resource);
         }
     }
 

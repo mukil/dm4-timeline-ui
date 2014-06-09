@@ -460,10 +460,7 @@ body.eduzen.note {
     cursor: pointer;
     text-align: center;
     font-size: 10px;
-    opacity: 0;
-    -webkit-transition: opacity 0.2s ease-out;
-    -moz-transition: opacity 0.2s ease-out;
-    -o-transition: opacity 0.2s ease-out;
+    opacity: 1;
     border: 1px solid transparent;
     background-color: #f1f1f1;
     color: #0782C1;
@@ -472,13 +469,13 @@ body.eduzen.note {
     border: 1px solid #fff;
 }
 
-.eduzen .tag-filter-container:hover .subscribe {
+/* .eduzen .tag-filter-container:hover .subscribe {
     -webkit-transition: opacity 0.5s ease-out;
     -moz-transition: opacity 0.5s ease-out;
     -o-transition: opacity 0.5s ease-out;
     opacity: 1;
     border-bottom: 1px solid #f1f1f1;
-}
+} */
 
 .eduzen .tag-filter-container .subscribe:hover {
     border-top: 1px solid #FFC700;

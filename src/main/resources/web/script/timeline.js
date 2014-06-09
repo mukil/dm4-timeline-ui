@@ -519,6 +519,7 @@
                         _this.model.setAvailableResources([]) // this forces a re-initialization of main-timeline
                     }
                     _this.prepare_index_page(true, true)
+                    _this.track_filtered_timeline_page_view()
                     _this.push_timeline_view_state()
                 })
             var $filter_item_container = $('<div class="tag-filter-container">')
@@ -551,6 +552,7 @@
                 //        allAvailableResources are very limited, thus we need to reset it to fetch at least latest 15
                 _this.model.setAvailableResources([]) // this forces a re-initialization of main-timeline
                 _this.prepare_index_page(true, true)
+                _this.track_filter_reset_page_view()
                 _this.push_timeline_view_state()
             })
         $('.tag-filter-info').html($filterMeta).append($clearButton).append($filterButtons)
@@ -641,12 +643,28 @@
                 // go to updated view
                 _this.prepare_index_page(true, true)
                 // fixme: formerly here were just (optimal) view updates
+                _this.track_filtered_timeline_page_view()
                 _this.push_timeline_view_state()
 
             })
             $parent.append($tag)
         }
         return null
+    }
+
+    this.track_filtered_timeline_page_view = function () {
+        document.title = "Gefilterte Notizen Timeline, Tags: "
+        var filtered_by = _this.model.getTagFilter()
+        for (var filtered_idx in filtered_by) {
+            if (filtered_idx == 0) document.title += " " + filtered_by[filtered_idx].value
+            if (filtered_idx > 0) document.title += "+" + filtered_by[filtered_idx].value
+        }
+        if (typeof _paq !== 'undefined') _paq.push(['trackPageView'])
+    }
+
+    this.track_filter_reset_page_view = function () {
+        document.title = "Notizen Timeline"
+        if (typeof _paq !== 'undefined') _paq.push(['trackPageView'])
     }
 
 
