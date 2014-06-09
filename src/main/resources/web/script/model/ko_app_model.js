@@ -11,8 +11,6 @@ function app_model() {
 
     self.controler = {
         tag_cloud_click: function (data, event) {
-            console.log("clicked tag in cloud ")
-            console.log(data)
             window.document.location = "/notes/tagged/" + data.value;
         }
     }

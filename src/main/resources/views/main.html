@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title th:text="${name}">Main Timeline - Notes eduZEN v0.3-SNAPSHOT</title>
+        <script
+            data-main="/org.deepamehta.eduzen-tagging-notes/script/require_main"
+            src="/org.deepamehta.eduzen-tagging-notes/script/vendor/require.min.js">
+        </script>
+        <link rel="stylesheet" href="/org.deepamehta.eduzen-tagging-notes/style/eduzen.css"/>
+        <link rel="stylesheet" href="/org.deepamehta.eduzen-tagging-notes/style/timeline-style.css"/>
+    </head>
+    <body class="eduzen main-timeline">
+        <div class="headline">
+
+            <div id="menu">
+                <!-- a class="btn sort" id="most-popular">Sortierung nach Bewertung</a-->
+                <!-- a class="btn" id="new">Neuen Inhalt hinzuf&uuml;gen</a-->
+                <div class="about-login"></div>
+                <div class="pages">
+                    <a href="/notes/tags" class="all-tags">Tags</a>
+                    <a href="/notes/info" id="info" title="Nutzungshinweise und Impressum">Tipps</a>
+                </div>
+                <span class="username"></span>
+                <div class="subscription-view"></div>
+            </div>
+
+            <a href="http://www.eduzen.tu-berlin.de" target="_blank">
+                <img src="/org.deepamehta.eduzen-tagging-notes/images/eduzen-logo-35px-height.png"
+                 class="eduzen-logo" title="Notizen ist eine Entwicklung des Studienreformprojekts eduZEN"
+                 alt="EducationZEN Logo" height="35" width="184" />
+            </a>
+
+            <!-- ko if: get_selected_item() -->
+                <!-- div class="selected-item">
+                    Selected <span data-bind="text: get_selected_item().value"></span>
+                    <a class="view-button"
+                       data-bind="attr: { href:'/notes/' + get_selected_item().id, title: 'View Details' }">View</a>
+                </div-->
+            <!-- /ko -->
+
+            <div class="timeline-info">
+                <span class="label">Zwischen dem</span>
+                <span class="state from" data-bind="text: get_from_time()"></span>
+                <span class="label">und dem</span>
+                <span class="state to" data-bind="text: get_to_time()"></span>
+                <span class="label">wurden</span>
+                <span class="state items" data-bind="text: get_items().length"></span>
+                <span class="label">Beitr&auml;ge</span>
+                <span class="state timestamp-option" data-bind="text: get_timestamp_option()"></span>.
+                <!-- ko if: get_current_tags().length > 0 -->
+                    <span class="label">Tags</span>
+                    <span class="state tags" data-bind="text: get_current_tags().length"></span>
+                <!-- /ko -->
+            </div>
+
+            <!--iv class="horizontal-filter">
+                <span class="label">Horizontaler Filter</span>
+                <span class="state filter"></span>
+                <div class="filter-input">
+                    <input class="tag-input-filter" placeholder="..." />
+                </div>
+            </div-->
+
+        </div>
+        <!-- h3 class="item-list-header">
+            Notizen
+            <span class="counter" data-bind="text: ' (' + items.all.length + ' Beitr&auml;ge von .. bis .. )'">
+                </span
+        </h3 -->
+        <div>
+            <ul data-bind="foreach: get_items()" class="note-list">
+
+                    <!-- ko if: $data.type_uri === 'org.deepamehta.resources.resource' -->
+                    <li class="item">
+                        <div class="note-container notiz" data-bind="click: $parent.click_list_item, attr: { id: $data.id }">
+                            <img src="/org.deepamehta.eduzen-tagging-notes/images/black_32.png"
+                                class="type-icon" alt="Notes Icon" title="HTML Beitrag"/>
+                            <span data-bind="text: 'Notiz von ' +
+                                    new Date($data.composite['dm4.time.created'].value)" class="name"></span>
+                            <div class="body"></div>
+                            <br/>
+                            <span data-bind="text: '.. zuletzt bearbeitet am '
+                                + new Date($data.composite['dm4.time.modified'].value)" class="timestamp"></span>
+                            <!-- ko if: $data.composite['dm4.accesscontrol.user_account'] -->
+                                <span data-bind="text: ' von '
+                                    + $data.composite['dm4.accesscontrol.user_account'].value" class="username"></span>
+                            <!-- /ko -->
+                        </div>
+                    </li>
+                    <!-- /ko -->
+
+                    <!-- ko if: $data.type_uri === 'org.deepamehta.moodle.item' -->
+                    <li class="item">
+                        <div class="note-container moodle-item">
+                            <img src="/org.deepamehta.moodle-plugin/images/page-icon.png"
+                                 class="type-icon" alt="Moodle Item Icon" title="ISIS 2 Arbeitsmaterial"/>
+                            <span data-bind="text: $data.value" class="name"></span>
+                            <div class="body"></div>
+                            <br/>
+                            <span data-bind="text: '.. zuletzt bearbeitet am '
+                                + new Date($data.composite['dm4.time.modified'].value)" class="timestamp"></span>
+                            <!-- ko if: $data.composite['dm4.accesscontrol.user_account'] -->
+                                <span data-bind="text: ' von '
+                                    + $data.composite['dm4.accesscontrol.user_account'].value" class="username"></span>
+                            <!-- /ko -->
+                        </div>
+                    </li>
+                    <!-- /ko -->
+
+                    <!-- ko if: $data.type_uri === 'org.deepamehta.moodle.course' -->
+                    <li class="item">
+                        <div class="note-container course">
+                            <img src="/org.deepamehta.moodle-plugin/images/ball-orange.png"
+                                 class="type-icon" alt="Moodle Course Icon" title="ISIS 2 Kurs"/>
+                            <span data-bind="text: $data.value" class="name"></span>
+                            <div class="body"></div>
+                            <br/>
+                            <span data-bind="text: '.. zuletzt bearbeitet am '
+                                + new Date($data.composite['dm4.time.modified'].value)" class="timestamp"></span>
+                            <!-- ko if: $data.composite['dm4.accesscontrol.user_account'] -->
+                                <span data-bind="text: ' von '
+                                    + $data.composite['dm4.accesscontrol.user_account'].value" class="username"></span>
+                            <!-- /ko -->
+                        </div>
+                    </li>
+                    <!-- /ko -->
+
+                    <!-- ko if: $data.type_uri === 'dm4.files.file' -->
+                    <li class="item">
+                        <div class="note-container file" data-bind="click: $parent.click_list_item, attr: { id: $data.id }">
+                            <img src="/de.deepamehta.files/images/sheet.png"
+                                 class="type-icon" alt="Notizen File Icon" title="Dateiupload"/>
+                            <span data-bind="text: $data.value" class="name"></span>
+                            <br/>
+                            <div class="body"></div>
+                            <br/>
+                            <span data-bind="text: '.. zuletzt bearbeitet am '
+                                + new Date($data.composite['dm4.time.modified'].value)" class="timestamp"></span>
+                            <!-- ko if: $data.composite['dm4.accesscontrol.user_account'] -->
+                                <span data-bind="text: ' von '
+                                    + $data.composite['dm4.accesscontrol.user_account'].value" class="username"></span>
+                            <!-- /ko -->
+                        </div>
+                    </li>
+                    <!-- /ko -->
+
+                    <!-- ko if: $data.type_uri === 'dm4.tags.tag' -->
+                    <li class="item">
+                        <div class="note-container tag">
+                            <img src="/de.deepamehta.tags/images/tag_32.png" alt="Tag Icon"
+                                 class="type-icon" title="Tag"/>
+                            <span data-bind="text: $data.value" class="name"></span>
+                            <div class="body"></div>
+                            <br/>
+                            <span data-bind="text: '.. zuletzt bearbeitet am '
+                                + new Date($data.composite['dm4.time.modified'].value)" class="timestamp"></span>
+                            <!-- ko if: $data.composite['dm4.accesscontrol.user_account'] -->
+                                <span data-bind="text: ' von '
+                                    + $data.composite['dm4.accesscontrol.user_account'].value" class="username"></span>
+                            <!-- /ko -->
+                        </div>
+                    </li>
+                    <!-- /ko -->
+
+            </ul>
+            <div class="data-container">
+                <img class="spinner" src="/org.deepamehta.eduzen-tagging-notes/images/ajax-loader.gif"
+                 title="Loading timeline"/>
+            </div>
+        </div>
+        <!-- h3 class="time-axis-header">Notizen Timeline</h3 -->
+        <div class="time-axis"></div>
+    </body>
+</html>
