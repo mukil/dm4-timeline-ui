@@ -181,7 +181,7 @@ public class ResourcePlugin extends WebActivatorPlugin implements ResourceServic
     @Path("/notes/main/{view_id}")
     @Produces("text/html")
     public Viewable getMainView(@PathParam("view_id") String view_id) {
-        viewData("name", "Notizen as required");
+        viewData("name", "Main Timeline - Notes eduZEN v0.3-SNAPSHOT");
         viewData("path", "/notes/main");
         viewData("view_id", view_id);
         viewData("style", "style.css");

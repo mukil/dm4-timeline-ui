@@ -1,6 +1,6 @@
 
 define(
-    ['jquery', 'modules/notes_app_model', 'modules/notes_rest_client', 'd3'], function($, model, restc, d3) {
+    ['jquery', 'd3', 'modules/notes_rest_client'], function($, d3, restc) {
 
         return {
 
@@ -18,9 +18,110 @@ define(
 
             },
 
+            render_details_in_list: function (item) {
+
+                /** var $container = $('#' + item.id)
+                    $container.click(function (e) {
+                        return undefined
+                    })
+                    $container.attr('data-bind', 'click: javascript:void();') **/
+                // ### destroy ko-click binding
+
+                var $body = $('#' + item.id + ' div.body')
+                var item_html = ""
+
+                // populate dom element
+
+                if (item.type_uri === 'dm4.files.file') {
+
+                    var filepath = '/filerepo/' + item.composite['dm4.files.path'].value
+
+                    if (item.value.indexOf('.pdf') != -1) {
+
+                        item_html = '<p><object data="'+filepath+'" width="760" height="640" type="application/pdf"></p>'
+
+                    } else if (item.value.indexOf('.jpg') != -1
+                        || item.value.indexOf('.jpeg') != -1
+                        || item.value.indexOf('.png') != -1
+                        || item.value.indexOf('.svg') != -1) {
+
+                        item_html = '<p><img src="'+filepath+'"></p>'
+                    }
+                } else if (item.type_uri === 'org.deepamehta.resources.resource') {
+
+                    var notes_html = item.composite['org.deepamehta.resources.content'].value
+                    // var tags = item.composite['dm4.tags.tag']
+                    item_html = '<p>' + notes_html + '</p>'
+                    /** if (selected_item().type_uri === "org.deepamehta.resources.resource") {
+                    // Navigating to resource-detail view
+                    window.document.location = '/notes/' + selected_item().id
+                    */
+                } else if (item.type_uri === 'org.deepamehta.moodle.item') {
+
+                    // ### $.ajax('GET', '/accesscontrol/user')
+                    var item_description = item.composite['org.deepamehta.moodle.item_description'].value
+                    var item_icon = item.composite['org.deepamehta.moodle.item_icon'].value
+                    var item_href = item.composite['org.deepamehta.moodle.item_href'].value
+                    var item_url = ""
+                    //
+                    item_html = '<p>'
+                        + '<img src="' + item_icon + '" title="Moodle Type Icon">'
+                        +  item_description
+                        + '</p>'
+
+                    if (item.composite.hasOwnProperty('org.deepamehta.moodle.item_url')) {
+                        item_url = item.composite['org.deepamehta.moodle.item_url'].value
+                        // provision of smart url-command
+                        if (item_url.indexOf("youtu") != -1) {
+                            console.log("### Youtube Video!!")
+                            item_html += '<p>'
+                                + '<a href="' +item_url+ '" class="command">Watch on Youtube</a>'
+                                // + '<a href="' +item_href+ '" class="command">View in ISIS 2</a>'
+                            + '</p>'
+                        } else if (item_href.indexOf("/mod/resource/") != -1) {
+                            item_html += '<p>'
+                                + '<a href="' +item_url+ '" class="command">Download</a>'
+                                + '<a href="' +item_href+ '" class="command">View in ISIS 2</a>'
+                            + '</p>'
+                        } else if (item_href.indexOf("/mod/url/") != -1) {
+                            item_html += '<p>'
+                                + '<a href="' +item_url+ '" class="command">Visit Link</a>'
+                            + '</p>'
+                        }
+                    } else {
+                        item_html += '<p>'
+                            + '<a href="' +item_href+ '" class="command">View in ISIS 2</a>'
+                        + '</p>'
+                    }
+
+                } else {
+                    console.log("WARNING:Renderer NOT YET IMPLEMENTED" + item.type_uri)
+                }
+
+                // build up tags
+                if (item.composite.hasOwnProperty('dm4.tags.tag')) {
+                    var list_of_tags = item.composite['dm4.tags.tag']
+                    item_html += '<p><span class="label">Tagged:</span>'
+                    for (var tag_idx in list_of_tags) {
+                        var tag_item = list_of_tags[tag_idx]
+                        // if (tag_idx < list_of_tags.length) item_
+                        item_html +=  '<span class="tag">'
+                            + '<img src="/de.deepamehta.tags/images/tag_32.png" height="16"'
+                                + ' alt="Tag Icon" class="type-icon" title="Tag ' +tag_item.value+ '"/>'
+                                + tag_item.value+ '</span>'
+                    }
+                    item_html += '</p>'
+               }
+
+                // populate and display element
+                $body.html(item_html)
+                $body.show()
+
+            },
+
             render_timerange_slider:  function () {
 
-                var topics = model.get_timerange()
+                var topics = restc.get_clientside_model().get_timerange()
                 //
                 var dates = []
                 for (var i = 0; i < topics.length; i++) {

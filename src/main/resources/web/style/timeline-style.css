@@ -111,19 +111,47 @@
 
 
 .eduzen li.item .note-container.course,
-.eduzen li.item .note-container.moodle-item,
 .eduzen li.item .note-container.tag {
     opacity: .8;
     cursor: default;
 }
 
+.eduzen li.item .note-container.moodle-item .name,
 .eduzen li.item .note-container.file .name,
 .eduzen li.item .note-container.notiz .name {
     color: #0782C1;
 }
 
-.eduzen li.item .note-container.file .body img {
+.eduzen li.item .note-container .body img {
     float: none
+}
+
+.eduzen li.item .note-container .body a.command {
+    padding: 5px;
+    padding-left: 7px;
+    padding-right: 7px;
+    background: #f1f1f1;
+    margin-right: 10px;
+}
+
+.eduzen li.item .note-container .body a:hover {
+    text-decoration: underline;
+}
+
+.eduzen li.item .note-container .body a.command:active {
+    color: #fff;
+}
+
+.eduzen li.item .note-container .body a.command:hover {
+    text-decoration: none;
+}
+
+.eduzen li.item .note-container .body .label {
+    margin-right: 10px;
+}
+
+.eduzen li.item .note-container .body .tag {
+    padding-right: 10px;
 }
 
 /** .eduzen li.item .note-container.moodle-item img.type-icon {
@@ -149,6 +177,7 @@
 .eduzen li.item .note-container .body {
     display: none;
     overflow: hidden;
+    font-size: 14px;
 }
 
 /** SVG Styles */

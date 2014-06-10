@@ -62,6 +62,23 @@ define(['modules/notes_app_model', 'd3'], function(model, d3) {
                         throw Error("notes_rest_client::load_topics_in_range" + error)
                     }
 
+            },
+
+            is_logged_in: function () {
+                /** ### send synchronous request
+                 *var xhr = d3.json('/accesscontrol/user')
+                    xhr.get()
+                    xhr.on('load', function (data) {
+                        console.log(data)
+                    })
+                    xhr.on('error'), function (error) {
+                        console.log("d3.error:: " + error)
+                        throw Error("notes_rest_client::is_logged_in " + error)
+                    } **/
+            },
+
+            get_clientside_model: function () {
+                return model
             }
 
         }

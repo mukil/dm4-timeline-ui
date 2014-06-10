@@ -1,6 +1,6 @@
 
 define(
-    ['jquery', 'modules/notes_app_model', 'knockout'], function($, model, ko) {
+    ['jquery', 'knockout'], function($, ko) {
 
         return {
 
@@ -22,7 +22,7 @@ define(
 
                 if (notes_view_id === "timeline") {
 
-                    require(['modules/main_timeline_view'], function (main_timeline) {
+                    require(['modules/main_timeline_view'], function (main_timeline) {  // circular dependency
                         main_timeline.init()
                     })
 
@@ -40,8 +40,8 @@ define(
                     var selectedTag = undefined
                     for (var i=0; i < tags.length; i++) {
                         var label = decodeURIComponent(tags[i])
-                        selectedTag = _this.model.getTagByName(label)
-                        if (selectedTag != undefined) _this.model.addTagToFilter(selectedTag)
+                        // selectedTag = _this.model.getTagByName(label)
+                        // if (selectedTag != undefined) _this.model.addTagToFilter(selectedTag)
                     }
                     // _this.prepare_index_page(true, false) // call timeline after filter was set.
                     // $(window).on('load', function(event) {_this.hide_progress_bar()});
@@ -51,7 +51,7 @@ define(
 
                     // 3) setup personal timeline view
                     var userId = attributes[3]
-                    var user = dmc.get_topic_by_id(userId, true)
+                    // var user = dmc.get_topic_by_id(userId, true)
                     // _this.prepare_profile_page(user, true, false)
                     // $(window).on('load', function(event) {_this.hide_progress_bar()});
                     console.log("=> notes_profile_view")
@@ -68,24 +68,10 @@ define(
 
             show_item_content: function (item) {
 
-                console.log("notes_route::show_item_content " + item.id)
+                require(['modules/main_timeline_view'], function (main_timeline) { // circular dependency
+                    main_timeline.render_details_in_list(item)
+                })
 
-                var $body = $('#' + item.id + ' div.body')
-                var filepath = '/filerepo/' + item.composite['dm4.files.path'].value
-
-                if (item.value.indexOf('.pdf') != -1) {
-
-                    $body.html('<p><object data="'+filepath+'" width="760" height="640" type="application/pdf"></p>')
-                    $body.show()
-
-                } else if (item.value.indexOf('.jpg') != -1
-                    || item.value.indexOf('.jpeg') != -1
-                    || item.value.indexOf('.png') != -1
-                    || item.value.indexOf('.svg') != -1) {
-
-                    $body.html('<p><img src="'+filepath+'"></p>')
-                    $body.show()
-                }
             }
 
         }

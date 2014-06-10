@@ -24,14 +24,12 @@ function require_config () {
         // console.log('jquery_core is loaded')
     })
 
-    require(['knockout', 'modules/notes_app_model', 'domReady!'], function(ko, model) {
-        ko.applyBindings(model)
+    require(['knockout', 'modules/notes_rest_client', 'modules/notes_route', 'domReady!'],
+    function(ko, restc, notes_route) {
+        ko.applyBindings(restc.get_clientside_model())
         console.log("require_main::ko.appliedBindings to controler and model")
-    });
-
-    require(['modules/notes_route'], function(notes_route) {
         notes_route.page_route()
-    })
+    });
 
     /** require(['jquery', 'jquery_ui', 'jquery_ui_widget', 'jquery_ui_progressbar'],
     function ($, $jQueryUi, $jQueryWidget, $jQueryProgressbar) {
