@@ -659,12 +659,18 @@
             if (filtered_idx == 0) document.title += " " + filtered_by[filtered_idx].value
             if (filtered_idx > 0) document.title += "+" + filtered_by[filtered_idx].value
         }
-        if (typeof _paq !== 'undefined') _paq.push(['trackPageView'])
+        if (typeof _paq !== 'undefined') {
+            _paq.push(['setDocumentTitle', document.title])
+            _paq.push(['trackPageView'])
+        }
     }
 
     this.track_filter_reset_page_view = function () {
         document.title = "Notizen Timeline"
-        if (typeof _paq !== 'undefined') _paq.push(['trackPageView'])
+        if (typeof _paq !== 'undefined') {
+            _paq.push(['setDocumentTitle', document.title])
+            _paq.push(['trackPageView'])
+        }
     }
 
 

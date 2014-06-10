@@ -123,7 +123,8 @@
 }
 
 .eduzen li.item .note-container .body img {
-    float: none
+    float: none;
+    margin-top: 5px;
 }
 
 .eduzen li.item .note-container .body a.command {

@@ -38,7 +38,10 @@ define(
 
                     if (item.value.indexOf('.pdf') != -1) {
 
-                        item_html = '<p><object data="'+filepath+'" width="760" height="640" type="application/pdf"></p>'
+                        item_html = '<p><object data="'+filepath+'" width="760" height="640" type="application/pdf">'
+                            + '</p>'
+                            + '<a href="' +filepath+ '" class="command" title="Download PDF">Download</a>'
+                            + '</p>'
 
                     } else if (item.value.indexOf('.jpg') != -1
                         || item.value.indexOf('.jpeg') != -1
@@ -64,33 +67,28 @@ define(
                     var item_href = item.composite['org.deepamehta.moodle.item_href'].value
                     var item_url = ""
                     //
-                    item_html = '<p>'
-                        + '<img src="' + item_icon + '" title="Moodle Type Icon">'
-                        +  item_description
-                        + '</p>'
+                    item_html += '<p>'
+                        + '<img src="' + item_icon + '" title="Moodle Type Icon">' +  item_description
 
                     if (item.composite.hasOwnProperty('org.deepamehta.moodle.item_url')) {
                         item_url = item.composite['org.deepamehta.moodle.item_url'].value
                         // provision of smart url-command
                         if (item_url.indexOf("youtu") != -1) {
                             console.log("### Youtube Video!!")
-                            item_html += '<p>'
-                                + '<a href="' +item_url+ '" class="command">Watch on Youtube</a>'
+                            item_html += '<a href="http://' +item_url+ '" target="_blank" '
+                                + 'class="command">Watch on Youtube</a>'
                                 // + '<a href="' +item_href+ '" class="command">View in ISIS 2</a>'
                             + '</p>'
                         } else if (item_href.indexOf("/mod/resource/") != -1) {
-                            item_html += '<p>'
-                                + '<a href="' +item_url+ '" class="command">Download</a>'
+                            item_html += '<a href="' +item_url+ '" class="command">Download</a>'
                                 + '<a href="' +item_href+ '" class="command">View in ISIS 2</a>'
                             + '</p>'
                         } else if (item_href.indexOf("/mod/url/") != -1) {
-                            item_html += '<p>'
-                                + '<a href="' +item_url+ '" class="command">Visit Link</a>'
+                            item_html +=  '<a href="' +item_url+ '" class="command">Visit Link</a>'
                             + '</p>'
                         }
                     } else {
-                        item_html += '<p>'
-                            + '<a href="' +item_href+ '" class="command">View in ISIS 2</a>'
+                        item_html += '<a href="' +item_href+ '" class="command">View in ISIS 2</a>'
                         + '</p>'
                     }
 
