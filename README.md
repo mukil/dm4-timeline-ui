@@ -1,13 +1,21 @@
 
 # eduZEN Notes Application
 
-A DeepaMehta 4 plugin providing a custom, timeline based AJAX user interface allowing to iteratively filter posts based on many tags.
+The first real eduZEN Web Application to allow students to create, share and structure their own html-postings.
+
+Technically this plugin provides a custom, timeline based AJAX web interface allowing users to 
+* create new html-postings (with math-formulas, fileupload and basic formatting)
+* tag and vote (a) all html-postings by other users and (b) course materials from each (synchronized) moodle installation
+* iteratively filter timelines of posts based on one to many tags
 
 Its application model introduces the Topic Type `Resource` and aggregates other DM4 plugin to allow users to _tag_, _share_ and _vote_ simple HTML postings.
 
 ## Requirements
 
-To be able to install this module you first have to have install the following DeepaMehta 4 Plugins.
+DeepaMehta 4 is a platform for collaboration and knowledge management.
+https://github.com/jri/deepamehta
+
+To be able to install this module you first and additionally have to install the following DeepaMehta 4 Plugins.
 
 * `dm42-deepamehta-tags-1.3.7-SNAPSHOT`-Bundle - [Source Code](https://github.com/mukil/dm4.tags), [Nightly Build](http://download.deepamehta.de/nightly/)
 * `dm42-mathjax-renderer-1.0.4`-Bundle - [Source Code](https://github.com/mukil/dm4-mathjax-renderer), [Nightly Build](http://download.deepamehta.de/nightly/)
@@ -15,7 +23,7 @@ To be able to install this module you first have to have install the following D
 * `dm42-eduzen-images-0.0.4-SNAPSHOT`-Bundle - [Source Code](https://github.com/mukil/dm4.images), [Nightly Build](http://download.deepamehta.de/nightly/)
 * `dm42-eduzen-reviews-0.3.5-SNAPSHOT`-Bundle - [Source Code](https://github.com/mukil/org.deepamehta-reviews), [Nightly Build](http://download.deepamehta.de/nightly/)
 * `dm42-moodle-plugin-1.2.1-SNAPSHOT`-Bundle - [Source Code](https://github.com/mukil/mapping-moodle), [Nightly Build](http://download.deepamehta.de/nightly/)
-* `dm42-subscriptions-1.0.0`-Bundle - [Source Code](https://github.com/mukil/org.deepamehta-subscriptions), [Nightly Build](http://download.deepamehta.de/nightly/)
+* `dm42-subscriptions-1.0.1-SNAPSHOT`-Bundle - [Source Code](https://github.com/mukil/org.deepamehta-subscriptions), [Nightly Build](http://download.deepamehta.de/nightly/)
 * `dm42-webactivator-0.4.2`-Bundle - [Source Code](https://github.com/jri/dm4-webactivator), [Nightly Build](http://download.deepamehta.de/nightly/)
 
 ## Download and Installation
