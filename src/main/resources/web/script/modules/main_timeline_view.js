@@ -20,13 +20,6 @@ define(
 
             render_details_in_list: function (item) {
 
-                /** var $container = $('#' + item.id)
-                    $container.click(function (e) {
-                        return undefined
-                    })
-                    $container.attr('data-bind', 'click: javascript:void();') **/
-                // ### destroy ko-click binding
-
                 var $body = $('#' + item.id + ' div.body')
                 var item_html = ""
 
@@ -74,7 +67,9 @@ define(
                         item_url = item.composite['org.deepamehta.moodle.item_url'].value
                         // provision of smart url-command
                         if (item_url.indexOf("youtu") != -1) {
-                            console.log("### Youtube Video!!")
+                            item_html += '<iframe src="http://' +item_url+ '" frameborder="0" '
+                                + 'class="player" width="560" height="315" allowfullscreen></iframe>'
+                                // + '<a href="' +item_href+ '" class="command">View in ISIS 2</a>'
                             item_html += '<a href="http://' +item_url+ '" target="_blank" '
                                 + 'class="command">Watch on Youtube</a>'
                                 // + '<a href="' +item_href+ '" class="command">View in ISIS 2</a>'
