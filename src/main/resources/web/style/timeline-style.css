@@ -78,7 +78,6 @@
     margin-left: 0px;
     padding-left: 0px;
     padding-right: 200px;
-    padding-top: 25px;
 }
 
 .eduzen ul.note-list li.item {
@@ -96,6 +95,10 @@
 .eduzen li.item .note-container .username,
 .eduzen li.item .note-container .timestamp {
     font-size: small;
+}
+
+.eduzen li.item .body span img {
+    margin-right: 10px;
 }
 
 .eduzen li.item .note-container img {
@@ -122,12 +125,12 @@
     color: #0782C1;
 }
 
-.eduzen li.item .note-container .body img {
+.eduzen li.item .body img {
     float: none;
     margin-top: 5px;
 }
 
-.eduzen li.item .note-container .body a.command {
+.eduzen li.item .body a.command {
     padding: 5px;
     padding-left: 7px;
     padding-right: 7px;
@@ -135,23 +138,23 @@
     margin-right: 10px;
 }
 
-.eduzen li.item .note-container .body a:hover {
+.eduzen li.item .body a:hover {
     text-decoration: underline;
 }
 
-.eduzen li.item .note-container .body a.command:active {
+.eduzen li.item .body a.command:active {
     color: #fff;
 }
 
-.eduzen li.item .note-container .body a.command:hover {
+.eduzen li.item .body a.command:hover {
     text-decoration: none;
 }
 
-.eduzen li.item .note-container .body .label {
+.eduzen li.item .body .label {
     margin-right: 10px;
 }
 
-.eduzen li.item .note-container .body .tag {
+.eduzen li.item .body .tag {
     padding-right: 10px;
 }
 
@@ -175,7 +178,7 @@
     border-right: 3px solid #a9a9a9;
 } **/
 
-.eduzen li.item .note-container .body {
+.eduzen li.item .body {
     display: none;
     overflow: hidden;
     font-size: 14px;

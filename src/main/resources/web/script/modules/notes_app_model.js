@@ -37,7 +37,7 @@ define(["knockout", "modules/notes_route"], function (ko, page_route) {
 
     var update_selected_item = function (item) {
         selected_item(item)
-        console.log("Selected item " + selected_item().id)
+        // console.log("Selected item " + selected_item().id)
     }
 
     var date_format = function (timestamp) {
@@ -85,6 +85,7 @@ define(["knockout", "modules/notes_route"], function (ko, page_route) {
         click_list_item: function (list_item) {
             update_selected_item(list_item)
             page_route.show_item_content(list_item)
+            return true
         },
         get_selected_item: selected_item,
         get_timestamp_option: function () {

@@ -71,98 +71,103 @@
             <ul data-bind="foreach: get_items()" class="note-list">
 
                     <!-- ko if: $data.type_uri === 'org.deepamehta.resources.resource' -->
-                    <li class="item">
+                    <li class="item" data-bind="attr: { id: $data.id }">
                         <div class="note-container notiz"
-                             data-bind="click: $parent.click_list_item, attr: { id: $data.id }">
+                             data-bind="click: $parent.click_list_item">
                             <img src="/org.deepamehta.eduzen-tagging-notes/images/black_32.png"
                                 class="type-icon" alt="Notes Icon" title="HTML Beitrag"/>
                             <span data-bind="text: 'Notiz von ' +
-                                    new Date($data.composite['dm4.time.created'].value)" class="name"></span>
-                            <div class="body"></div>
-                            <br/>
-                            <span data-bind="text: 'Zuletzt bearbeitet am '
-                                + new Date($data.composite['dm4.time.modified'].value)" class="timestamp"></span>
-                            <!-- ko if: $data.composite['dm4.accesscontrol.user_account'] -->
-                                <span data-bind="text: ' von '
-                                    + $data.composite['dm4.accesscontrol.user_account'].value" class="username"></span>
-                            <!-- /ko -->
+                                new Date($data.composite['dm4.time.created'].value)" class="name"></span>
                         </div>
+
+                        <div class="body"></div>
+                        <br/>
+                        <span data-bind="text: 'Zuletzt bearbeitet am '
+                            + new Date($data.composite['dm4.time.modified'].value)" class="timestamp"></span>
+                        <!-- ko if: $data.composite['dm4.accesscontrol.user_account'] -->
+                            <span data-bind="text: ' von '
+                                + $data.composite['dm4.accesscontrol.user_account'].value" class="username"></span>
+                        <!-- /ko -->
                     </li>
                     <!-- /ko -->
 
                     <!-- ko if: $data.type_uri === 'org.deepamehta.moodle.item' -->
-                    <li class="item">
+                    <li class="item" data-bind="attr: { id: $data.id }">
                         <div class="note-container moodle-item"
-                             data-bind="click: $parent.click_list_item, attr: { id: $data.id }">>
+                             data-bind="click: $parent.click_list_item">
                             <img src="/org.deepamehta.moodle-plugin/images/page-icon.png"
                                  class="type-icon" alt="Moodle Item Icon" title="ISIS 2 Arbeitsmaterial"/>
                             <span data-bind="text: $data.value" class="name"></span>
-                            <div class="body"></div>
-                            <br/>
-                            <span data-bind="text: 'Zuletzt bearbeitet am '
-                                + new Date($data.composite['dm4.time.modified'].value)" class="timestamp"></span>
-                            <!-- ko if: $data.composite['dm4.accesscontrol.user_account'] -->
-                                <span data-bind="text: ' von '
-                                    + $data.composite['dm4.accesscontrol.user_account'].value" class="username"></span>
-                            <!-- /ko -->
                         </div>
+
+                        <div class="body"></div>
+                        <br/>
+                        <span data-bind="text: 'Zuletzt bearbeitet am '
+                            + new Date($data.composite['dm4.time.modified'].value)" class="timestamp"></span>
+                        <!-- ko if: $data.composite['dm4.accesscontrol.user_account'] -->
+                            <span data-bind="text: ' von '
+                                + $data.composite['dm4.accesscontrol.user_account'].value" class="username"></span>
+                        <!-- /ko -->
                     </li>
                     <!-- /ko -->
 
                     <!-- ko if: $data.type_uri === 'org.deepamehta.moodle.course' -->
-                    <li class="item">
+                    <li class="item" data-bind="attr: { id: $data.id }">
                         <div class="note-container course"
-                              data-bind="click: $parent.click_list_item, attr: { id: $data.id }">>
+                             data-bind="click: $parent.click_list_item">
                             <img src="/org.deepamehta.moodle-plugin/images/ball-orange.png"
                                  class="type-icon" alt="Moodle Course Icon" title="ISIS 2 Kurs"/>
                             <span data-bind="text: $data.value" class="name"></span>
-                            <div class="body"></div>
-                            <br/>
-                            <span data-bind="text: 'Zuletzt bearbeitet am '
-                                + new Date($data.composite['dm4.time.modified'].value)" class="timestamp"></span>
-                            <!-- ko if: $data.composite['dm4.accesscontrol.user_account'] -->
-                                <span data-bind="text: ' von '
-                                    + $data.composite['dm4.accesscontrol.user_account'].value" class="username"></span>
-                            <!-- /ko -->
                         </div>
+
+                        <div class="body"></div>
+                        <br/>
+                        <span data-bind="text: 'Zuletzt bearbeitet am '
+                            + new Date($data.composite['dm4.time.modified'].value)" class="timestamp"></span>
+                        <!-- ko if: $data.composite['dm4.accesscontrol.user_account'] -->
+                            <span data-bind="text: ' von '
+                                + $data.composite['dm4.accesscontrol.user_account'].value" class="username"></span>
+                        <!-- /ko -->
                     </li>
                     <!-- /ko -->
 
                     <!-- ko if: $data.type_uri === 'dm4.files.file' -->
-                    <li class="item">
+                    <li class="item" data-bind="attr: { id: $data.id }">
                         <div class="note-container file"
-                             data-bind="click: $parent.click_list_item, attr: { id: $data.id }">
+                             data-bind="click: $parent.click_list_item">
                             <img src="/de.deepamehta.files/images/sheet.png"
                                  class="type-icon" alt="Notizen File Icon" title="Dateiupload"/>
                             <span data-bind="text: $data.value" class="name"></span>
                             <br/>
-                            <div class="body"></div>
-                            <br/>
-                            <span data-bind="text: 'Zuletzt bearbeitet am '
-                                + new Date($data.composite['dm4.time.modified'].value)" class="timestamp"></span>
-                            <!-- ko if: $data.composite['dm4.accesscontrol.user_account'] -->
-                                <span data-bind="text: ' von '
-                                    + $data.composite['dm4.accesscontrol.user_account'].value" class="username"></span>
-                            <!-- /ko -->
                         </div>
+
+                        <div class="body"></div>
+                        <br/>
+                        <span data-bind="text: 'Zuletzt bearbeitet am '
+                            + new Date($data.composite['dm4.time.modified'].value)" class="timestamp"></span>
+                        <!-- ko if: $data.composite['dm4.accesscontrol.user_account'] -->
+                            <span data-bind="text: ' von '
+                                + $data.composite['dm4.accesscontrol.user_account'].value" class="username"></span>
+                        <!-- /ko -->
                     </li>
                     <!-- /ko -->
 
                     <!-- ko if: $data.type_uri === 'dm4.tags.tag' -->
-                    <li class="item">
+                    <li class="item" data-bind="attr: { id: $data.id }">
                         <div class="note-container tag">
                             <img src="/de.deepamehta.tags/images/tag_32.png" alt="Tag Icon"
                                  class="type-icon" title="Tag"/>
                             <span data-bind="text: $data.value" class="name"></span>
-                            <div class="body"></div>
-                            <br/>
-                            <span data-bind="text: 'Zuletzt bearbeitet am '
-                                + new Date($data.composite['dm4.time.modified'].value)" class="timestamp"></span>
-                            <!-- ko if: $data.composite['dm4.accesscontrol.user_account'] -->
-                                <span data-bind="text: ' von '
-                                    + $data.composite['dm4.accesscontrol.user_account'].value" class="username"></span>
-                            <!-- /ko -->
                         </div>
+
+                        <div class="body"></div>
+                        <br/>
+                        <span data-bind="text: 'Zuletzt bearbeitet am '
+                            + new Date($data.composite['dm4.time.modified'].value)" class="timestamp"></span>
+                        <!-- ko if: $data.composite['dm4.accesscontrol.user_account'] -->
+                            <span data-bind="text: ' von '
+                                + $data.composite['dm4.accesscontrol.user_account'].value" class="username"></span>
+                        <!-- /ko -->
                     </li>
                     <!-- /ko -->
 
