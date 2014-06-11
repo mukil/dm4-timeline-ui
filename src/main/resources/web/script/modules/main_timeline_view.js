@@ -67,8 +67,8 @@ define(
                         item_url = item.composite['org.deepamehta.moodle.item_url'].value
                         // provision of smart url-command
                         if (item_url.indexOf("youtu") != -1) {
-                            item_html += '<iframe src="http://' +item_url+ '" frameborder="0" '
-                                + 'class="player" width="560" height="315" allowfullscreen></iframe>'
+                            item_html += '<br/><iframe src="http://' +item_url+ '" frameborder="0" '
+                                + 'class="player" width="560" height="315" allowfullscreen></iframe><br/>'
                                 // + '<a href="' +item_href+ '" class="command">View in ISIS 2</a>'
                             item_html += '<a href="http://' +item_url+ '" target="_blank" '
                                 + 'class="command">Watch on Youtube</a>'
